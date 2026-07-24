@@ -1,1 +1,251 @@
 @import "tailwindcss";
+
+/* ════════════════════════════════════════════════
+   Local Fonts
+   ════════════════════════════════════════════════ */
+
+/* G마켓 산스 — 한글 폴백 폰트 (Light / Medium / Bold 3종) */
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff") format("woff");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Gmarket Sans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ════════════════════════════════════════════════
+   Palette Layer — 고정 원색 (절대 변하지 않음)
+   테마 정의 시 참조용으로만 사용
+   ════════════════════════════════════════════════ */
+:root {
+  --palette-mustard: #ffc93c;
+  --palette-pink:    #ff57a6;
+  --palette-mint:    #7fe0bb;
+  --palette-blue:    #9fd3f5;
+  --palette-peach:   #ffb784;
+  --palette-cream:   #fff7e6;
+  --palette-ink:     #111111;
+}
+
+/* ════════════════════════════════════════════════
+   Semantic Layer (@theme)
+   Tailwind 유틸리티 클래스 자동 생성:
+   bg-mustard, text-ink, font-headline 등
+   ════════════════════════════════════════════════ */
+@theme {
+  /* 색상 — 기본 (Y2K Bright) */
+  --color-mustard: var(--palette-mustard);
+  --color-pink:    var(--palette-pink);
+  --color-mint:    var(--palette-mint);
+  --color-blue:    var(--palette-blue);
+  --color-peach:   var(--palette-peach);
+  --color-cream:   var(--palette-cream);
+  --color-ink:     var(--palette-ink);
+
+  /* 폰트 */
+  /* 영문 → 각 라틴 폰트, 한글 → G마켓 산스 자동 폴백 */
+  --font-headline: "Gmarket Sans","Archivo Black",  sans-serif;
+  --font-sub:      "Gmarket Sans","Space Grotesk", sans-serif;
+  --font-body:     "Gmarket Sans","Space Mono", monospace;
+  /* 픽셀 폰트: DotGothic16 단일 (한글 완전 지원) */
+  --font-pixel:    "DotGothic16", monospace;
+
+  /* 그림자 */
+  --shadow-sm: 3px 3px 0 var(--color-ink);
+  --shadow-md: 5px 5px 0 var(--color-ink);
+  --shadow-lg: 8px 8px 0 var(--color-ink);
+}
+
+/* ════════════════════════════════════════════════
+   Theme Overrides — data-theme 속성으로 런타임 전환
+   bg-mustard 등 모든 Tailwind 클래스가 자동으로 새 값 참조
+   ════════════════════════════════════════════════ */
+
+/* Pastel — 파스텔 톤 */
+[data-theme="pastel"] {
+  --color-mustard: #ffe082;
+  --color-pink:    #f48fb1;
+  --color-mint:    #a5d6a7;
+  --color-blue:    #b3e5fc;
+  --color-peach:   #ffcc80;
+  --color-cream:   #fafafa;
+  --color-ink:     #222222;
+}
+
+/* Dark — 다크 모드 */
+[data-theme="dark"] {
+  --color-mustard: #e6b400;
+  --color-pink:    #e91e8c;
+  --color-mint:    #4db6ac;
+  --color-blue:    #42a5f5;
+  --color-peach:   #ff8a65;
+  --color-cream:   #1a1a1a;
+  --color-ink:     #f5f5f5;
+}
+
+/* Mono — 흑백 */
+[data-theme="mono"] {
+  --color-mustard: #e0e0e0;
+  --color-pink:    #9e9e9e;
+  --color-mint:    #bdbdbd;
+  --color-blue:    #d5d5d5;
+  --color-peach:   #c8c8c8;
+  --color-cream:   #fafafa;
+  --color-ink:     #111111;
+}
+
+/* ════════════════════════════════════════════════
+   @utility — 반복 패턴을 단일 클래스로
+   ════════════════════════════════════════════════ */
+
+/* 보더 */
+@utility neo-border {
+  border: 3px solid var(--color-ink);
+}
+@utility neo-border-4 {
+  border: 4px solid var(--color-ink);
+}
+
+/* 섀도우 — inline style 대신 클래스로 사용 */
+@utility neo-shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+@utility neo-shadow-md {
+  box-shadow: var(--shadow-md);
+}
+@utility neo-shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* 픽셀 배지 */
+@utility pixel-badge {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 3px 7px;
+  background: var(--color-ink);
+  color: var(--color-mustard);
+  white-space: nowrap;
+}
+@utility pixel-badge-muted {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 3px 7px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+@utility pixel-badge-pro {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 4px 8px;
+  background: var(--color-mustard);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+
+/* 반응형 그리드 */
+@utility neo-grid-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+@utility neo-grid-md {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+/* 공통 입력 필드 */
+@utility neo-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 3px solid var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 13px;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* ════════════════════════════════════════════════
+   .neo-btn — CSS 변수 기반 hover/active
+   JS DOM 조작 완전 제거. --neo-shadow 변수를 element에 주입하면
+   calc()로 hover(+2px) / active(-2px) 처리
+   ════════════════════════════════════════════════ */
+.neo-btn {
+  --_s: var(--neo-shadow, 5px);
+  --_c: var(--neo-shadow-color, #111);
+  box-shadow: var(--_s) var(--_s) 0 var(--_c);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.neo-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: calc(var(--_s) + 2px) calc(var(--_s) + 2px) 0 var(--_c);
+}
+.neo-btn:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: calc(var(--_s) - 2px) calc(var(--_s) - 2px) 0 var(--_c);
+}
+
+/* ════════════════════════════════════════════════
+   .neo-card-lift — useState 없는 순수 CSS lift 효과
+   ════════════════════════════════════════════════ */
+.neo-card-lift {
+  --_s: var(--neo-shadow, 6px);
+  --_c: var(--neo-shadow-color, #111);
+  box-shadow: var(--_s) var(--_s) 0 var(--_c);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.neo-card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: calc(var(--_s) + 3px) calc(var(--_s) + 3px) 0 var(--_c);
+}
+
+/* ════════════════════════════════════════════════
+   Base + Keyframes
+   ════════════════════════════════════════════════ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    margin: 0;
+    padding: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-headline);
+  }
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes progress {
+  0%   { width: 0%; }
+  60%  { width: 80%; }
+  80%  { width: 85%; }
+  100% { width: 0%; }
+}
