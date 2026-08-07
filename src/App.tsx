@@ -59,11 +59,11 @@ export default function App() {
         {/* 에디터 (레이아웃 없음 — 풀스크린) */}
         <Route path="/editor/:siteId" element={<SiteEditorPage />} />
 
-        {/* 고객용 앱 */}
-        <Route path="/*" element={<CustomerApp />} />
-
-        {/* 관리자용 앱 */}
+        {/* 관리자용 앱 — 와일드카드보다 먼저 매칭 */}
         <Route path="/master/*" element={<MasterApp />} />
+
+        {/* 고객용 앱 (fallback) */}
+        <Route path="/*" element={<CustomerApp />} />
       </Routes>
     </BrowserRouter>
   );
