@@ -36,7 +36,7 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
             <rect x="5" y="12" width="6" height="2" fill="#FFC93C" />
           </svg>
           <div>
-            <div className="font-headline text-base text-cream">JoyCraft</div>
+            <div className="font-pixel text-base text-cream">JoyCraft</div>
             <div className="font-pixel text-[8px] text-mustard mt-0.5">MASTER</div>
           </div>
         </div>

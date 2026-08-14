@@ -18,23 +18,6 @@ const navItems = [
   { to: "/settings",  icon: "gear" as const, label: "설정" },
 ];
 
-// 픽셀 하트 로고 SVG
-function LogoIcon({ size = 24, fill = "#FF57A6" }: { size?: number; fill?: string }) {
-  return (
-    <svg width={size} height={Math.round(size * 14 / 16)} viewBox="0 0 16 14" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="1" y="0" width="4" height="2" fill={fill} />
-      <rect x="6" y="0" width="4" height="2" fill={fill} />
-      <rect x="11" y="0" width="4" height="2" fill={fill} />
-      <rect x="0" y="2" width="16" height="2" fill={fill} />
-      <rect x="0" y="4" width="16" height="2" fill={fill} />
-      <rect x="1" y="6" width="14" height="2" fill={fill} />
-      <rect x="2" y="8" width="12" height="2" fill={fill} />
-      <rect x="3" y="10" width="10" height="2" fill={fill} />
-      <rect x="5" y="12" width="6" height="2" fill={fill} />
-    </svg>
-  );
-}
-
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
 
@@ -49,8 +32,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           className="flex items-center gap-2.5 mb-8 bg-transparent border-none cursor-pointer p-0"
           onClick={() => navigate("/dashboard")}
         >
-          <LogoIcon size={28} fill="#FF57A6" />
-          <span className="font-headline text-[22px] text-cream" style={{ letterSpacing: -0.5 }}>
+          <span className="font-pixel text-[32px] text-cream" style={{ letterSpacing: -0.5 }}>
             JoyCraft
           </span>
         </button>
