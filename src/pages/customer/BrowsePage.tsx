@@ -1,9 +1,11 @@
 // 페이지 둘러보기 — 템플릿 검색 + 카테고리 필터 + 카드 그리드
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 import SearchInput from "../../components/ui/SearchInput";
 import TemplateCard from "../../components/ui/TemplateCard";
+import { fetchTemplates, fetchCategories } from "../../api/templates";
+import type { TemplateListResponse } from "../../types/api";
 
 // 카테고리 pill — rounded-full 스타일로 TabBar와 별도 유지
 const pillVariants = cva(
@@ -18,27 +20,25 @@ const pillVariants = cva(
   }
 );
 
-const CATEGORIES = ["전체", "생일", "기념일", "고백", "감사", "응원"];
-
-const TEMPLATES = [
-  { id: "t1", title: '"나 좋아해?" Q&A', category: "고백",   emoji: "💬", price: "FREE" as const, bg: "bg-mustard" },
-  { id: "t2", title: "펼쳐지는 꽃다발",  category: "기념일", emoji: "🌸", price: "FREE" as const, bg: "bg-pink" },
-  { id: "t3", title: "열리는 편지지",    category: "감사",   emoji: "💌", price: "FREE" as const, bg: "bg-mint" },
-  { id: "t4", title: "사진 갤러리",      category: "생일",   emoji: "🖼️", price: "FREE" as const, bg: "bg-blue" },
-  { id: "t5", title: "날짜 타임라인",    category: "기념일", emoji: "📅", price: "PRO"  as const, bg: "bg-peach" },
-  { id: "t6", title: "응원 메시지 카드", category: "응원",   emoji: "📣", price: "FREE" as const, bg: "bg-cream" },
-  { id: "t7", title: "깜짝 선물 박스",   category: "생일",   emoji: "🎁", price: "PRO"  as const, bg: "bg-mustard" },
-  { id: "t8", title: "별자리 지도",      category: "기념일", emoji: "✨", price: "PRO"  as const, bg: "bg-blue" },
-];
+const BG_COLORS = ["bg-mustard", "bg-pink", "bg-mint", "bg-blue", "bg-peach", "bg-cream"];
 
 export default function BrowsePage() {
   const [category, setCategory] = useState("전체");
   const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<string[]>(["전체"]);
+  const [templates, setTemplates] = useState<TemplateListResponse[]>([]);
 
-  const filtered = TEMPLATES.filter((t) => {
-    const matchCat    = category === "전체" || t.category === category;
-    const matchSearch = t.title.includes(search) || t.category.includes(search);
-    return matchCat && matchSearch;
+  useEffect(() => {
+    fetchCategories().then((cats) => setCategories(["전체", ...cats])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchTemplates(category, search).then(setTemplates).catch(() => {});
+  }, [category, search]);
+
+  const filtered = templates.filter((t) => {
+    if (!search) return true;
+    return t.name.includes(search) || t.category.includes(search);
   });
 
   return (
@@ -56,7 +56,7 @@ export default function BrowsePage() {
 
       {/* 카테고리 pill 필터 */}
       <div className="flex gap-2.5 flex-wrap mb-7">
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
@@ -72,8 +72,16 @@ export default function BrowsePage() {
 
       {/* 템플릿 그리드 */}
       <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
-        {filtered.map((t) => (
-          <TemplateCard key={t.id} {...t} />
+        {filtered.map((t, i) => (
+          <TemplateCard
+            key={t.id}
+            id={t.id}
+            title={t.name}
+            category={t.category}
+            emoji="🎨"
+            price={t.pricing === "free" ? "FREE" : "PRO"}
+            bg={BG_COLORS[i % BG_COLORS.length]}
+          />
         ))}
       </div>
 

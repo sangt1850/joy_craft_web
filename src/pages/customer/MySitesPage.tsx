@@ -1,11 +1,13 @@
 // 내 사이트 페이지 — 전체/공개/초안 필터 + 사이트 카드 그리드
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PixelIcon from "../../components/ui/PixelIcon";
 import NeoButton from "../../components/ui/NeoButton";
 import SiteCard from "../../components/ui/SiteCard";
 import TabBar from "../../components/ui/TabBar";
 import SectionHeader from "../../components/ui/SectionHeader";
+import { useSiteStore } from "../../store/siteStore";
+import { createSite, deleteSite } from "../../api/sites";
 
 type FilterTab = "전체" | "공개" | "초안";
 
@@ -15,17 +17,36 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
   { id: "초안", label: "초안" },
 ];
 
-const SITES = [
-  { id: "site-1", title: "승현이 생일 🎂", pages: 4, status: "공개", bg: "bg-blue" },
-  { id: "site-2", title: "우리 1주년 💕",  pages: 6, status: "공개", bg: "bg-pink" },
-  { id: "site-3", title: "엄마 환갑 🎉",   pages: 3, status: "초안", bg: "bg-mint" },
-];
-
 export default function MySitesPage() {
   const navigate = useNavigate();
+  const { sites, loadSites } = useSiteStore();
   const [filter, setFilter] = useState<FilterTab>("전체");
 
-  const filtered = SITES.filter((s) => filter === "전체" || s.status === filter);
+  useEffect(() => {
+    loadSites();
+  }, []);
+
+  const filtered = sites.filter((s) => {
+    if (filter === "전체") return true;
+    if (filter === "공개") return s.status === "PUBLISHED";
+    if (filter === "초안") return s.status === "DRAFT";
+    return true;
+  });
+
+  const handleNewSite = async () => {
+    try {
+      const site = await createSite("새 사이트");
+      navigate(`/editor/${site.id}`);
+    } catch {
+      navigate("/editor/new");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("사이트를 삭제할까요?")) return;
+    await deleteSite(id);
+    loadSites();
+  };
 
   return (
     <div className="px-7 py-8 max-w-[900px] mx-auto">
@@ -37,7 +58,7 @@ export default function MySitesPage() {
         as="h1"
         className="mb-7"
         action={
-          <NeoButton bg="var(--color-pink)" size="sm" onClick={() => navigate("/editor/new")}>
+          <NeoButton bg="var(--color-pink)" size="sm" onClick={handleNewSite}>
             <span className="flex items-center gap-1.5">
               <PixelIcon name="plus" size={12} fill="#fff" />
               새 사이트
@@ -59,7 +80,11 @@ export default function MySitesPage() {
         {filtered.map((s) => (
           <SiteCard
             key={s.id}
-            {...s}
+            id={s.id}
+            title={s.title}
+            pages={s.slideCount}
+            status={s.status === "PUBLISHED" ? "공개" : "초안"}
+            bg={s.bgColor}
             thumbHeight={140}
             onEdit={(id) => navigate(`/editor/${id}`)}
           />
@@ -67,7 +92,7 @@ export default function MySitesPage() {
 
         {/* 새 사이트 만들기 카드 */}
         <button
-          onClick={() => navigate("/editor/new")}
+          onClick={handleNewSite}
           className="neo-border cursor-pointer min-h-[260px] flex flex-col items-center justify-center gap-3 hover:bg-black/5 transition-colors neo-shadow-md"
           style={{ background: "transparent", outline: "none" }}
         >

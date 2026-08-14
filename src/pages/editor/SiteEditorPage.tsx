@@ -1,31 +1,22 @@
 // 사이트 에디터 — 상단 헤더 + 좌측 페이지 목록 + 가운데 프리뷰 + 우측 편집 패널
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import NeoButton from "../../components/ui/NeoButton";
+import RunAwayButton from "../../components/ui/RunAwayButton";
 import NeoCard from "../../components/ui/NeoCard";
 import PixelIcon from "../../components/ui/PixelIcon";
 import ToggleSwitch from "../../components/ui/ToggleSwitch";
 import ColorPicker from "../../components/ui/ColorPicker";
 import DashedButton from "../../components/ui/DashedButton";
+import { useEditorStore } from "../../store/editorStore";
+import { createSite } from "../../api/sites";
+import { publishSite } from "../../api/editor";
 
 type Device    = "mobile" | "desktop";
 type MobileTab = "preview" | "edit" | "info";
 
 const PAGE_COLORS = ["bg-pink", "bg-mustard", "bg-mint", "bg-blue"];
-
-interface Page {
-  id: string;
-  name: string;
-  colorIdx: number;
-}
-
-const DEFAULT_PAGES: Page[] = [
-  { id: "p1", name: "질문",   colorIdx: 0 },
-  { id: "p2", name: "편지",   colorIdx: 1 },
-  { id: "p3", name: "꽃다발", colorIdx: 2 },
-  { id: "p4", name: "갤러리", colorIdx: 3 },
-];
 
 const MOBILE_TABS: { id: MobileTab; label: string }[] = [
   { id: "preview", label: "미리보기" },
@@ -47,24 +38,53 @@ export default function SiteEditorPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const navigate   = useNavigate();
 
-  const [pages, setPages]               = useState<Page[]>(DEFAULT_PAGES);
-  const [selectedPage, setSelectedPage] = useState("p1");
-  const [device, setDevice]             = useState<Device>("mobile");
-  const [mobileTab, setMobileTab]       = useState<MobileTab>("preview");
-  const [saved, setSaved]               = useState(true);
+  const { site, selectedSlideId, isSaving, isDirty, loadSite, selectSlide, updateSlideOverrides, updateTitle } = useEditorStore();
 
-  const [questionText, setQuestionText] = useState("나 좋아해? 💕");
-  const [yesText, setYesText]           = useState("응 ♥");
-  const [noText, setNoText]             = useState("아니");
-  const [yesColor, setYesColor]         = useState("var(--color-mustard)");
-  const [dotBg, setDotBg]               = useState(true);
+  const [device, setDevice]       = useState<Device>("mobile");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("preview");
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  const addPage = () => {
-    const id = `p${Date.now()}`;
-    setPages((p) => [...p, { id, name: `페이지 ${p.length + 1}`, colorIdx: p.length % 4 }]);
-    setSelectedPage(id);
-    setSaved(false);
+  useEffect(() => {
+    if (siteId && siteId !== "new") {
+      loadSite(siteId);
+    } else if (siteId === "new") {
+      // new 사이트 생성 후 리다이렉트
+      createSite("새 사이트").then((s) => {
+        navigate(`/editor/${s.id}`, { replace: true });
+      }).catch(() => {});
+    }
+  }, [siteId]);
+
+  const selectedSlide = site?.slides.find((s) => s.id === selectedSlideId);
+  const overrides = selectedSlide ? { ...selectedSlide.defaultValues, ...selectedSlide.overrides } : {};
+
+  const questionText = String(overrides["questionText"] ?? "오늘 하루 즐거웠나요?");
+  const yesText      = String(overrides["yesText"]      ?? "네!");
+  const noText       = String(overrides["noText"]       ?? "아니요");
+  const yesColor     = String(overrides["yesColor"]     ?? "var(--color-mustard)");
+  const dotBg        = Boolean(overrides["dotBg"]       ?? true);
+
+  const setOverride = (key: string, value: unknown) => {
+    if (!selectedSlideId) return;
+    updateSlideOverrides(selectedSlideId, { [key]: value });
   };
+
+  const handlePublish = async () => {
+    if (!site) return;
+    setIsPublishing(true);
+    try {
+      const result = await publishSite(site.id);
+      const link = window.location.origin + result.url;
+      await navigator.clipboard.writeText(link).catch(() => {});
+      alert(`링크가 복사되었습니다!\n${link}`);
+    } catch {
+      alert("게시에 실패했습니다.");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const pages = site?.slides ?? [];
 
   return (
     <div className="flex flex-col h-screen bg-[#F5F0E8] overflow-hidden">
@@ -79,11 +99,11 @@ export default function SiteEditorPage() {
         </button>
 
         <div className="flex-1 font-headline text-base text-center truncate">
-          {siteId === "new" ? "새 사이트" : "내 사이트"}
+          {site?.title ?? (siteId === "new" ? "새 사이트" : "로딩 중...")}
         </div>
 
-        <div className={cn("font-body text-[11px] shrink-0", saved ? "text-mint" : "text-peach")}>
-          {saved ? "✓ 저장됨" : "저장 중..."}
+        <div className={cn("font-body text-[11px] shrink-0", isDirty || isSaving ? "text-peach" : "text-mint")}>
+          {isSaving ? "저장 중..." : isDirty ? "미저장" : "✓ 저장됨"}
         </div>
 
         {/* 디바이스 토글 (데스크탑만) */}
@@ -104,7 +124,15 @@ export default function SiteEditorPage() {
 
         <div className="flex gap-2 shrink-0">
           <NeoButton bg="var(--color-mint)" color="#111" size="sm" shadow={3}>미리보기</NeoButton>
-          <NeoButton bg="var(--color-pink)" size="sm" shadow={3}>공유</NeoButton>
+          <NeoButton
+            bg="var(--color-pink)"
+            size="sm"
+            shadow={3}
+            onClick={handlePublish}
+            disabled={isPublishing}
+          >
+            {isPublishing ? "..." : "공유"}
+          </NeoButton>
         </div>
       </header>
 
@@ -136,10 +164,10 @@ export default function SiteEditorPage() {
             {pages.map((page, idx) => (
               <div
                 key={page.id}
-                onClick={() => setSelectedPage(page.id)}
+                onClick={() => selectSlide(page.id)}
                 className={cn(
                   "flex items-center gap-2.5 px-[10px] py-[9px] mb-1 rounded-md border-2 cursor-pointer",
-                  selectedPage === page.id
+                  selectedSlideId === page.id
                     ? "bg-ink border-ink"
                     : "bg-transparent border-transparent hover:bg-black/5"
                 )}
@@ -147,7 +175,7 @@ export default function SiteEditorPage() {
                 <div
                   className={cn(
                     "w-[22px] h-[22px] neo-border flex items-center justify-center shrink-0 font-pixel text-[8px] text-ink",
-                    PAGE_COLORS[page.colorIdx]
+                    PAGE_COLORS[idx % PAGE_COLORS.length]
                   )}
                 >
                   {idx + 1}
@@ -155,16 +183,16 @@ export default function SiteEditorPage() {
                 <span
                   className={cn(
                     "font-sub text-[13px] truncate",
-                    selectedPage === page.id ? "text-cream" : "text-ink"
+                    selectedSlideId === page.id ? "text-cream" : "text-ink"
                   )}
                 >
-                  {page.name}
+                  {page.templateName}
                 </span>
               </div>
             ))}
           </div>
           <div className="px-3 pb-3">
-            <DashedButton onClick={addPage}>페이지 추가</DashedButton>
+            <DashedButton onClick={() => alert("템플릿 선택 기능 준비 중")}>페이지 추가</DashedButton>
           </div>
         </aside>
 
@@ -211,7 +239,7 @@ export default function SiteEditorPage() {
               </p>
               <div className="flex gap-[14px] flex-wrap justify-center">
                 <NeoButton bg={yesColor} color="#111" size="md">{yesText}</NeoButton>
-                <NeoButton bg="var(--color-cream)" color="#111" size="md">{noText}</NeoButton>
+                <RunAwayButton bg="var(--color-cream)" color="#111" size="md">{noText}</RunAwayButton>
               </div>
             </NeoCard>
           </div>
@@ -228,7 +256,7 @@ export default function SiteEditorPage() {
               <label className={LABEL_CLASS}>질문</label>
               <input
                 value={questionText}
-                onChange={(e) => { setQuestionText(e.target.value); setSaved(false); }}
+                onChange={(e) => setOverride("questionText", e.target.value)}
                 className="neo-input"
               />
             </div>
@@ -237,16 +265,16 @@ export default function SiteEditorPage() {
               <label className={LABEL_CLASS}>"예" 버튼</label>
               <input
                 value={yesText}
-                onChange={(e) => { setYesText(e.target.value); setSaved(false); }}
+                onChange={(e) => setOverride("yesText", e.target.value)}
                 className="neo-input"
               />
             </div>
 
             <div>
-              <label className={LABEL_CLASS}>"아니" 버튼</label>
+              <label className={LABEL_CLASS}>"아니요" 버튼</label>
               <input
                 value={noText}
-                onChange={(e) => { setNoText(e.target.value); setSaved(false); }}
+                onChange={(e) => setOverride("noText", e.target.value)}
                 className="neo-input"
               />
             </div>
@@ -255,19 +283,27 @@ export default function SiteEditorPage() {
               label='"예" 버튼 색상'
               colors={YES_COLORS}
               value={yesColor}
-              onChange={(c) => { setYesColor(c); setSaved(false); }}
+              onChange={(c) => setOverride("yesColor", c)}
             />
 
             <ToggleSwitch
               label="도트 배경"
               checked={dotBg}
-              onChange={(v) => { setDotBg(v); setSaved(false); }}
+              onChange={(v) => setOverride("dotBg", v)}
             />
           </div>
 
           {/* 공유 CTA */}
           <div className="px-4 py-3 border-t-[3px] border-ink bg-mustard">
-            <NeoButton bg="#111" color="#FFF7E6" block size="sm" shadow={4}>
+            <NeoButton
+              bg="#111"
+              color="#FFF7E6"
+              block
+              size="sm"
+              shadow={4}
+              onClick={handlePublish}
+              disabled={isPublishing}
+            >
               🔗 링크 만들어 공유
             </NeoButton>
           </div>

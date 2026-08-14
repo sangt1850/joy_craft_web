@@ -1,12 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./slides"; // 슬라이드 컴포넌트 전체 등록
 
 // 레이아웃
 import AppLayout from "./components/layout/AppLayout";
 import MasterLayout from "./components/layout/MasterLayout";
+import AuthGuard from "./components/auth/AuthGuard";
 
 // public pages
 import LandingPage from "./pages/public/LandingPage";
 import PlayerPage from "./pages/public/PlayerPage";
+import KakaoCallbackPage from "./pages/public/KakaoCallbackPage";
 
 // customer pages
 import DashboardPage from "./pages/customer/DashboardPage";
@@ -22,29 +25,33 @@ import MasterDashboardPage from "./pages/master/MasterDashboardPage";
 
 function CustomerApp() {
   return (
-    <AppLayout>
-      <Routes>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="sites" element={<MySitesPage />} />
-        <Route path="browse" element={<BrowsePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Routes>
-    </AppLayout>
+    <AuthGuard>
+      <AppLayout>
+        <Routes>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="sites" element={<MySitesPage />} />
+          <Route path="browse" element={<BrowsePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Routes>
+      </AppLayout>
+    </AuthGuard>
   );
 }
 
 function MasterApp() {
   return (
-    <MasterLayout>
-      <Routes>
-        <Route index element={<MasterDashboardPage />} />
-        <Route path="users" element={<MasterDashboardPage />} />
-        <Route path="sites" element={<MasterDashboardPage />} />
-        <Route path="templates" element={<MasterDashboardPage />} />
-        <Route path="settings" element={<MasterDashboardPage />} />
-      </Routes>
-    </MasterLayout>
+    <AuthGuard requiredRole="MASTER">
+      <MasterLayout>
+        <Routes>
+          <Route index element={<MasterDashboardPage />} />
+          <Route path="users" element={<MasterDashboardPage />} />
+          <Route path="sites" element={<MasterDashboardPage />} />
+          <Route path="templates" element={<MasterDashboardPage />} />
+          <Route path="settings" element={<MasterDashboardPage />} />
+        </Routes>
+      </MasterLayout>
+    </AuthGuard>
   );
 }
 
@@ -54,7 +61,8 @@ export default function App() {
       <Routes>
         {/* 공개 페이지 */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/play/:siteId" element={<PlayerPage />} />
+        <Route path="/play/:slug" element={<PlayerPage />} />
+        <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
 
         {/* 에디터 (레이아웃 없음 — 풀스크린) */}
         <Route path="/editor/:siteId" element={<SiteEditorPage />} />

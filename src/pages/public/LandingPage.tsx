@@ -7,6 +7,7 @@ import PixelIcon from "../../components/ui/PixelIcon";
 import TemplateCard from "../../components/ui/TemplateCard";
 import LoginModal from "../../components/ui/LoginModal";
 import RegisterModal from "../../components/ui/RegisterModal";
+import RunAwayButton from "../../components/ui/RunAwayButton";
 
 const TICKER_TEXT =
   "코딩 0 · 드래그로 조합 ✦ 받는 사람이 직접 눌러보는 선물 ✦ 30일 무료 ✦ " +
@@ -20,35 +21,20 @@ const HOW_IT_WORKS = [
 
 // 인기 컴포넌트 쇼케이스 (간단한 이모지 카드)
 const COMPONENTS = [
-  { title: '"나 좋아해?" Q&A', emoji: "💬", bg: "bg-mustard" },
-  { title: "펼쳐지는 꽃다발",  emoji: "🌸", bg: "bg-pink" },
-  { title: "열리는 편지지",    emoji: "💌", bg: "bg-mint" },
-  { title: "사진 넘기기 갤러리", emoji: "🖼️", bg: "bg-blue" },
-  { title: "날짜별 타임라인",   emoji: "📅", bg: "bg-peach" },
+  { title: "O/X 질문 카드",   emoji: "💬", bg: "bg-mustard" },
+  { title: "펼쳐지는 꽃다발", emoji: "🌸", bg: "bg-pink" },
+  { title: "열리는 편지지",   emoji: "💌", bg: "bg-mint" },
+  { title: "사진 갤러리",     emoji: "🖼️", bg: "bg-blue" },
+  { title: "날짜별 타임라인", emoji: "📅", bg: "bg-peach" },
 ];
 
 // 갤러리 — TemplateCard 재사용 (버튼 없음)
 const GALLERY = [
-  { id: "g1", title: "승현이 생일 🎂", bg: "bg-mustard", pages: 4, emoji: "🎁" },
-  { id: "g2", title: "엄마 환갑 🎉",   bg: "bg-mint",    pages: 6, emoji: "🎁" },
-  { id: "g3", title: "1주년 기념일 💕", bg: "bg-pink",    pages: 5, emoji: "🎁" },
+  { id: "g1", title: "친구 생일 파티 🎂",  bg: "bg-mustard", pages: 4, emoji: "🎁" },
+  { id: "g2", title: "감사 인사 전하기 🙏", bg: "bg-mint",    pages: 6, emoji: "🎁" },
+  { id: "g3", title: "특별한 기념일 🎊",    bg: "bg-pink",    pages: 5, emoji: "🎁" },
 ];
 
-function LogoPixel() {
-  return (
-    <svg width="24" height="21" viewBox="0 0 16 14" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="1" y="0" width="4" height="2" fill="#FF57A6" />
-      <rect x="6" y="0" width="4" height="2" fill="#FF57A6" />
-      <rect x="11" y="0" width="4" height="2" fill="#FF57A6" />
-      <rect x="0" y="2" width="16" height="2" fill="#FF57A6" />
-      <rect x="0" y="4" width="16" height="2" fill="#FF57A6" />
-      <rect x="1" y="6" width="14" height="2" fill="#FF57A6" />
-      <rect x="2" y="8" width="12" height="2" fill="#FF57A6" />
-      <rect x="3" y="10" width="10" height="2" fill="#FF57A6" />
-      <rect x="5" y="12" width="6" height="2" fill="#FF57A6" />
-    </svg>
-  );
-}
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -74,8 +60,7 @@ export default function LandingPage() {
       {/* 네비게이션 */}
       <nav className="flex items-center justify-between px-8 py-4 border-b-[3px] border-ink bg-cream sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
-          <LogoPixel />
-          <span className="font-headline text-[22px]">JoyCraft</span>
+          <span className="font-pixel text-[22px]">JoyCraft</span>
         </div>
         <div className="flex items-center gap-6">
           <a href="#how"        className="font-sub text-[14px] text-ink no-underline">작동방식</a>
@@ -105,7 +90,7 @@ export default function LandingPage() {
           </h1>
           <p className="font-body text-[16px] text-[#333] leading-[1.7] mb-9">
             코딩 없이 드래그만으로 인터랙티브 선물 사이트를 만드세요.
-            생일, 기념일, 고백... 어떤 순간도 특별하게.
+            생일, 기념일, 감사... 어떤 순간도 특별하게.
           </p>
           <div className="flex gap-4 flex-wrap">
             <NeoButton bg="var(--color-pink)" size="lg" onClick={() => setLoginOpen(true)}>
@@ -131,11 +116,11 @@ export default function LandingPage() {
             className="px-8 py-8 flex flex-col items-center gap-5 min-h-[220px]"
             style={{ background: "linear-gradient(160deg, #FFB784 0%, #FF57A6 100%)", width: 300 }}
           >
-            <PixelIcon name="heart" size={40} fill="#fff" />
-            <p className="font-headline text-[18px] text-white text-center m-0">나 좋아해? 💕</p>
+            <PixelIcon name="star" size={40} fill="#fff" />
+            <p className="font-headline text-[18px] text-white text-center m-0">오늘 하루 즐거웠나요? 🎉</p>
             <div className="flex gap-3">
-              <NeoButton bg="var(--color-mustard)" color="#111" size="sm">응 ♥</NeoButton>
-              <NeoButton bg="var(--color-cream)" color="#111" size="sm">아니</NeoButton>
+              <NeoButton bg="var(--color-mustard)" color="#111" size="sm">좋았어요!</NeoButton>
+              <RunAwayButton bg="var(--color-cream)" color="#111" size="sm">아니요</RunAwayButton>
             </div>
           </div>
         </NeoCard>
