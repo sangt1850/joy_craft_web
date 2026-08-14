@@ -4,6 +4,16 @@
    Local Fonts
    ════════════════════════════════════════════════ */
 
+/* 둥근모꼴 — 픽셀 폰트 */
+@font-face {
+  font-family: "DungGeunMo";
+  src: url("./assets/fonts/DungGeunMo.woff2") format("woff2"),
+       url("./assets/fonts/DungGeunMo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* G마켓 산스 — 한글 폴백 폰트 (Light / Medium / Bold 3종) */
 @font-face {
   font-family: "Gmarket Sans";
@@ -58,8 +68,8 @@
   --font-headline: "Gmarket Sans","Archivo Black",  sans-serif;
   --font-sub:      "Gmarket Sans","Space Grotesk", sans-serif;
   --font-body:     "Gmarket Sans","Space Mono", monospace;
-  /* 픽셀 폰트: DotGothic16 단일 (한글 완전 지원) */
-  --font-pixel:    "DotGothic16", monospace;
+  /* 픽셀 폰트: 둥근모꼴 (한글 완전 지원) */
+  --font-pixel:    "DungGeunMo", monospace;
 
   /* 그림자 */
   --shadow-sm: 3px 3px 0 var(--color-ink);
