@@ -13,6 +13,8 @@ interface SiteCardProps {
   thumbHeight?: number;
   onEdit?: (id: string | number) => void;
   onShare?: (id: string | number) => void;
+  /** 넘기면 카드에 삭제 버튼이 노출된다 */
+  onDelete?: (id: string | number) => void;
 }
 
 export default function SiteCard({
@@ -25,6 +27,7 @@ export default function SiteCard({
   thumbHeight = 130,
   onEdit,
   onShare,
+  onDelete,
 }: SiteCardProps) {
   return (
     <div
@@ -48,7 +51,7 @@ export default function SiteCard({
 
         <div className="font-body text-[11px] text-[#333] mb-3">{pages}페이지</div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <NeoButton
             bg="#111"
             size="sm"
@@ -66,6 +69,17 @@ export default function SiteCard({
           >
             공유
           </NeoButton>
+          {onDelete && (
+            <NeoButton
+              bg="var(--color-peach)"
+              color="#111"
+              size="sm"
+              shadow={3}
+              onClick={() => onDelete(id)}
+            >
+              삭제
+            </NeoButton>
+          )}
         </div>
       </div>
     </div>

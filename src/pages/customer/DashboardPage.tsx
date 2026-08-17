@@ -12,13 +12,17 @@ import { createSite } from "../../api/sites";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { sites, stats, loadSites, loadStats } = useSiteStore();
+  const user = useAuthStore((s) => s.user);
+  // 스토어 액션은 create() 시점에 한 번만 만들어지는 안정된 참조라 의존성에 넣어도 재실행되지 않는다
+  const sites = useSiteStore((s) => s.sites);
+  const stats = useSiteStore((s) => s.stats);
+  const loadSites = useSiteStore((s) => s.loadSites);
+  const loadStats = useSiteStore((s) => s.loadStats);
 
   useEffect(() => {
     loadSites();
     loadStats();
-  }, []);
+  }, [loadSites, loadStats]);
 
   const handleNewSite = async () => {
     try {

@@ -19,12 +19,14 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
 
 export default function MySitesPage() {
   const navigate = useNavigate();
-  const { sites, loadSites } = useSiteStore();
+  // 스토어 액션은 create() 시점에 한 번만 만들어지는 안정된 참조라 의존성에 넣어도 재실행되지 않는다
+  const sites = useSiteStore((s) => s.sites);
+  const loadSites = useSiteStore((s) => s.loadSites);
   const [filter, setFilter] = useState<FilterTab>("전체");
 
   useEffect(() => {
     loadSites();
-  }, []);
+  }, [loadSites]);
 
   const filtered = sites.filter((s) => {
     if (filter === "전체") return true;
@@ -42,10 +44,14 @@ export default function MySitesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("사이트를 삭제할까요?")) return;
-    await deleteSite(id);
-    loadSites();
+  const handleDelete = async (id: string | number) => {
+    if (!confirm("사이트를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    try {
+      await deleteSite(String(id));
+      loadSites();
+    } catch {
+      alert("삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -87,6 +93,7 @@ export default function MySitesPage() {
             bg={s.bgColor}
             thumbHeight={140}
             onEdit={(id) => navigate(`/editor/${id}`)}
+            onDelete={handleDelete}
           />
         ))}
 
