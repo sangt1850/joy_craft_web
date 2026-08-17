@@ -7,8 +7,9 @@
 /* 둥근모꼴 — 픽셀 폰트 */
 @font-face {
   font-family: "DungGeunMo";
-  src: url("./assets/fonts/DungGeunMo.woff2") format("woff2"),
-       url("./assets/fonts/DungGeunMo.ttf") format("truetype");
+  /* woff2만 쓴다. ttf(7.3MB) 폴백은 실제로 내려받히지 않으면서 배포물만 키운다 —
+     woff2는 2016년 이후 모든 대상 브라우저가 지원한다. */
+  src: url("./assets/fonts/DungGeunMo.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
