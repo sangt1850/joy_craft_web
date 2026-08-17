@@ -36,10 +36,9 @@ export default function BrowsePage() {
     fetchTemplates(category, search).then(setTemplates).catch(() => {});
   }, [category, search]);
 
-  const filtered = templates.filter((t) => {
-    if (!search) return true;
-    return t.name.includes(search) || t.category.includes(search);
-  });
+  // 검색·카테고리 필터는 서버(GET /api/templates/browse)가 수행한다.
+  // 여기서 다시 거르면 서버가 대소문자 무시·설명(description)까지 매칭해 돌려준 결과를
+  // 클라이언트가 조용히 버려서 "검색 결과가 없습니다"가 뜬다. 이중 필터를 두지 않는다.
 
   return (
     <div className="px-7 py-8 max-w-[960px] mx-auto">
@@ -72,12 +71,12 @@ export default function BrowsePage() {
 
       {/* 템플릿 그리드 */}
       <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
-        {filtered.map((t, i) => (
+        {templates.map((t, i) => (
           <TemplateCard
             key={t.id}
             id={t.id}
             title={t.name}
-            category={t.category}
+            subLabel={t.category}
             emoji="🎨"
             price={t.pricing === "free" ? "FREE" : "PRO"}
             bg={BG_COLORS[i % BG_COLORS.length]}
@@ -85,7 +84,7 @@ export default function BrowsePage() {
         ))}
       </div>
 
-      {filtered.length === 0 && (
+      {templates.length === 0 && (
         <div className="text-center py-[60px] font-body text-[14px] text-[#888]">
           검색 결과가 없습니다.
         </div>
