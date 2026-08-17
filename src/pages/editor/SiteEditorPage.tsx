@@ -1,79 +1,172 @@
-// 사이트 에디터 — 상단 헤더 + 좌측 페이지 목록 + 가운데 프리뷰 + 우측 편집 패널
-import { useState, useEffect } from "react";
+// 사이트 에디터 — 상단 헤더 + 좌측 페이지 목록 + 가운데 미리보기 + 우측 편집 패널
+//
+// 편집 패널은 하드코딩 필드가 아니라 **스키마 순회**로 그린다 (SlideFieldsPanel).
+// 미리보기는 실제 슬라이드 컴포넌트를 렌더한다 (SlideCanvas).
+//
+// 슬라이드(src/slides/**)는 디자인 시스템을 따르지 않는 독립 캔버스이므로
+// 여기서는 크기를 잡는 컨테이너(position:relative)만 제공하고 스타일을 주입하지 않는다.
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import NeoButton from "../../components/ui/NeoButton";
-import RunAwayButton from "../../components/ui/RunAwayButton";
 import NeoCard from "../../components/ui/NeoCard";
 import PixelIcon from "../../components/ui/PixelIcon";
-import ToggleSwitch from "../../components/ui/ToggleSwitch";
-import ColorPicker from "../../components/ui/ColorPicker";
 import DashedButton from "../../components/ui/DashedButton";
-import { useEditorStore } from "../../store/editorStore";
+import SlideCanvas from "../../components/player/SlideCanvas";
+import SlideList from "../../components/editor/SlideList";
+import SlideFieldsPanel from "../../components/editor/SlideFieldsPanel";
+import TemplatePickerModal from "../../components/editor/TemplatePickerModal";
+import { useEditorStore, UnsavedChangesError } from "../../store/editorStore";
 import { createSite } from "../../api/sites";
 import { publishSite } from "../../api/editor";
+import {
+  resolveEditorSchema,
+  mergeSlideValues,
+  fillMissingWithDefaults,
+} from "../../slides/schemaAdapter";
 
-type Device    = "mobile" | "desktop";
-type MobileTab = "preview" | "edit" | "info";
-
-const PAGE_COLORS = ["bg-pink", "bg-mustard", "bg-mint", "bg-blue"];
+type Device = "mobile" | "desktop";
+type MobileTab = "pages" | "preview" | "edit";
 
 const MOBILE_TABS: { id: MobileTab; label: string }[] = [
+  { id: "pages", label: "페이지" },
   { id: "preview", label: "미리보기" },
-  { id: "edit",    label: "편집" },
-  { id: "info",    label: "정보" },
+  { id: "edit", label: "편집" },
 ];
 
-const YES_COLORS = [
-  "var(--color-mustard)",
-  "var(--color-pink)",
-  "var(--color-mint)",
-  "var(--color-blue)",
-  "var(--color-peach)",
-];
+/** 미리보기 스테이지 크기 — 슬라이드는 모바일 세로 화면 기준으로 만들어져 있다 */
+const STAGE = {
+  mobile: { width: 320, height: 568 },
+  desktop: { width: 720, height: 460 },
+} as const;
 
-const LABEL_CLASS = "font-sub text-[12px] block mb-1.5";
+/** 모바일 프리뷰 상단 노치 바 높이(px) — 스케일 계산 시 스테이지 높이에 더해준다 */
+const NOTCH_HEIGHT = 28;
+
+/**
+ * 미리보기 영역이 남는 공간을 꽉 채우면서도 절대 잘리지 않도록,
+ * 컨테이너 실측 크기에 맞춰 고정 디자인 해상도를 transform: scale로 맞춘다.
+ * (좌우 패널 접힘, 창 크기 변경, 디바이스 전환 모두 ResizeObserver로 자동 반응)
+ */
+function useFitScale(designWidth: number, designHeight: number) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      setScale(Math.min(width / designWidth, height / designHeight));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [designWidth, designHeight]);
+
+  return { containerRef, scale };
+}
 
 export default function SiteEditorPage() {
   const { siteId } = useParams<{ siteId: string }>();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
-  const { site, selectedSlideId, isSaving, isDirty, loadSite, selectSlide, updateSlideOverrides, updateTitle } = useEditorStore();
+  const {
+    site,
+    selectedSlideId,
+    isSaving,
+    isDirty,
+    saveError,
+    loadSite,
+    selectSlide,
+    updateSlideOverrides,
+    updateTitle,
+    flush,
+    addSlide,
+    removeSlide,
+    reorderSlides,
+    reset,
+  } = useEditorStore();
 
-  const [device, setDevice]       = useState<Device>("mobile");
+  const [device, setDevice] = useState<Device>("mobile");
   const [mobileTab, setMobileTab] = useState<MobileTab>("preview");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  // 미리보기 강제 리마운트용 — 애니메이션이 한 번만 도는 슬라이드를 다시 보기 위해
+  const [previewNonce, setPreviewNonce] = useState(0);
+
+  const stageSize = STAGE[device];
+  const designWidth = stageSize.width;
+  const designHeight = stageSize.height + (device === "mobile" ? NOTCH_HEIGHT : 0);
+  const { containerRef: previewAreaRef, scale } = useFitScale(designWidth, designHeight);
 
   useEffect(() => {
+    setLoadError(false);
     if (siteId && siteId !== "new") {
-      loadSite(siteId);
+      loadSite(siteId).catch(() => setLoadError(true));
     } else if (siteId === "new") {
-      // new 사이트 생성 후 리다이렉트
-      createSite("새 사이트").then((s) => {
-        navigate(`/editor/${s.id}`, { replace: true });
-      }).catch(() => {});
+      createSite("새 사이트")
+        .then((s) => navigate(`/editor/${s.id}`, { replace: true }))
+        .catch(() => setLoadError(true));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteId]);
 
-  const selectedSlide = site?.slides.find((s) => s.id === selectedSlideId);
-  const overrides = selectedSlide ? { ...selectedSlide.defaultValues, ...selectedSlide.overrides } : {};
+  // 에디터를 떠날 때 예약된 저장 타이머를 정리한다
+  useEffect(() => reset, [reset]);
 
-  const questionText = String(overrides["questionText"] ?? "오늘 하루 즐거웠나요?");
-  const yesText      = String(overrides["yesText"]      ?? "네!");
-  const noText       = String(overrides["noText"]       ?? "아니요");
-  const yesColor     = String(overrides["yesColor"]     ?? "var(--color-mustard)");
-  const dotBg        = Boolean(overrides["dotBg"]       ?? true);
+  const slides = site?.slides ?? [];
+  const selectedSlide = slides.find((s) => s.id === selectedSlideId);
 
-  const setOverride = (key: string, value: unknown) => {
-    if (!selectedSlideId) return;
-    updateSlideOverrides(selectedSlideId, { [key]: value });
-  };
+  // 에디터는 서버가 병합해주지 않는다 — defaultValues + overrides를 여기서 합친다
+  const values = useMemo(
+    () =>
+      selectedSlide
+        ? mergeSlideValues(selectedSlide.defaultValues, selectedSlide.overrides)
+        : {},
+    [selectedSlide]
+  );
 
+  // 로컬 스키마 우선 + 서버 스키마 보조
+  const schema = useMemo(
+    () =>
+      selectedSlide
+        ? resolveEditorSchema(selectedSlide.componentRef, selectedSlide.schema)
+        : null,
+    [selectedSlide]
+  );
+
+  // 값이 비면 렌더 중 throw하는 슬라이드가 있어 스키마 기본값으로 구멍을 메운다
+  const previewValues = useMemo(
+    () => (schema ? fillMissingWithDefaults(schema, values) : values),
+    [schema, values]
+  );
+
+  const setField = useCallback(
+    (key: string, value: unknown) => {
+      if (!selectedSlideId) return;
+      updateSlideOverrides(selectedSlideId, { [key]: value });
+    },
+    [selectedSlideId, updateSlideOverrides]
+  );
+
+  // 발행 스냅샷은 불변이라 되돌릴 수 없다 →
+  // 렌더 클로저(isDirty)가 아니라 getState()로 최신 상태를 읽고,
+  // flush()가 성공을 확인해 준 뒤에만 발행한다.
   const handlePublish = async () => {
-    if (!site) return;
+    const { site: current, flush } = useEditorStore.getState();
+    if (!current) return;
     setIsPublishing(true);
     try {
-      const result = await publishSite(site.id);
+      const saved = await flush();
+      if (!saved) {
+        alert("저장하지 못한 변경이 있어 발행하지 않았습니다.\n잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      const result = await publishSite(current.id);
       const link = window.location.origin + result.url;
       await navigator.clipboard.writeText(link).catch(() => {});
       alert(`링크가 복사되었습니다!\n${link}`);
@@ -84,26 +177,60 @@ export default function SiteEditorPage() {
     }
   };
 
-  const pages = site?.slides ?? [];
+  const handleRemoveSlide = (id: string) => {
+    const target = slides.find((s) => s.id === id);
+    if (!window.confirm(`"${target?.templateName ?? "이 페이지"}"를 삭제할까요?`)) return;
+    removeSlide(id).catch((e: unknown) =>
+      alert(
+        e instanceof UnsavedChangesError
+          ? "저장하지 못한 변경이 있어 삭제하지 않았습니다.\n잠시 후 다시 시도해 주세요."
+          : "페이지 삭제에 실패했습니다."
+      )
+    );
+  };
+
+  const saveLabel = isSaving
+    ? "저장 중..."
+    : saveError
+      ? "저장 실패"
+      : isDirty
+        ? "미저장"
+        : "✓ 저장됨";
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5F0E8] overflow-hidden">
-
+    <div className="flex flex-col h-dvh bg-[#F5F0E8] overflow-hidden">
       {/* ── 상단 헤더 ── */}
       <header className="flex items-center justify-between px-4 h-14 bg-cream border-b-[3px] border-ink shrink-0 gap-3">
         <button
           onClick={() => navigate(-1)}
+          aria-label="뒤로"
           className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer px-2 py-1 shrink-0"
         >
           <PixelIcon name="back" size={16} fill="#111" />
         </button>
 
-        <div className="flex-1 font-headline text-base text-center truncate">
-          {site?.title ?? (siteId === "new" ? "새 사이트" : "로딩 중...")}
-        </div>
+        {site ? (
+          <input
+            value={site.title}
+            onChange={(e) => updateTitle(e.target.value)}
+            // 포커스를 잃으면 debounce를 기다리지 않고 지금 저장한다 (dirty가 아니면 no-op)
+            onBlur={() => void flush()}
+            aria-label="사이트 제목"
+            className="neo-input flex-1 min-w-0 font-headline text-base text-center h-9"
+          />
+        ) : (
+          <div className="flex-1 font-headline text-base text-center truncate">
+            {loadError ? "불러오지 못했습니다" : siteId === "new" ? "새 사이트" : "로딩 중..."}
+          </div>
+        )}
 
-        <div className={cn("font-body text-[11px] shrink-0", isDirty || isSaving ? "text-peach" : "text-mint")}>
-          {isSaving ? "저장 중..." : isDirty ? "미저장" : "✓ 저장됨"}
+        <div
+          className={cn(
+            "font-body text-[11px] shrink-0 hidden sm:block",
+            saveError ? "text-pink" : isDirty || isSaving ? "text-peach" : "text-mint"
+          )}
+        >
+          {saveLabel}
         </div>
 
         {/* 디바이스 토글 (데스크탑만) */}
@@ -112,6 +239,8 @@ export default function SiteEditorPage() {
             <button
               key={d}
               onClick={() => setDevice(d)}
+              aria-label={d === "mobile" ? "모바일 미리보기" : "데스크탑 미리보기"}
+              aria-pressed={device === d}
               className={cn(
                 "px-3 py-[5px] border-none cursor-pointer text-base",
                 device === d ? "bg-ink" : "bg-transparent"
@@ -123,13 +252,21 @@ export default function SiteEditorPage() {
         </div>
 
         <div className="flex gap-2 shrink-0">
-          <NeoButton bg="var(--color-mint)" color="#111" size="sm" shadow={3}>미리보기</NeoButton>
+          <NeoButton
+            bg="var(--color-mint)"
+            color="#111"
+            size="sm"
+            shadow={3}
+            onClick={() => setPreviewNonce((n) => n + 1)}
+          >
+            다시 보기
+          </NeoButton>
           <NeoButton
             bg="var(--color-pink)"
             size="sm"
             shadow={3}
             onClick={handlePublish}
-            disabled={isPublishing}
+            disabled={isPublishing || !site}
           >
             {isPublishing ? "..." : "공유"}
           </NeoButton>
@@ -154,147 +291,151 @@ export default function SiteEditorPage() {
 
       {/* ── 메인 영역 ── */}
       <div className="flex flex-1 overflow-hidden">
-
         {/* 좌측: 페이지 목록 */}
-        <aside className="hidden md:flex w-[180px] bg-cream border-r-[3px] border-ink flex-col overflow-hidden shrink-0">
+        <aside
+          className={cn(
+            "w-full md:w-[200px] bg-cream md:border-r-[3px] border-ink flex-col overflow-hidden shrink-0",
+            mobileTab === "pages" ? "flex" : "hidden md:flex"
+          )}
+        >
           <div className="px-3 pt-3 pb-2 font-sub text-[12px] text-[#888] border-b-[2px] border-black/10">
-            페이지 목록
+            페이지 목록 ({slides.length})
           </div>
           <div className="flex-1 overflow-y-auto p-2">
-            {pages.map((page, idx) => (
-              <div
-                key={page.id}
-                onClick={() => selectSlide(page.id)}
-                className={cn(
-                  "flex items-center gap-2.5 px-[10px] py-[9px] mb-1 rounded-md border-2 cursor-pointer",
-                  selectedSlideId === page.id
-                    ? "bg-ink border-ink"
-                    : "bg-transparent border-transparent hover:bg-black/5"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-[22px] h-[22px] neo-border flex items-center justify-center shrink-0 font-pixel text-[8px] text-ink",
-                    PAGE_COLORS[idx % PAGE_COLORS.length]
-                  )}
-                >
-                  {idx + 1}
-                </div>
-                <span
-                  className={cn(
-                    "font-sub text-[13px] truncate",
-                    selectedSlideId === page.id ? "text-cream" : "text-ink"
-                  )}
-                >
-                  {page.templateName}
-                </span>
-              </div>
-            ))}
+            <SlideList
+              slides={slides}
+              selectedId={selectedSlideId}
+              onSelect={(id) => {
+                selectSlide(id);
+                setMobileTab("preview");
+              }}
+              onReorder={(ids) => void reorderSlides(ids)}
+              onRemove={handleRemoveSlide}
+            />
           </div>
           <div className="px-3 pb-3">
-            <DashedButton onClick={() => alert("템플릿 선택 기능 준비 중")}>페이지 추가</DashedButton>
+            <DashedButton onClick={() => setPickerOpen(true)}>페이지 추가</DashedButton>
           </div>
         </aside>
 
         {/* 가운데: 미리보기 */}
-        <div className="flex-1 flex items-center justify-center p-6 bg-[#E8E0D4] overflow-auto">
-          <div
-            className="relative transition-[width] duration-200"
-            style={{ width: device === "mobile" ? 320 : 720 }}
-          >
-            {device === "mobile" && (
-              <div className="bg-ink h-7 rounded-t-xl border-[3px] border-b-0 border-ink flex items-center justify-center">
-                <div className="w-[60px] h-1.5 bg-white/30 rounded-full" />
-              </div>
-            )}
-
-            <NeoCard
-              pad={32}
-              shadow={8}
-              style={{
-                background:       "linear-gradient(160deg, #FFB784 0%, #FF57A6 100%)",
-                minHeight:        device === "mobile" ? 480 : 400,
-                display:          "flex",
-                flexDirection:    "column",
-                alignItems:       "center",
-                justifyContent:   "center",
-                gap:              20,
-                borderRadius:     device === "mobile" ? "0 0 12px 12px" : 0,
-                position:         "relative",
-                overflow:         "hidden",
-              }}
-            >
-              {dotBg && (
+        <div
+          className={cn(
+            "flex-1 min-w-0 p-4 md:p-6 bg-[#E8E0D4] overflow-hidden",
+            mobileTab === "preview" ? "flex" : "hidden md:flex"
+          )}
+        >
+          {selectedSlide && schema ? (
+            // 실측 컨테이너 — 패딩이 없는 순수 가용 공간을 ResizeObserver로 측정해
+            // 고정 디자인 해상도(designWidth x designHeight)를 빈틈/잘림 없이 채운다
+            <div ref={previewAreaRef} className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
+              <div
+                className="shrink-0"
+                style={{ width: designWidth * scale, height: designHeight * scale }}
+              >
                 <div
-                  className="absolute inset-0 pointer-events-none"
                   style={{
-                    backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
-                    backgroundSize:  "16px 16px",
+                    width: designWidth,
+                    height: designHeight,
+                    transform: `scale(${scale})`,
+                    transformOrigin: "top left",
                   }}
-                />
-              )}
-              <PixelIcon name="heart" size={36} fill="#fff" />
-              <p className="font-headline text-[22px] text-white text-center m-0">
-                {questionText}
-              </p>
-              <div className="flex gap-[14px] flex-wrap justify-center">
-                <NeoButton bg={yesColor} color="#111" size="md">{yesText}</NeoButton>
-                <RunAwayButton bg="var(--color-cream)" color="#111" size="md">{noText}</RunAwayButton>
+                >
+                  {/*
+                    기기 목업 전체(노치 바 + 스테이지)를 하나의 그림자로 감싼다 —
+                    브루탈리즘 오프셋 섀도우 대신, 실제 기기가 바닥에 놓인 듯한
+                    부드러운 다중 레이어 블러 섀도우(자연광 + 앰비언트 근접광).
+                  */}
+                  <div
+                    style={{
+                      borderRadius: device === "mobile" ? 14 : 4,
+                      boxShadow:
+                        "0 1px 2px rgba(17,17,17,0.08), 0 8px 16px -4px rgba(17,17,17,0.18), 0 28px 48px -12px rgba(17,17,17,0.38)",
+                    }}
+                  >
+                    {device === "mobile" && (
+                      <div className="bg-ink h-7 rounded-t-xl border-[3px] border-b-0 border-ink flex items-center justify-center">
+                        <div className="w-[60px] h-1.5 bg-white/30 rounded-full" />
+                      </div>
+                    )}
+                    {/*
+                      슬라이드 캔버스 — position:relative + 크기만 제공.
+                      슬라이드는 absolute; inset:0 풀블리드이므로 스타일 주입 금지.
+                      key(slideKey)가 바뀌면 리마운트되어 이전 슬라이드의 타이머가 튀지 않는다.
+                    */}
+                    <div
+                      className={cn(
+                        "neo-border-4 bg-cream relative overflow-hidden",
+                        device === "mobile" ? "rounded-b-xl" : ""
+                      )}
+                      style={{ width: stageSize.width, height: stageSize.height }}
+                    >
+                      <SlideCanvas
+                        slideKey={`${selectedSlide.id}:${previewNonce}`}
+                        componentRef={selectedSlide.componentRef}
+                        values={previewValues}
+                        isPreview
+                        onSkip={() => setPreviewNonce((n) => n + 1)}
+                        skipLabel="다시 보기"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </NeoCard>
-          </div>
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
+              <NeoCard bg="var(--color-cream)" pad={24} shadow={6} className="max-w-[360px]">
+                <h2 className="font-headline text-[18px] mb-2">
+                  {loadError ? "사이트를 불러오지 못했어요" : "페이지를 추가해 보세요"}
+                </h2>
+                <p className="font-body text-[12px] leading-relaxed mb-4">
+                  {loadError
+                    ? "잠시 후 다시 시도해 주세요."
+                    : "왼쪽 목록에서 '페이지 추가'를 눌러 원하는 슬라이드를 고르면 여기에서 바로 편집할 수 있어요."}
+                </p>
+                {!loadError && (
+                  <NeoButton bg="var(--color-pink)" size="sm" onClick={() => setPickerOpen(true)}>
+                    페이지 추가
+                  </NeoButton>
+                )}
+              </NeoCard>
+            </div>
+          )}
         </div>
 
-        {/* 우측: 편집 패널 */}
-        <aside className="hidden md:flex w-[260px] bg-cream border-l-[3px] border-ink flex-col overflow-hidden shrink-0">
-          <div className="px-4 pt-3 pb-2 font-sub text-[12px] text-[#888] border-b-[2px] border-black/10">
-            편집
+        {/* 우측: 편집 패널 — 스키마 순회로 자동 생성 */}
+        <aside
+          className={cn(
+            "w-full md:w-[320px] bg-cream md:border-l-[3px] border-ink flex-col overflow-hidden shrink-0",
+            mobileTab === "edit" ? "flex" : "hidden md:flex"
+          )}
+        >
+          <div className="px-4 pt-3 pb-2 font-sub text-[12px] text-[#888] border-b-[2px] border-black/10 truncate">
+            {selectedSlide ? `편집 · ${selectedSlide.templateName}` : "편집"}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-[18px]">
-            <div>
-              <label className={LABEL_CLASS}>질문</label>
-              <input
-                value={questionText}
-                onChange={(e) => setOverride("questionText", e.target.value)}
-                className="neo-input"
+          <div className="flex-1 overflow-y-auto p-4">
+            {selectedSlide && schema ? (
+              // key: 슬라이드를 바꾸면 위젯 로컬 버퍼(숫자 입력 중간 상태, JSON 편집 토글)를 초기화한다
+              <SlideFieldsPanel
+                key={selectedSlide.id}
+                schema={schema}
+                // 미리보기와 같은 값을 본다 — 패널만 "항목 없음"으로 보이던 괴리를 없앤다.
+                // 채워진 기본값은 화면 표시용일 뿐, 사용자가 건드리기 전까지 override는 생기지 않는다.
+                values={previewValues}
+                defaultValues={selectedSlide.defaultValues}
+                onChange={setField}
               />
-            </div>
-
-            <div>
-              <label className={LABEL_CLASS}>"예" 버튼</label>
-              <input
-                value={yesText}
-                onChange={(e) => setOverride("yesText", e.target.value)}
-                className="neo-input"
-              />
-            </div>
-
-            <div>
-              <label className={LABEL_CLASS}>"아니요" 버튼</label>
-              <input
-                value={noText}
-                onChange={(e) => setOverride("noText", e.target.value)}
-                className="neo-input"
-              />
-            </div>
-
-            <ColorPicker
-              label='"예" 버튼 색상'
-              colors={YES_COLORS}
-              value={yesColor}
-              onChange={(c) => setOverride("yesColor", c)}
-            />
-
-            <ToggleSwitch
-              label="도트 배경"
-              checked={dotBg}
-              onChange={(v) => setOverride("dotBg", v)}
-            />
+            ) : (
+              <p className="font-body text-[12px] text-[#888] leading-relaxed">
+                편집할 페이지를 선택해 주세요.
+              </p>
+            )}
           </div>
 
           {/* 공유 CTA */}
-          <div className="px-4 py-3 border-t-[3px] border-ink bg-mustard">
+          <div className="px-4 py-3 border-t-[3px] border-ink bg-mustard shrink-0">
             <NeoButton
               bg="#111"
               color="#FFF7E6"
@@ -302,13 +443,32 @@ export default function SiteEditorPage() {
               size="sm"
               shadow={4}
               onClick={handlePublish}
-              disabled={isPublishing}
+              disabled={isPublishing || !site}
             >
               🔗 링크 만들어 공유
             </NeoButton>
           </div>
         </aside>
       </div>
+
+      <TemplatePickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        // 실패 시 다시 던져야 모달이 닫히지 않는다 (TemplatePickerModal 계약)
+        onSelect={async (templateId) => {
+          try {
+            await addSlide(templateId);
+          } catch (e) {
+            alert(
+              e instanceof UnsavedChangesError
+                ? "저장하지 못한 변경이 있어 페이지를 추가하지 않았습니다.\n잠시 후 다시 시도해 주세요."
+                : "페이지 추가에 실패했습니다."
+            );
+            throw e;
+          }
+          setMobileTab("preview");
+        }}
+      />
     </div>
   );
 }
