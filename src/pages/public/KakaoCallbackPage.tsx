@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import NeoCard from "../../components/ui/NeoCard";
 import NeoButton from "../../components/ui/NeoButton";
-import { kakaoCallback, kakaoRegister } from "../../api/auth";
+import { kakaoCallback, kakaoRegister, KAKAO_STATE_KEY } from "../../api/auth";
 import { useAuthStore } from "../../store/authStore";
 
 type Step = "loading" | "nickname" | "error";
@@ -10,7 +10,7 @@ type Step = "loading" | "nickname" | "error";
 export default function KakaoCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { fetchMe: loadMe } = useAuthStore();
+  const loadMe = useAuthStore((s) => s.fetchMe);
 
   const [step, setStep] = useState<Step>("loading");
   const [registerToken, setRegisterToken] = useState("");
@@ -34,7 +34,19 @@ export default function KakaoCallbackPage() {
       return;
     }
 
-    kakaoCallback(code)
+    // 인가 요청을 시작할 때 보관해 둔 state와 콜백으로 돌아온 state를 대조한다.
+    // 한 번 쓰면 지워서 같은 링크를 다시 열어도 통과하지 않게 한다.
+    const returnedState = searchParams.get("state");
+    const savedState = sessionStorage.getItem(KAKAO_STATE_KEY);
+    sessionStorage.removeItem(KAKAO_STATE_KEY);
+
+    if (!returnedState || !savedState || returnedState !== savedState) {
+      setStep("error");
+      setError("잘못된 인증 요청입니다. 처음부터 다시 로그인해주세요.");
+      return;
+    }
+
+    kakaoCallback(code, returnedState)
       .then(async (res) => {
         if (res.accessToken) {
           // 기존 유저 — 바로 로그인
@@ -51,7 +63,8 @@ export default function KakaoCallbackPage() {
         setStep("error");
         setError("카카오 로그인 처리 중 오류가 발생했습니다.");
       });
-  }, []);
+    // calledRef 가드 때문에 재실행되어도 즉시 반환한다. 의존성을 채워도 동작이 바뀌지 않는다.
+  }, [searchParams, navigate, loadMe]);
 
   async function handleRegister() {
     setLoading(true);

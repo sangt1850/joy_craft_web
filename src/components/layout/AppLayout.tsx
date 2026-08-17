@@ -6,6 +6,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import PixelIcon from "../ui/PixelIcon";
 import NeoButton from "../ui/NeoButton";
+import { useAuthStore } from "../../store/authStore";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,13 @@ const navItems = [
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
+
+  // 서버 세션 삭제까지 끝난 뒤에 이동한다. logout은 실패해도 던지지 않는다.
+  const handleLogout = async () => {
+    await logout();
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className="flex min-h-screen bg-cream">
@@ -69,6 +77,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* 로그아웃 */}
         <button
+          type="button"
+          onClick={handleLogout}
           className="flex items-center gap-2.5 px-[14px] py-[10px] bg-transparent border-none cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors w-full"
         >
           <PixelIcon name="logout" size={18} fill="#9FD3F5" />

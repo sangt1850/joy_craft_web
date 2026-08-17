@@ -1,8 +1,7 @@
 import { useState } from "react";
-import NeoButton from "./NeoButton";
 import NeoCard from "./NeoCard";
 import logoSvg from "../../assets/logo.svg";
-import { fetchKakaoUrl } from "../../api/auth";
+import { fetchKakaoUrl, KAKAO_STATE_KEY } from "../../api/auth";
 
 interface LoginModalProps {
   onClose: () => void;
@@ -18,7 +17,10 @@ export default function LoginModal({ onClose }: LoginModalProps) {
     setError("");
     setLoading(true);
     try {
-      const url = await fetchKakaoUrl();
+      const { url, state } = await fetchKakaoUrl();
+      // 콜백에서 대조할 수 있게 보관한다. sessionStorage라 이 탭에서만 읽히고,
+      // 공격자가 만든 콜백 링크를 다른 탭/브라우저에서 열면 대조에 실패한다.
+      sessionStorage.setItem(KAKAO_STATE_KEY, state);
       window.location.href = url;
     } catch {
       setError("카카오 로그인 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");

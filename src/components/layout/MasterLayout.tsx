@@ -1,7 +1,8 @@
 // 관리자용(Master) 앱 레이아웃
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import PixelIcon from "../ui/PixelIcon";
+import { useAuthStore } from "../../store/authStore";
 
 interface MasterLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,15 @@ const masterNavItems = [
 ];
 
 export default function MasterLayout({ children }: MasterLayoutProps) {
+  const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
+
+  // 서버 세션 삭제까지 끝난 뒤에 이동한다. logout은 실패해도 던지지 않는다.
+  const handleLogout = async () => {
+    await logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="flex min-h-screen bg-white">
 
@@ -70,7 +80,11 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
           ))}
         </nav>
 
-        <button className="flex items-center gap-2.5 px-3 py-[9px] bg-transparent border-none cursor-pointer rounded-md hover:bg-white/[0.08] transition-colors w-full">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-2.5 px-3 py-[9px] bg-transparent border-none cursor-pointer rounded-md hover:bg-white/[0.08] transition-colors w-full"
+        >
           <PixelIcon name="logout" size={16} fill="#9FD3F5" />
           <span className="font-sub text-[13px] text-blue">로그아웃</span>
         </button>
