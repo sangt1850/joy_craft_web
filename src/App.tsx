@@ -1,27 +1,36 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import "./slides"; // 슬라이드 컴포넌트 전체 등록
 
-// 레이아웃
+// 레이아웃 — 모든 화면의 뼈대라 지연 로딩하지 않는다
 import AppLayout from "./components/layout/AppLayout";
 import MasterLayout from "./components/layout/MasterLayout";
 import AuthGuard from "./components/auth/AuthGuard";
 
-// public pages
-import LandingPage from "./pages/public/LandingPage";
-import PlayerPage from "./pages/public/PlayerPage";
-import KakaoCallbackPage from "./pages/public/KakaoCallbackPage";
+// 페이지는 전부 라우트 단위로 쪼갠다.
+// 공개 공유 링크(/play/:slug)는 모바일에서 처음 열리는 화면이라 초기 전송량이 곧 첫인상이고,
+// 반대로 에디터·관리자 화면은 방문자 대부분이 아예 열지 않는다.
+// (슬라이드 18종은 SlideCanvas가 등록하므로 플레이어/에디터 청크에만 실린다)
+const LandingPage = lazy(() => import("./pages/public/LandingPage"));
+const PlayerPage = lazy(() => import("./pages/public/PlayerPage"));
+const KakaoCallbackPage = lazy(() => import("./pages/public/KakaoCallbackPage"));
 
-// customer pages
-import DashboardPage from "./pages/customer/DashboardPage";
-import MySitesPage from "./pages/customer/MySitesPage";
-import BrowsePage from "./pages/customer/BrowsePage";
-import SettingsPage from "./pages/customer/SettingsPage";
+const DashboardPage = lazy(() => import("./pages/customer/DashboardPage"));
+const MySitesPage = lazy(() => import("./pages/customer/MySitesPage"));
+const BrowsePage = lazy(() => import("./pages/customer/BrowsePage"));
+const SettingsPage = lazy(() => import("./pages/customer/SettingsPage"));
 
-// editor pages
-import SiteEditorPage from "./pages/editor/SiteEditorPage";
+const SiteEditorPage = lazy(() => import("./pages/editor/SiteEditorPage"));
 
-// master pages
-import MasterDashboardPage from "./pages/master/MasterDashboardPage";
+const MasterDashboardPage = lazy(() => import("./pages/master/MasterDashboardPage"));
+
+/** 청크를 받아오는 동안 잠깐 보이는 화면 */
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center h-screen bg-cream">
+      <div className="font-pixel text-[12px] text-ink animate-pulse">LOADING...</div>
+    </div>
+  );
+}
 
 function CustomerApp() {
   return (
@@ -58,21 +67,30 @@ function MasterApp() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* 공개 페이지 */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/play/:slug" element={<PlayerPage />} />
-        <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          {/* 공개 페이지 */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/play/:slug" element={<PlayerPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
 
-        {/* 에디터 (레이아웃 없음 — 풀스크린) */}
-        <Route path="/editor/:siteId" element={<SiteEditorPage />} />
+          {/* 에디터 (레이아웃 없음 — 풀스크린, 인증 필요) */}
+          <Route
+            path="/editor/:siteId"
+            element={
+              <AuthGuard>
+                <SiteEditorPage />
+              </AuthGuard>
+            }
+          />
 
-        {/* 관리자용 앱 — 와일드카드보다 먼저 매칭 */}
-        <Route path="/master/*" element={<MasterApp />} />
+          {/* 관리자용 앱 — 와일드카드보다 먼저 매칭 */}
+          <Route path="/master/*" element={<MasterApp />} />
 
-        {/* 고객용 앱 (fallback) */}
-        <Route path="/*" element={<CustomerApp />} />
-      </Routes>
+          {/* 고객용 앱 (fallback) */}
+          <Route path="/*" element={<CustomerApp />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
