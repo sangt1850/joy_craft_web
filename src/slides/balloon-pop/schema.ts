@@ -12,7 +12,19 @@ const DEFAULT_BALLOONS = JSON.stringify([
 export const schema: SlideSchema = {
   fields: [
     { key: "successMessage", label: "성공 메시지", type: "textarea", default: "펑펑!\n생일 축하해 🎂" },
-    { key: "balloons", label: "풍선 목록 (JSON)", type: "textarea", default: DEFAULT_BALLOONS },
+    {
+      key: "balloons",
+      label: "풍선 목록",
+      type: "array",
+      itemLabel: "풍선",
+      default: DEFAULT_BALLOONS,
+      itemFields: [
+        { key: "emoji", label: "이모지", type: "text", default: "🎈" },
+        { key: "color", label: "풍선 색상", type: "color", default: "#E94F6A" },
+        { key: "x", label: "가로 위치 (%)", type: "number", default: 30, min: 0, max: 75, step: 1 },
+        { key: "y", label: "세로 위치 (%)", type: "number", default: 30, min: 0, max: 70, step: 1 },
+      ],
+    },
     { key: "backgroundColor", label: "배경 색상", type: "color", default: "#eaf6ff" },
   ],
 };

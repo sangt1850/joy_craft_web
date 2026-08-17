@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useHoldProgress } from "../useHoldProgress";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface FingerprintData {
   prompt: string;
@@ -13,11 +14,12 @@ interface FingerprintData {
 export default function Fingerprint({ data, onComplete, isPreview }: SlideProps<FingerprintData>) {
   const { prompt, successMessage, holdDuration, ringColor } = data;
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const handleComplete = useCallback(() => {
     vibe([15, 40, 15, 40, 90]);
-    if (!isPreview) setTimeout(() => onComplete?.(), 1500);
-  }, [vibe, isPreview, onComplete]);
+    if (!isPreview) later(() => onComplete?.(), 1500);
+  }, [vibe, isPreview, onComplete, later]);
 
   const { progress, holding, down, up } = useHoldProgress(holdDuration, handleComplete);
 

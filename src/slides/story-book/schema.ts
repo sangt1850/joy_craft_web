@@ -10,7 +10,19 @@ const DEFAULT_PAGES = JSON.stringify([
 
 export const schema: SlideSchema = {
   fields: [
-    { key: "pages", label: "페이지 목록 (JSON)", type: "textarea", default: DEFAULT_PAGES },
+    {
+      key: "pages",
+      label: "페이지 목록",
+      type: "array",
+      itemLabel: "페이지",
+      default: DEFAULT_PAGES,
+      itemFields: [
+        { key: "emoji", label: "이모지", type: "text", default: "✨" },
+        { key: "title", label: "소제목", type: "text", default: "새 페이지", required: true },
+        { key: "text", label: "내용", type: "textarea", default: "" },
+        { key: "bgColor", label: "배경 색상", type: "color", default: "#fdf6e8" },
+      ],
+    },
     { key: "footerText", label: "안내 문구", type: "text", default: "← 좌우로 넘겨보세요 →" },
     { key: "backgroundColor", label: "배경 색상", type: "color", default: "#efe6d6" },
   ],

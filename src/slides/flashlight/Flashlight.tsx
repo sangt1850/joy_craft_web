@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface Spot { x: number; y: number; emoji: string; caption: string; }
 
@@ -14,6 +15,7 @@ interface FlashlightData {
 export default function Flashlight({ data, onComplete, isPreview }: SlideProps<FlashlightData>) {
   const { instruction, clearText, backgroundColor } = data;
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const spots = useMemo<Spot[]>(() => {
     if (Array.isArray(data.spots)) return data.spots;
@@ -30,23 +32,28 @@ export default function Flashlight({ data, onComplete, isPreview }: SlideProps<F
     const x = e.clientX - r.left;
     const yoff = e.pointerType === "touch" ? 56 : 0;
     const y = e.clientY - r.top - yoff;
-    setFound((prev) => {
-      const next = [...prev];
-      let changed = false;
-      spots.forEach((sp, i) => {
-        if (next[i]) return;
-        const dx = x - sp.x * r.width, dy = y - sp.y * r.height;
-        if (Math.hypot(dx, dy) < 66) { next[i] = true; changed = true; vibe(20); }
-      });
-      if (changed && next.every(Boolean)) {
+    // 부작용(진동·완료 타이머)은 updater 밖에서 처리한다.
+    // updater는 React가 여러 번 호출할 수 있어(StrictMode 개발 모드), 그 안에 두면
+    // 포인터 이동 한 번에 타이머가 두 번 잡힌다.
+    const next = [...found];
+    let changed = false;
+    spots.forEach((sp, i) => {
+      if (next[i]) return;
+      const dx = x - sp.x * r.width, dy = y - sp.y * r.height;
+      if (Math.hypot(dx, dy) < 66) { next[i] = true; changed = true; }
+    });
+
+    if (changed) {
+      vibe(20);
+      setFound(next);
+      if (next.every(Boolean)) {
         vibe([12, 40, 12, 40, 90]);
         setClear(true);
-        if (!isPreview) setTimeout(() => onComplete?.(), 1500);
+        if (!isPreview) later(() => onComplete?.(), 1500);
       }
-      return changed ? next : prev;
-    });
+    }
     setBeam({ x, y, on: true });
-  }, [clear, spots, vibe, isPreview, onComplete]);
+  }, [clear, found, spots, vibe, isPreview, onComplete, later]);
 
   const handleLeave = useCallback(() => {
     setBeam((b) => ({ ...b, on: false }));

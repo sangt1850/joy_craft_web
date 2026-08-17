@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface Question {
   q: string;
@@ -35,6 +36,7 @@ function shuffle<T>(arr: T[]): T[] {
 export default function Quiz({ data, onComplete, isPreview }: SlideProps<QuizData>) {
   const { intro, highScoreMessage, lowScoreMessage, backgroundColor, accentColor } = data;
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const questions = useMemo<Question[]>(() => {
     if (Array.isArray(data.questions)) return data.questions;
@@ -70,13 +72,13 @@ export default function Quiz({ data, onComplete, isPreview }: SlideProps<QuizDat
   const next = useCallback(() => {
     if (index >= total - 1) {
       setFinished(true);
-      if (!isPreview) setTimeout(() => onComplete?.(), 800);
+      if (!isPreview) later(() => onComplete?.(), 800);
     } else {
       setIndex((i) => i + 1);
       setSelected(null);
       setAnswered(false);
     }
-  }, [index, total, isPreview, onComplete]);
+  }, [index, total, isPreview, onComplete, later]);
 
   const retry = useCallback(() => {
     setIndex(0); setSelected(null); setAnswered(false); setCorrect(0); setFinished(false);

@@ -10,7 +10,18 @@ const DEFAULT_NOTES = JSON.stringify([
 export const schema: SlideSchema = {
   fields: [
     { key: "title", label: "제목", type: "text", default: "우리들의 롤링페이퍼" },
-    { key: "seedNotes", label: "초기 메모 (JSON)", type: "textarea", default: DEFAULT_NOTES },
+    {
+      key: "seedNotes",
+      label: "초기 메모",
+      type: "array",
+      itemLabel: "메모",
+      default: DEFAULT_NOTES,
+      itemFields: [
+        { key: "text", label: "메모 내용", type: "textarea", default: "축하해!", required: true },
+        { key: "from", label: "보낸 사람", type: "text", default: "익명", required: true },
+        { key: "color", label: "이름 색상", type: "color", default: "#E94F6A" },
+      ],
+    },
     { key: "allowUserInput", label: "방문자 메모 작성 허용", type: "boolean", default: true },
     { key: "backgroundColor", label: "배경 색상", type: "color", default: "#faf4ea" },
   ],

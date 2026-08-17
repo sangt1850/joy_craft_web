@@ -15,7 +15,17 @@ export const schema: SlideSchema = {
   fields: [
     { key: "movieTitle", label: "영화 제목", type: "text", default: "우리들의 1년" },
     { key: "endMessage", label: "마지막 메시지", type: "textarea", default: "THE END\n고마웠어 ♥" },
-    { key: "credits", label: "크레딧 목록 (JSON)", type: "textarea", default: DEFAULT_CREDITS },
+    {
+      key: "credits",
+      label: "크레딧 목록",
+      type: "array",
+      itemLabel: "크레딧",
+      default: DEFAULT_CREDITS,
+      itemFields: [
+        { key: "role", label: "역할", type: "text", default: "역할", required: true },
+        { key: "name", label: "이름", type: "text", default: "이름", required: true },
+      ],
+    },
     { key: "enableSound", label: "배경음 재생", type: "boolean", default: true },
   ],
 };

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface ScratchData {
   prizeEmoji: string;
@@ -13,6 +14,7 @@ interface ScratchData {
 export default function ScratchLottery({ data, onComplete, isPreview }: SlideProps<ScratchData>) {
   const { prizeEmoji, prizeText, prompt, backgroundColor, accentColor } = data;
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -76,9 +78,9 @@ export default function ScratchLottery({ data, onComplete, isPreview }: SlidePro
       doneRef.current = true;
       vibe([12, 40, 80]);
       setRevealed(true);
-      if (!isPreview) setTimeout(() => onComplete?.(), 1500);
+      if (!isPreview) later(() => onComplete?.(), 1500);
     }
-  }, [vibe, isPreview, onComplete]);
+  }, [vibe, isPreview, onComplete, later]);
 
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#3d2c52)`, padding: "60px 26px 34px" }}>

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface Page { emoji: string; title: string; text: string; bgColor: string; }
 
@@ -15,6 +16,7 @@ export default function StoryBook({ data, onComplete, isPreview }: SlideProps<St
   const { footerText, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
 
   const pages = useMemo<Page[]>(() => {
     if (Array.isArray(data.pages)) return data.pages;
@@ -32,11 +34,11 @@ export default function StoryBook({ data, onComplete, isPreview }: SlideProps<St
     vibe(12); blip(300, 0.12, "sine", 0.06);
     setDir(d);
     setFlip(1);
-    setTimeout(() => { setPageIdx(next); setFlip(0); }, 260);
+    later(() => { setPageIdx(next); setFlip(0); }, 260);
     if (next === pages.length - 1 && !isPreview) {
-      setTimeout(() => onComplete?.(), 1000);
+      later(() => onComplete?.(), 1000);
     }
-  }, [pageIdx, pages.length, vibe, blip, isPreview, onComplete]);
+  }, [pageIdx, pages.length, vibe, blip, isPreview, onComplete, later]);
 
   const onDown = useCallback((e: React.PointerEvent) => { startXRef.current = e.clientX; }, []);
   const onUp = useCallback((e: React.PointerEvent) => {

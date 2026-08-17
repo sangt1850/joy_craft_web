@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface GiftBoxData {
   insideMessage: string;
@@ -18,6 +19,7 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
   const { insideMessage, hint, boxColor, ribbonColor, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
 
   const [pull, setPull] = useState(0);
   const [opened, setOpened] = useState(false);
@@ -37,8 +39,8 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
     setOpened(true);
     setDragging(false);
     setPull(1);
-    if (!isPreview) setTimeout(() => onComplete?.(), 2000);
-  }, [vibe, blip, isPreview, onComplete]);
+    if (!isPreview) later(() => onComplete?.(), 2000);
+  }, [vibe, blip, isPreview, onComplete, later]);
 
   const onDown = useCallback((e: React.PointerEvent) => {
     if (opened) return;

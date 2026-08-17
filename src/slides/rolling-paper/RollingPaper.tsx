@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useAudio } from "../useAudio";
+import { useSlideComplete } from "../useSlideComplete";
 
 interface Note { text: string; from: string; color: string; id?: string; mine?: boolean; }
 
@@ -14,9 +15,10 @@ interface RollingPaperData {
 const ROTS = [-2.2, 1.6, -1.2, 2.4, -1.8, 1.1];
 const BGS = ["#fff6c9", "#ffe0e6", "#d8f3ea", "#e7dcff", "#ffe6cc", "#ffd9ec"];
 
-export default function RollingPaper({ data }: SlideProps<RollingPaperData>) {
+export default function RollingPaper({ data, onComplete, isPreview }: SlideProps<RollingPaperData>) {
   const { title, allowUserInput, backgroundColor } = data;
   const { blip } = useAudio();
+  const complete = useSlideComplete(onComplete, isPreview);
 
   const seed = useMemo<Note[]>(() => {
     if (Array.isArray(data.seedNotes)) return data.seedNotes;
@@ -27,7 +29,9 @@ export default function RollingPaper({ data }: SlideProps<RollingPaperData>) {
     seed.map((n, i) => ({ ...n, id: "seed" + i }))
   );
   const [draft, setDraft] = useState("");
+  const [posted, setPosted] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const COLS = ["#E94F6A", "#3a7ec0", "#7EC8B1", "#A78BCE", "#FFB26B", "#F4A7C0"];
 
@@ -37,8 +41,14 @@ export default function RollingPaper({ data }: SlideProps<RollingPaperData>) {
     const note = { id: "u" + Date.now(), text: t, from: "나", color: COLS[notes.length % COLS.length], mine: true };
     setNotes((prev) => [...prev, note]);
     setDraft("");
-    setTimeout(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }); }, 50);
+    setPosted(true);
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }); }, 50);
   }, [draft, notes.length, blip]);
+
+  useEffect(() => () => {
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+  }, []);
 
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", background: backgroundColor, padding: "50px 20px 20px" }}>
@@ -66,6 +76,14 @@ export default function RollingPaper({ data }: SlideProps<RollingPaperData>) {
           <button onClick={add} style={{ padding: "8px 18px", borderRadius: 12, border: "none", background: "#E94F6A", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>붙이기</button>
         </div>
       )}
+
+      {/* 롤링페이퍼는 "다 읽음"을 자동으로 알 수 없다 — 직접 넘어갈 수단을 제공한다 */}
+      <button
+        onClick={complete}
+        style={{ marginTop: 12, padding: "11px 0", borderRadius: 14, border: "none", background: posted || !allowUserInput ? "#E94F6A" : "rgba(0,0,0,.06)", color: posted || !allowUserInput ? "#fff" : "#8a7c6e", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+      >
+        {posted ? "마음 전하고 다음으로 →" : "다 읽었어요 →"}
+      </button>
     </div>
   );
 }

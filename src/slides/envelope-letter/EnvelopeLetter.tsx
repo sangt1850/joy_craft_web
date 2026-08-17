@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface EnvelopeLetterData {
   letterBody: string;
@@ -15,6 +16,7 @@ export default function EnvelopeLetter({ data, onComplete, isPreview }: SlidePro
   const { letterBody, hint, envelopeColor, sealColor, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
   const [opened, setOpened] = useState(false);
 
   const open = useCallback(() => {
@@ -22,8 +24,8 @@ export default function EnvelopeLetter({ data, onComplete, isPreview }: SlidePro
     vibe([12, 40, 70]);
     blip(360, 0.12, "sine", 0.1);
     setOpened(true);
-    if (!isPreview) setTimeout(() => onComplete?.(), 1800);
-  }, [opened, vibe, blip, isPreview, onComplete]);
+    if (!isPreview) later(() => onComplete?.(), 1800);
+  }, [opened, vibe, blip, isPreview, onComplete, later]);
 
   const reset = useCallback(() => setOpened(false), []);
 

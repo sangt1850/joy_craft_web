@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface Balloon { x: number; y: number; color: string; emoji: string; }
 interface BurstParticle { id: string; style: React.CSSProperties; }
@@ -16,6 +17,7 @@ export default function BalloonPop({ data, onComplete, isPreview }: SlideProps<B
   const { successMessage, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
 
   const balloons = useMemo<Balloon[]>(() => {
     if (Array.isArray(data.balloons)) return data.balloons;
@@ -50,12 +52,12 @@ export default function BalloonPop({ data, onComplete, isPreview }: SlideProps<B
     setParticles((prev) => [...prev, ...burst]);
     if (nextPopped.length >= balloons.length) {
       vibe([15, 40, 15, 40, 90]);
-      setTimeout(() => {
+      later(() => {
         setClear(true);
-        if (!isPreview) setTimeout(() => onComplete?.(), 1000);
+        if (!isPreview) later(() => onComplete?.(), 1000);
       }, 350);
     }
-  }, [popped, balloons, vibe, blip, isPreview, onComplete]);
+  }, [popped, balloons, vibe, blip, isPreview, onComplete, later]);
 
   const reset = useCallback(() => { setPopped([]); setParticles([]); setClear(false); }, []);
 

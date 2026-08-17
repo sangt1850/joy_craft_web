@@ -12,7 +12,28 @@ const DEFAULT_SLICES = JSON.stringify([
 export const schema: SlideSchema = {
   fields: [
     { key: "title", label: "제목", type: "textarea", default: "오늘 뭐 할지\n룰렛이 정해줄게" },
-    { key: "slices", label: "룰렛 항목 (JSON)", type: "textarea", default: DEFAULT_SLICES },
+    {
+      key: "slices",
+      label: "룰렛 항목",
+      type: "array",
+      itemLabel: "칸",
+      default: DEFAULT_SLICES,
+      itemFields: [
+        { key: "label", label: "이름", type: "text", default: "새 항목", required: true },
+        { key: "detail", label: "당첨 시 문구", type: "textarea", default: "" },
+        {
+          key: "weight",
+          label: "가중치",
+          type: "number",
+          default: 1,
+          min: 1,
+          max: 9,
+          step: 1,
+          hint: "클수록 잘 뽑힙니다",
+        },
+        { key: "color", label: "칸 색상", type: "color", default: "#E94F6A" },
+      ],
+    },
     { key: "backgroundColor", label: "배경 색상", type: "color", default: "#fff5f7" },
     { key: "accentColor", label: "강조 색상", type: "color", default: "#E94F6A" },
   ],

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface PhotoPuzzleData {
   clearText: string;
@@ -26,6 +27,7 @@ export default function PhotoPuzzle({ data, onComplete, isPreview }: SlideProps<
   const N = Math.max(2, Math.min(4, gridSize || 3));
   const cellPx = Math.floor(300 / N);
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const [order, setOrder] = useState(() => doShuffle(N));
   const [sel, setSel] = useState<number | null>(null);
@@ -48,9 +50,9 @@ export default function PhotoPuzzle({ data, onComplete, isPreview }: SlideProps<
     setMoves((m) => m + 1);
     if (isDone) {
       setDone(true);
-      if (!isPreview) setTimeout(() => onComplete?.(), 1500);
+      if (!isPreview) later(() => onComplete?.(), 1500);
     }
-  }, [done, sel, order, vibe, isPreview, onComplete]);
+  }, [done, sel, order, vibe, isPreview, onComplete, later]);
 
   const shuffle = useCallback(() => {
     setOrder(doShuffle(N));

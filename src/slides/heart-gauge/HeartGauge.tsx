@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface HeartGaugeData {
   title: string;
@@ -20,39 +21,45 @@ export default function HeartGauge({ data, onComplete, isPreview }: SlideProps<H
   const { title, targetCount, successMessage, heartColor, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
 
   const [count, setCount] = useState(0);
   const [hearts, setHearts] = useState<FloatingHeart[]>([]);
   const [full, setFull] = useState(false);
 
+  // 진동·소리·타이머 예약 같은 부작용은 setState updater 안에 두지 않는다.
+  // updater는 React가 여러 번 호출할 수 있어(StrictMode 개발 모드가 대표적)
+  // 그 안에서 타이머를 잡으면 탭 한 번에 타이머가 두 개 걸린다.
   const tap = useCallback(() => {
     if (full) return;
-    setCount((n) => {
-      const next = n + 1;
-      vibe(14);
-      blip(520 + next * 8, 0.05, "sine", 0.08);
-      const id = Date.now() + Math.random();
-      const heart: FloatingHeart = {
-        id,
-        style: {
-          position: "absolute", left: "50%", top: "46%",
-          fontSize: (16 + Math.random() * 14) + "px",
-          color: [heartColor, "#ff8aa3", "#FFD97D"][next % 3],
-          ["--hx" as string]: (Math.random() * 120 - 60) + "px",
-          animation: "jc-heartfly 1s ease-out forwards",
-          pointerEvents: "none",
-        },
-      };
-      setHearts((prev) => [...prev.slice(-11), heart]);
-      setTimeout(() => setHearts((prev) => prev.filter((h) => h.id !== id)), 1000);
-      if (next >= targetCount) {
-        vibe([15, 40, 15, 40, 90]);
-        setFull(true);
-        if (!isPreview) setTimeout(() => onComplete?.(), 1500);
-      }
-      return next;
-    });
-  }, [full, vibe, blip, heartColor, targetCount, isPreview, onComplete]);
+    const next = count + 1;
+
+    vibe(14);
+    blip(520 + next * 8, 0.05, "sine", 0.08);
+
+    const id = Date.now() + Math.random();
+    const heart: FloatingHeart = {
+      id,
+      style: {
+        position: "absolute", left: "50%", top: "46%",
+        fontSize: (16 + Math.random() * 14) + "px",
+        color: [heartColor, "#ff8aa3", "#FFD97D"][next % 3],
+        ["--hx" as string]: (Math.random() * 120 - 60) + "px",
+        animation: "jc-heartfly 1s ease-out forwards",
+        pointerEvents: "none",
+      },
+    };
+
+    setCount(next);
+    setHearts((prev) => [...prev.slice(-11), heart]);
+    later(() => setHearts((prev) => prev.filter((h) => h.id !== id)), 1000);
+
+    if (next >= targetCount) {
+      vibe([15, 40, 15, 40, 90]);
+      setFull(true);
+      if (!isPreview) later(() => onComplete?.(), 1500);
+    }
+  }, [full, count, vibe, blip, heartColor, targetCount, isPreview, onComplete, later]);
 
   const reset = useCallback(() => { setCount(0); setHearts([]); setFull(false); }, []);
   const pct = Math.min(1, count / targetCount);

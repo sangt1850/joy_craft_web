@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface PinLockData {
   question: string;
@@ -15,6 +16,7 @@ interface PinLockData {
 export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinLockData>) {
   const { question, answer, hint, hintAfter, successMessage, backgroundColor, accentColor } = data;
   const vibe = useVibrate();
+  const later = useSlideTimeout();
 
   const [pin, setPin] = useState("");
   const [attempts, setAttempts] = useState(0);
@@ -26,25 +28,26 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
     if (p === ans) {
       vibe([12, 40, 12, 40, 70]);
       setUnlocked(true);
-      if (!isPreview) setTimeout(() => onComplete?.(), 1200);
+      if (!isPreview) later(() => onComplete?.(), 1200);
     } else {
       vibe(70);
       setAttempts((a) => a + 1);
       setShake(true);
-      setTimeout(() => { setShake(false); setPin(""); }, 460);
+      later(() => { setShake(false); setPin(""); }, 460);
     }
-  }, [answer, isPreview, onComplete, vibe]);
+  }, [answer, isPreview, onComplete, vibe, later]);
 
+  // 진동·타이머 예약은 setState updater 밖에서 한다.
+  // updater는 React가 여러 번 호출할 수 있어(StrictMode 개발 모드), 그 안에 부작용을 두면
+  // 키 한 번에 검사 타이머가 두 번 걸린다.
   const pressKey = useCallback((d: string) => {
-    if (unlocked) return;
-    setPin((prev) => {
-      if (prev.length >= 4) return prev;
-      const next = prev + d;
-      vibe(8);
-      if (next.length === 4) setTimeout(() => check(next), 180);
-      return next;
-    });
-  }, [unlocked, vibe, check]);
+    if (unlocked || pin.length >= 4) return;
+    const next = pin + d;
+
+    vibe(8);
+    setPin(next);
+    if (next.length === 4) later(() => check(next), 180);
+  }, [unlocked, pin, vibe, check, later]);
 
   const del = useCallback(() => {
     if (!unlocked) setPin((p) => p.slice(0, -1));
@@ -53,8 +56,8 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
   const escape = useCallback(() => {
     vibe(20);
     setUnlocked(true);
-    if (!isPreview) setTimeout(() => onComplete?.(), 1200);
-  }, [isPreview, onComplete, vibe]);
+    if (!isPreview) later(() => onComplete?.(), 1200);
+  }, [isPreview, onComplete, vibe, later]);
 
   const showHint = attempts >= hintAfter && !unlocked;
   const showEscape = attempts >= hintAfter * 2 && !unlocked;

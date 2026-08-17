@@ -3,6 +3,7 @@ import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
 import { useAudio } from "../useAudio";
 import { useHoldProgress } from "../useHoldProgress";
+import { useSlideTimeout } from "../useSlideTimeout";
 
 interface WishLanternData {
   prompt: string;
@@ -30,6 +31,7 @@ export default function WishLantern({ data, onComplete, isPreview }: SlideProps<
   const { prompt, doneMessage, lanternColor, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
+  const later = useSlideTimeout();
 
   const [wish, setWish] = useState("");
   const [launched, setLaunched] = useState(false);
@@ -39,8 +41,8 @@ export default function WishLantern({ data, onComplete, isPreview }: SlideProps<
     vibe([12, 40, 12, 40, 90]);
     blip(660, 0.5, "sine", 0.1);
     setLaunched(true);
-    if (!isPreview) setTimeout(() => onComplete?.(), 2500);
-  }, [vibe, blip, isPreview, onComplete]);
+    if (!isPreview) later(() => onComplete?.(), 2500);
+  }, [vibe, blip, isPreview, onComplete, later]);
 
   const { progress, holding, down, up, reset } = useHoldProgress(1.2, handleComplete);
 

@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import type { SlideProps } from "../SlideProps";
 import { useVibrate } from "../useVibrate";
+import { useSlideComplete } from "../useSlideComplete";
 
 interface Slice { label: string; detail: string; weight: number; color: string; }
 
@@ -25,7 +26,13 @@ function pt(deg: number, r: number): [number, number] {
 export default function Roulette({ data, onComplete, isPreview }: SlideProps<RouletteData>) {
   const { title, backgroundColor, accentColor } = data;
   const vibe = useVibrate();
+  const complete = useSlideComplete(onComplete, isPreview);
   const spinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 언마운트 시 스핀 타이머 정리 — 죽은 타이머가 상태를 건드리지 않도록
+  useEffect(() => () => {
+    if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
+  }, []);
 
   const slices = useMemo<Slice[]>(() => {
     if (Array.isArray(data.slices)) return data.slices;
@@ -98,7 +105,8 @@ export default function Roulette({ data, onComplete, isPreview }: SlideProps<Rou
           <div style={{ background: "#fff", borderRadius: 26, padding: "34px 28px", textAlign: "center", width: "100%", maxWidth: 290, animation: "jc-pop .45s", boxShadow: "0 20px 50px rgba(0,0,0,.3)" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: accentColor, letterSpacing: ".05em", marginBottom: 10 }}>🎉 오늘의 코스는</div>
             <div style={{ fontSize: 30, fontWeight: 900, color: "#2A2320", marginBottom: 12 }}>{rs.label}</div>
-            <p style={{ fontSize: 15, color: "#7a6f60", lineHeight: 1.55, margin: "0 0 24px" }}>{rs.detail}</p>
+            <p style={{ fontSize: 15, color: "#7a6f60", lineHeight: 1.55, margin: "0 0 22px" }}>{rs.detail}</p>
+            <button onClick={complete} style={{ display: "block", width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: accentColor, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 10 }}>다음으로 →</button>
             <button onClick={reset} style={{ background: "none", border: "none", color: "#b3a596", fontSize: 14, textDecoration: "underline", cursor: "pointer", padding: 6 }}>다시 돌리기</button>
           </div>
         </div>

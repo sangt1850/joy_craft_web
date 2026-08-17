@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { SlideProps } from "../SlideProps";
+import { useSlideComplete } from "../useSlideComplete";
 
 interface DdayCounterData {
   eventName: string;
@@ -27,9 +28,11 @@ function calcDiff(targetDate: string) {
   return { days, hrs, mins, secs, dateStr };
 }
 
-export default function DdayCounter({ data }: SlideProps<DdayCounterData>) {
+export default function DdayCounter({ data, onComplete, isPreview }: SlideProps<DdayCounterData>) {
   const { eventName, targetDate, message, accentColor, backgroundColor } = data;
-  const [tick, setTick] = useState(0);
+  const complete = useSlideComplete(onComplete, isPreview);
+  // 1초마다 리렌더시켜 남은 시간을 갱신한다 (값 자체는 쓰지 않는다)
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
@@ -57,6 +60,11 @@ export default function DdayCounter({ data }: SlideProps<DdayCounterData>) {
       </div>
 
       <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 26, color: "#fff", margin: "auto 0 0", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{message}</p>
+
+      {/* 카운트다운은 스스로 끝나지 않는다 — 직접 넘어갈 수단을 제공한다 */}
+      <button onClick={complete} style={{ marginTop: 20, padding: "11px 30px", borderRadius: 14, border: "1px solid rgba(255,255,255,.25)", background: "rgba(255,255,255,.1)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+        다음으로 →
+      </button>
     </div>
   );
 }
