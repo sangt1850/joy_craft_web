@@ -9,8 +9,8 @@
 
 | 역할 | 경로 |
 |------|------|
-| **Frontend (Web)** | `C:\bizbee\joy_craft\joycraft-web` |
-| **Backend (API)** | `C:\bizbee\joy_craft\joy_craft_api` |
+| **Frontend (Web)** | `D:\develop\joycraft\joy_craft_web` |
+| **Backend (API)** | `D:\develop\joycraft\joy_craft_api` |
 
 파일을 읽거나 수정할 때 위 경로를 기준으로 탐색한다. API 관련 작업은 `joy_craft_api`, UI/페이지 작업은 `joycraft-web` 디렉토리를 사용한다.
 
