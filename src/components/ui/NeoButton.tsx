@@ -48,7 +48,7 @@ interface NeoButtonProps extends VariantProps<typeof buttonVariants> {
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function NeoButton({
   children,
-  bg = "#FF57A6",
+  bg = "#6600ff",
   color,
   shadowColor = "#111",
   size = "md",
@@ -62,7 +62,7 @@ export default function NeoButton({
   disabled = false,
 }: NeoButtonProps) {
   // 어두운 배경(핑크/블랙)이면 흰색, 밝은 배경이면 검정
-  const textColor = color ?? (bg === "#FF57A6" || bg === "#111111" ? "#fff" : "#111");
+  const textColor = color ?? (bg === "#6600ff" || bg === "#111111" ? "#fff" : "#111");
 
   // 동적 값만 인라인 style로 주입 — CSS calc()가 --neo-shadow를 참조
   const dynamicStyle = {

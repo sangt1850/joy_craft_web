@@ -53,7 +53,6 @@ export default function SiteCard({
 
         <div className="flex gap-2 flex-wrap">
           <NeoButton
-            bg="#111"
             size="sm"
             shadow={3}
             onClick={() => onEdit?.(id)}
