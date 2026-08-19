@@ -31,7 +31,6 @@ function calcDiff(targetDate: string) {
 export default function DdayCounter({ data, onComplete, isPreview }: SlideProps<DdayCounterData>) {
   const { eventName, targetDate, message, accentColor, backgroundColor } = data;
   const complete = useSlideComplete(onComplete, isPreview);
-  // 1초마다 리렌더시켜 남은 시간을 갱신한다 (값 자체는 쓰지 않는다)
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -42,27 +41,26 @@ export default function DdayCounter({ data, onComplete, isPreview }: SlideProps<
   const { days, hrs, mins, secs, dateStr } = calcDiff(targetDate);
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#3a2652)`, color: "#fff", padding: "54px 26px 32px" }}>
-      <p style={{ fontSize: 15, color: "#c9b8e8", margin: "0 0 4px" }}>{eventName}까지</p>
-      <p style={{ fontSize: 13, color: "#8a7ba8", margin: "0 0 26px" }}>{dateStr}</p>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", color: "#1A1A1A", padding: "54px 26px 32px" }}>
+      <p style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", margin: "0 0 4px" }}>{eventName}까지</p>
+      <p style={{ fontSize: 13, color: "#1A1A1A", margin: "0 0 26px", fontWeight: 600, background: "#FFE66D", padding: "4px 12px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "2px 2px 0 #1A1A1A" }}>{dateStr}</p>
 
-      <div style={{ fontSize: 80, fontWeight: 900, color: accentColor, lineHeight: 1, letterSpacing: "-.02em", fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ fontSize: 80, fontWeight: 900, color: accentColor, lineHeight: 1, letterSpacing: "-.02em", fontVariantNumeric: "tabular-nums", textShadow: "3px 3px 0 #1A1A1A" }}>
         D-{days}
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 30 }}>
         {[{ label: "시간", value: pad(hrs) }, { label: "분", value: pad(mins) }, { label: "초", value: pad(secs) }].map((u) => (
-          <div key={u.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,.08)", borderRadius: 14, padding: "14px 16px", minWidth: 66 }}>
-            <span style={{ fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{u.value}</span>
-            <span style={{ fontSize: 11, color: "#b0a0d0", marginTop: 2 }}>{u.label}</span>
+          <div key={u.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#FDF2E9", borderRadius: 8, padding: "14px 16px", minWidth: 66, border: "2px solid #1A1A1A", boxShadow: "4px 4px 0 #1A1A1A" }}>
+            <span style={{ fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: "#1A1A1A" }}>{u.value}</span>
+            <span style={{ fontSize: 11, color: "#1A1A1A", marginTop: 2, fontWeight: 700 }}>{u.label}</span>
           </div>
         ))}
       </div>
 
-      <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 26, color: "#fff", margin: "auto 0 0", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{message}</p>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: "#1A1A1A", margin: "auto 0 0", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{message}</p>
 
-      {/* 카운트다운은 스스로 끝나지 않는다 — 직접 넘어갈 수단을 제공한다 */}
-      <button onClick={complete} style={{ marginTop: 20, padding: "11px 30px", borderRadius: 14, border: "1px solid rgba(255,255,255,.25)", background: "rgba(255,255,255,.1)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+      <button onClick={complete} style={{ marginTop: 20, padding: "11px 30px", borderRadius: 8, border: "2px solid #1A1A1A", background: "#4ECDC4", color: "#1A1A1A", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", cursor: "pointer", boxShadow: "4px 4px 0 #1A1A1A" }}>
         다음으로 →
       </button>
     </div>

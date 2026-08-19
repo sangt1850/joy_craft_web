@@ -29,7 +29,6 @@ export default function Roulette({ data, onComplete, isPreview }: SlideProps<Rou
   const complete = useSlideComplete(onComplete, isPreview);
   const spinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 언마운트 시 스핀 타이머 정리 — 죽은 타이머가 상태를 건드리지 않도록
   useEffect(() => () => {
     if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
   }, []);
@@ -51,7 +50,7 @@ export default function Roulette({ data, onComplete, isPreview }: SlideProps<Rou
       const a0 = i * seg, a1 = (i + 1) * seg, mid = a0 + seg / 2;
       const [x0, y0] = pt(a0, 100), [x1, y1] = pt(a1, 100), [lx, ly] = pt(mid, 62);
       let rot = mid; if (mid > 90 && mid < 270) rot += 180;
-      return { ...s, path: `M0 0 L${x0} ${y0} A100 100 0 0 1 ${x1} ${y1} Z`, lx, ly, rot, textColor: lum(s.color) > 0.62 ? "#5a4630" : "#ffffff" };
+      return { ...s, path: `M0 0 L${x0} ${y0} A100 100 0 0 1 ${x1} ${y1} Z`, lx, ly, rot, textColor: lum(s.color) > 0.62 ? "#1A1A1A" : "#FDF2E9" };
     });
   }, [slices]);
 
@@ -77,37 +76,37 @@ export default function Roulette({ data, onComplete, isPreview }: SlideProps<Rou
   const rs = result !== null ? slices[result] : null;
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#fef0e6)`, padding: "60px 24px 32px" }}>
-      <p style={{ fontSize: 20, fontWeight: 800, color: "#2A2320", textAlign: "center", lineHeight: 1.4, margin: "0 0 30px", whiteSpace: "pre-line" }}>{title}</p>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "60px 24px 32px" }}>
+      <p style={{ fontSize: 20, fontWeight: 800, color: "#1A1A1A", textAlign: "center", lineHeight: 1.4, margin: "0 0 30px", whiteSpace: "pre-line" }}>{title}</p>
 
       <div style={{ position: "relative", width: 288, height: 288, marginBottom: 34 }}>
-        <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", zIndex: 5, filter: "drop-shadow(0 3px 4px rgba(0,0,0,.2))" }}>
-          <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 32 L2 6 a13 13 0 0 1 26 0 Z" fill="#ff4d4d" /><circle cx="15" cy="12" r="4" fill="#fff" /></svg>
+        <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", zIndex: 5 }}>
+          <svg width="30" height="34" viewBox="0 0 30 34"><path d="M15 32 L2 6 a13 13 0 0 1 26 0 Z" fill="#FF6B6B" stroke="#1A1A1A" strokeWidth="2" /><circle cx="15" cy="12" r="4" fill="#FDF2E9" /></svg>
         </div>
         <svg width="288" height="288" viewBox="-110 -110 220 220" style={{ transformOrigin: "50% 50%", transform: `rotate(${angle}deg)`, transition: spinning ? "transform 4.5s cubic-bezier(0.15,0.9,0.2,1)" : "none" }}>
           {wheelSlices.map((s, i) => (
-            <path key={i} d={s.path} fill={s.color} stroke="#ffffff" strokeWidth="2" />
+            <path key={i} d={s.path} fill={s.color} stroke="#1A1A1A" strokeWidth="2" />
           ))}
           {wheelSlices.map((s, i) => (
-            <text key={i} x={s.lx} y={s.ly} transform={`rotate(${s.rot.toFixed(2)} ${s.lx} ${s.ly})`} fill={s.textColor} fontSize="9" fontWeight="700" textAnchor="middle" dominantBaseline="middle" fontFamily="Pretendard">{s.label}</text>
+            <text key={i} x={s.lx} y={s.ly} transform={`rotate(${s.rot.toFixed(2)} ${s.lx} ${s.ly})`} fill={s.textColor} fontSize="9" fontWeight="700" textAnchor="middle" dominantBaseline="middle" fontFamily="'Space Grotesk', sans-serif">{s.label}</text>
           ))}
-          <circle cx="0" cy="0" r="20" fill="#fff" stroke="#eee" strokeWidth="2" />
-          <circle cx="0" cy="0" r="8" fill={accentColor} />
+          <circle cx="0" cy="0" r="20" fill="#FDF2E9" stroke="#1A1A1A" strokeWidth="2" />
+          <circle cx="0" cy="0" r="8" fill={accentColor} stroke="#1A1A1A" strokeWidth="2" />
         </svg>
       </div>
 
-      <button onClick={spin} disabled={spinning || result !== null} style={{ padding: "17px 52px", borderRadius: 18, border: "none", background: (spinning || result !== null) ? "#e6b8c2" : accentColor, color: "#fff", fontSize: 18, fontWeight: 800, cursor: (spinning || result !== null) ? "default" : "pointer", boxShadow: (spinning || result !== null) ? "none" : "0 10px 24px rgba(233,79,106,.35)", animation: (spinning || result !== null) ? "none" : "jc-spinhint 1.6s ease-in-out infinite", transition: "background .2s" }}>
+      <button onClick={spin} disabled={spinning || result !== null} style={{ padding: "17px 52px", borderRadius: 8, border: "2px solid #1A1A1A", background: (spinning || result !== null) ? "#ccc" : accentColor, color: "#1A1A1A", fontSize: 18, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", cursor: (spinning || result !== null) ? "default" : "pointer", boxShadow: (spinning || result !== null) ? "2px 2px 0 #1A1A1A" : "4px 4px 0 #1A1A1A", animation: (spinning || result !== null) ? "none" : "jc-spinhint 1.6s ease-in-out infinite", transition: "background .2s" }}>
         {spinning ? "돌리는 중..." : "돌리기"}
       </button>
 
       {result !== null && rs && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(26,15,25,.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30, animation: "jc-fadeup .3s" }}>
-          <div style={{ background: "#fff", borderRadius: 26, padding: "34px 28px", textAlign: "center", width: "100%", maxWidth: 290, animation: "jc-pop .45s", boxShadow: "0 20px 50px rgba(0,0,0,.3)" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: accentColor, letterSpacing: ".05em", marginBottom: 10 }}>🎉 오늘의 코스는</div>
-            <div style={{ fontSize: 30, fontWeight: 900, color: "#2A2320", marginBottom: 12 }}>{rs.label}</div>
-            <p style={{ fontSize: 15, color: "#7a6f60", lineHeight: 1.55, margin: "0 0 22px" }}>{rs.detail}</p>
-            <button onClick={complete} style={{ display: "block", width: "100%", padding: "14px 0", borderRadius: 14, border: "none", background: accentColor, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 10 }}>다음으로 →</button>
-            <button onClick={reset} style={{ background: "none", border: "none", color: "#b3a596", fontSize: 14, textDecoration: "underline", cursor: "pointer", padding: 6 }}>다시 돌리기</button>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(26,26,26,.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30, animation: "jc-fadeup .3s" }}>
+          <div style={{ background: "#FDF2E9", borderRadius: 8, padding: "34px 28px", textAlign: "center", width: "100%", maxWidth: 290, animation: "jc-pop .45s", border: "2px solid #1A1A1A", boxShadow: "8px 8px 0 #1A1A1A" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A", background: "#FFE66D", display: "inline-block", padding: "4px 12px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "2px 2px 0 #1A1A1A", letterSpacing: ".05em", marginBottom: 10 }}>🎉 오늘의 코스는</div>
+            <div style={{ fontSize: 30, fontWeight: 900, color: "#1A1A1A", marginBottom: 12 }}>{rs.label}</div>
+            <p style={{ fontSize: 15, color: "#1A1A1A", lineHeight: 1.55, margin: "0 0 22px", fontWeight: 600 }}>{rs.detail}</p>
+            <button onClick={complete} style={{ display: "block", width: "100%", padding: "14px 0", borderRadius: 8, border: "2px solid #1A1A1A", background: accentColor, color: "#1A1A1A", fontSize: 16, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", cursor: "pointer", marginBottom: 10, boxShadow: "4px 4px 0 #1A1A1A" }}>다음으로 →</button>
+            <button onClick={reset} style={{ background: "none", border: "2px solid #1A1A1A", borderRadius: 8, color: "#1A1A1A", fontSize: 14, fontWeight: 700, cursor: "pointer", padding: "6px 16px" }}>다시 돌리기</button>
           </div>
         </div>
       )}

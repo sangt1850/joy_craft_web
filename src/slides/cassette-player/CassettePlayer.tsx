@@ -30,7 +30,6 @@ export default function CassettePlayer({ data, onComplete, isPreview }: SlidePro
   const [trackIdx, setTrackIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [pos, setPos] = useState(0);
-  // 재생을 한 번이라도 시작해야 "다음으로" 안내가 뜬다 (테이프를 들어봤다는 신호)
   const [started, setStarted] = useState(false);
 
   const posRef = useRef(0);
@@ -56,7 +55,6 @@ export default function CassettePlayer({ data, onComplete, isPreview }: SlidePro
     }
   }, [getAc]);
 
-  // 멜로디는 스케일에서 즉흥 생성되므로 재생 위치(pos) 개념이 없다 — 인자로 받지 않는다
   const playMelody = useCallback((t: Track) => {
     stopAudio();
     const ac = getAc();
@@ -113,7 +111,6 @@ export default function CassettePlayer({ data, onComplete, isPreview }: SlidePro
         posRef.current = 0;
         setPos(0);
         setPlaying(false);
-        // 마지막 트랙까지 다 들었다면 테이프가 끝난 것 = 슬라이드 완료
         if (isLast) complete();
         return;
       }
@@ -149,16 +146,15 @@ export default function CassettePlayer({ data, onComplete, isPreview }: SlidePro
   const progress = Math.min(100, (pos / t.dur) * 100) + "%";
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, padding: "44px 24px 30px" }}>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#FFD97D", letterSpacing: ".1em", margin: "0 0 20px" }}>◦ MIX TAPE FOR YOU ◦</p>
-      <div style={{ width: "100%", background: `linear-gradient(160deg,${tapeColor},#e0d3b8)`, borderRadius: 14, padding: "20px 18px", boxShadow: "0 12px 30px rgba(0,0,0,.35)", border: "2px solid rgba(0,0,0,.12)" }}>
-        <div style={{ background: "#2a2420", borderRadius: 8, padding: "20px 18px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 8, border: "1px solid rgba(255,255,255,.08)", borderRadius: 5, pointerEvents: "none" }} />
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "44px 24px 30px" }}>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#FFE66D", letterSpacing: ".1em", margin: "0 0 20px", border: "2px solid #1A1A1A", background: "#1A1A1A", padding: "4px 14px", borderRadius: 6 }}>MIX TAPE FOR YOU</p>
+      <div style={{ width: "100%", background: tapeColor, borderRadius: 8, padding: "20px 18px", boxShadow: "6px 6px 0 #1A1A1A", border: "2px solid #1A1A1A" }}>
+        <div style={{ background: "#1A1A1A", borderRadius: 8, padding: "20px 18px", position: "relative", overflow: "hidden", border: "2px solid #1A1A1A" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 6px" }}>
             {[0, 1].map((side) => (
               <div key={side} style={{ animation: playing ? "jc-spin 2.4s linear infinite" : "none" }}>
                 <svg width="72" height="72" viewBox="0 0 72 72">
-                  <circle cx="36" cy="36" r="34" fill="#1a1512" stroke="#4a3f36" strokeWidth="2" />
+                  <circle cx="36" cy="36" r="34" fill="#2a2420" stroke="#4a3f36" strokeWidth="2" />
                   <circle cx="36" cy="36" r="12" fill="#3a322b" />
                   <g fill="#5a4d40">
                     <rect x="34" y="6" width="4" height="14" rx="2" />
@@ -171,31 +167,30 @@ export default function CassettePlayer({ data, onComplete, isPreview }: SlidePro
             ))}
           </div>
         </div>
-        <div style={{ marginTop: 12, textAlign: "center", fontFamily: "'Gaegu',cursive" }}>
-          <p style={{ fontSize: 18, fontWeight: 700, color: "#3a2e28", margin: 0 }}>{t.title}</p>
-          <p style={{ fontSize: 13, color: "#8a7862", margin: "2px 0 0" }}>{t.artist}</p>
+        <div style={{ marginTop: 12, textAlign: "center" }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", margin: 0, fontFamily: "'Space Grotesk', sans-serif" }}>{t.title}</p>
+          <p style={{ fontSize: 13, color: "#5a4d3a", margin: "2px 0 0", fontWeight: 600 }}>{t.artist}</p>
         </div>
       </div>
       <div style={{ width: "100%", marginTop: 22 }}>
-        <div style={{ height: 5, borderRadius: 5, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
-          <div style={{ height: "100%", background: "#FFD97D", borderRadius: 5, width: progress, transition: "width .2s linear" }} />
+        <div style={{ height: 6, borderRadius: 4, background: "#1A1A1A", overflow: "hidden", border: "2px solid #1A1A1A" }}>
+          <div style={{ height: "100%", background: "#FFE66D", width: progress, transition: "width .2s linear" }} />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11, color: "#b0a290" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 11, color: "#b0a290", fontWeight: 700 }}>
           <span>{fmt(pos)}</span><span>{fmt(t.dur)}</span>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 22, marginTop: 24 }}>
-        <button onClick={() => switchTrack(-1)} style={{ background: "none", border: "none", color: "#c9b89a", fontSize: 22, cursor: "pointer" }}>⏮</button>
-        <button onClick={toggle} style={{ width: 66, height: 66, borderRadius: "50%", border: "none", background: "#FFD97D", color: "#2a201a", fontSize: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(255,217,125,.35)" }}>
+        <button onClick={() => switchTrack(-1)} style={{ background: "#FDF2E9", border: "2px solid #1A1A1A", borderRadius: 8, color: "#1A1A1A", fontSize: 22, cursor: "pointer", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "3px 3px 0 #1A1A1A", fontWeight: 700 }}>⏮</button>
+        <button onClick={toggle} style={{ width: 66, height: 66, borderRadius: 8, border: "2px solid #1A1A1A", background: "#FFE66D", color: "#1A1A1A", fontSize: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "4px 4px 0 #1A1A1A", fontWeight: 700 }}>
           {playing ? "❚❚" : "▶"}
         </button>
-        <button onClick={() => switchTrack(1)} style={{ background: "none", border: "none", color: "#c9b89a", fontSize: 22, cursor: "pointer" }}>⏭</button>
+        <button onClick={() => switchTrack(1)} style={{ background: "#FDF2E9", border: "2px solid #1A1A1A", borderRadius: 8, color: "#1A1A1A", fontSize: 22, cursor: "pointer", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "3px 3px 0 #1A1A1A", fontWeight: 700 }}>⏭</button>
       </div>
-      <p style={{ fontSize: 12, color: "#8a7862", margin: "auto 0 0", textAlign: "center", lineHeight: 1.5, whiteSpace: "pre-line" }}>{note}</p>
+      <p style={{ fontSize: 12, color: "#1A1A1A", margin: "auto 0 0", textAlign: "center", lineHeight: 1.5, whiteSpace: "pre-line", fontWeight: 600 }}>{note}</p>
 
-      {/* 테이프는 스스로 끝나기까지 오래 걸린다 — 한 번 들어본 뒤에는 직접 넘어갈 수 있게 한다 */}
       {started && (
-        <button onClick={complete} style={{ marginTop: 14, padding: "10px 26px", borderRadius: 14, border: "1px solid rgba(255,217,125,.45)", background: "rgba(255,217,125,.12)", color: "#FFD97D", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+        <button onClick={complete} style={{ marginTop: 14, padding: "10px 26px", borderRadius: 8, border: "2px solid #1A1A1A", background: "#4ECDC4", color: "#1A1A1A", fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", cursor: "pointer", boxShadow: "4px 4px 0 #1A1A1A" }}>
           다음으로 →
         </button>
       )}

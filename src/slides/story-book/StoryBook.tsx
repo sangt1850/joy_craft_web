@@ -54,17 +54,19 @@ export default function StoryBook({ data, onComplete, isPreview }: SlideProps<St
   const np = pages.length;
 
   const navBtn = (disabled: boolean): React.CSSProperties => ({
-    width: 46, height: 46, borderRadius: "50%", border: "none",
+    width: 46, height: 46, borderRadius: 8, border: "2px solid #1A1A1A",
     cursor: disabled ? "default" : "pointer",
-    background: disabled ? "#e6dcc8" : "#8a7250",
-    color: disabled ? "#bdae94" : "#fff",
+    background: disabled ? "#e6dcc8" : "#1A1A1A",
+    color: disabled ? "#bdae94" : "#FDF2E9",
     fontSize: 24, lineHeight: "1",
-    boxShadow: disabled ? "none" : "0 4px 10px rgba(90,70,40,.25)",
+    fontWeight: 700,
+    boxShadow: disabled ? "none" : "3px 3px 0 #1A1A1A",
+    fontFamily: "'Space Grotesk', sans-serif",
   });
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#ddd0ba)`, padding: "50px 22px 26px" }}>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#8a7250", letterSpacing: ".05em", margin: "0 0 16px" }}>우리의 계절 · {pageIdx + 1}/{np}</p>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "50px 22px 26px" }}>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A", background: "#FFE66D", padding: "4px 12px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "2px 2px 0 #1A1A1A", letterSpacing: ".05em", margin: "0 0 16px" }}>우리의 계절 · {pageIdx + 1}/{np}</p>
 
       <div
         onPointerDown={onDown}
@@ -72,11 +74,11 @@ export default function StoryBook({ data, onComplete, isPreview }: SlideProps<St
         style={{ position: "relative", width: 300, height: 410, perspective: 1400, touchAction: "pan-y" }}
       >
         <div style={{ position: "absolute", inset: 0, transformOrigin: dir > 0 ? "left center" : "right center", transformStyle: "preserve-3d", transform: flip ? `rotateY(${dir > 0 ? -22 : 22}deg)` : "rotateY(0deg)", opacity: flip ? 0.55 : 1, transition: "transform .26s ease, opacity .26s ease" }}>
-          <div style={{ position: "absolute", inset: 0, borderRadius: "6px 14px 14px 6px", background: ep.bgColor, padding: "34px 28px", display: "flex", flexDirection: "column", boxShadow: "inset 8px 0 18px rgba(0,0,0,.08),0 12px 30px rgba(80,60,30,.24)", borderLeft: "6px solid rgba(0,0,0,.12)" }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: 8, background: ep.bgColor, padding: "34px 28px", display: "flex", flexDirection: "column", border: "2px solid #1A1A1A", boxShadow: "6px 6px 0 #1A1A1A" }}>
             <div style={{ fontSize: 52, marginBottom: 14 }}>{ep.emoji}</div>
-            <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 30, color: "#3a2f22", lineHeight: 1.35, margin: "0 0 14px" }}>{ep.title}</p>
-            <p style={{ fontFamily: "'Gaegu',cursive", fontSize: 18, color: "#5a4d3a", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>{ep.text}</p>
-            <p style={{ marginTop: "auto", textAlign: "right", fontSize: 13, color: "#a8926a" }}>- {pageIdx + 1} -</p>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 26, fontWeight: 700, color: "#1A1A1A", lineHeight: 1.35, margin: "0 0 14px" }}>{ep.title}</p>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 16, fontWeight: 600, color: "#1A1A1A", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>{ep.text}</p>
+            <p style={{ marginTop: "auto", textAlign: "right", fontSize: 13, color: "#1A1A1A", fontWeight: 700 }}>- {pageIdx + 1} -</p>
           </div>
         </div>
       </div>
@@ -85,12 +87,12 @@ export default function StoryBook({ data, onComplete, isPreview }: SlideProps<St
         <button onClick={() => go(-1)} disabled={pageIdx === 0} style={navBtn(pageIdx === 0)}>‹</button>
         <div style={{ display: "flex", gap: 6 }}>
           {pages.map((_, i) => (
-            <div key={i} style={{ width: i === pageIdx ? 18 : 7, height: 7, borderRadius: 4, background: i === pageIdx ? "#8a7250" : "#c9b59a", transition: "all .2s" }} />
+            <div key={i} style={{ width: i === pageIdx ? 18 : 7, height: 7, borderRadius: 4, background: i === pageIdx ? "#1A1A1A" : "#ccc", border: "2px solid #1A1A1A", transition: "all .2s" }} />
           ))}
         </div>
         <button onClick={() => go(1)} disabled={pageIdx === np - 1} style={navBtn(pageIdx === np - 1)}>›</button>
       </div>
-      <p style={{ fontSize: 12, color: "#a8926a", margin: "12px 0 0" }}>{footerText}</p>
+      <p style={{ fontSize: 12, color: "#1A1A1A", fontWeight: 700, margin: "12px 0 0" }}>{footerText}</p>
     </div>
   );
 }

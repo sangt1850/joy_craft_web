@@ -13,7 +13,7 @@ interface GiftBoxData {
 }
 
 const PULL_DIST = 130;
-const CONFETTI_COLORS = ["#E94F6A", "#FFD97D", "#7EC8B1", "#F4A7C0", "#A78BCE", "#ff9a5c"];
+const CONFETTI_COLORS = ["#FF6B6B", "#FFE66D", "#4ECDC4", "#A388EE", "#F7A072", "#FF6B6B"];
 
 export default function GiftBox({ data, onComplete, isPreview }: SlideProps<GiftBoxData>) {
   const { insideMessage, hint, boxColor, ribbonColor, backgroundColor } = data;
@@ -64,7 +64,7 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
   }, [opened]);
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: `linear-gradient(165deg,${backgroundColor},#ffe4d6)`, padding: "40px 26px", overflow: "hidden" }}>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "40px 26px", overflow: "hidden" }}>
       {/* 컨페티 */}
       {opened && (
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
@@ -74,28 +74,28 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
         </div>
       )}
 
-      <p style={{ fontSize: 15, fontWeight: 600, color: "#c07a8a", margin: 0, paddingTop: 6, minHeight: 22, textAlign: "center" }}>{opened ? "" : hint}</p>
+      <p style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", margin: 0, paddingTop: 6, minHeight: 22, textAlign: "center" }}>{opened ? "" : hint}</p>
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
         <div style={{ position: "relative", width: 210, height: 230 }}>
           {/* 내용물 */}
           <div style={{ position: "absolute", left: "50%", bottom: 96, transform: opened ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.5)", transformOrigin: "center bottom", opacity: opened ? 1 : 0, transition: "transform .5s cubic-bezier(.34,1.56,.64,1) .18s, opacity .4s .18s", zIndex: 1, display: "flex", justifyContent: "center" }}>
-            <div style={{ width: 150, background: "#fff", borderRadius: 16, padding: "20px 18px", textAlign: "center", boxShadow: "0 12px 30px rgba(0,0,0,.16)" }}>
+            <div style={{ width: 150, background: "#FDF2E9", borderRadius: 8, padding: "20px 18px", textAlign: "center", boxShadow: "4px 4px 0 #1A1A1A", border: "2px solid #1A1A1A" }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}>💝</div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#2A2320", lineHeight: 1.5, margin: 0, whiteSpace: "pre-line" }}>{insideMessage}</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", lineHeight: 1.5, margin: 0, whiteSpace: "pre-line" }}>{insideMessage}</p>
             </div>
           </div>
 
           {/* 뚜껑 */}
           <div style={{ position: "absolute", left: "50%", bottom: 150, transformOrigin: "center bottom", zIndex: 3, transform: opened ? "translateX(-50%) translateY(-150px) rotate(-16deg)" : `translateX(-50%) translateY(${-pull * 8}px) rotate(${pull * 3}deg)`, opacity: opened ? 0 : 1, transition: dragging ? "none" : "transform .6s cubic-bezier(.34,1.56,.64,1), opacity .5s" }}>
-            <div style={{ width: 190, height: 44, background: boxColor, borderRadius: "10px 10px 4px 4px", position: "relative", boxShadow: "0 4px 10px rgba(0,0,0,.15)" }}>
+            <div style={{ width: 190, height: 44, background: boxColor, borderRadius: "8px 8px 4px 4px", position: "relative", border: "2px solid #1A1A1A", boxShadow: "4px 4px 0 #1A1A1A" }}>
               <div style={{ position: "absolute", left: "50%", top: 0, transform: "translateX(-50%)", width: 26, height: "100%", background: ribbonColor }} />
             </div>
           </div>
 
           {/* 박스 */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", transformOrigin: "center bottom", animation: (!opened && !dragging) ? "jc-boxwiggle 2.2s ease-in-out infinite" : "none", zIndex: 2 }}>
-            <div style={{ width: 170, height: 150, background: `color-mix(in srgb, ${boxColor} 90%, black)`, borderRadius: "6px 6px 12px 12px", position: "relative", boxShadow: "inset 0 -14px 24px rgba(0,0,0,.12)" }}>
+            <div style={{ width: 170, height: 150, background: boxColor, borderRadius: "6px 6px 8px 8px", position: "relative", border: "2px solid #1A1A1A", boxShadow: "6px 6px 0 #1A1A1A" }}>
               <div style={{ position: "absolute", left: "50%", top: 0, transform: "translateX(-50%)", width: 26, height: "100%", background: ribbonColor }} />
             </div>
           </div>
@@ -110,9 +110,9 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
               style={{ position: "absolute", left: 0, right: 0, bottom: 168, display: "flex", justifyContent: "center", transform: `translateY(${pull * PULL_DIST * 0.9}px)`, cursor: "grab", touchAction: "none", zIndex: 6, transition: dragging ? "none" : "transform .3s" }}
             >
               <svg width="52" height="60" viewBox="0 0 52 60">
-                <path d="M26 6 C10 6 6 30 26 30 C46 30 42 6 26 6 Z" fill={ribbonColor} />
-                <path d="M22 28 L14 58 L26 48 L38 58 L30 28 Z" fill="#ffcf5e" />
-                <circle cx="26" cy="18" r="7" fill="#f3d98a" />
+                <path d="M26 6 C10 6 6 30 26 30 C46 30 42 6 26 6 Z" fill={ribbonColor} stroke="#1A1A1A" strokeWidth="2" />
+                <path d="M22 28 L14 58 L26 48 L38 58 L30 28 Z" fill="#FFE66D" stroke="#1A1A1A" strokeWidth="1.5" />
+                <circle cx="26" cy="18" r="7" fill="#FFE66D" stroke="#1A1A1A" strokeWidth="1.5" />
               </svg>
             </div>
           )}
@@ -121,7 +121,7 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
 
       <div style={{ minHeight: 24, paddingBottom: 6 }}>
         {opened && (
-          <div style={{ fontSize: 13, color: boxColor, background: "#fff", padding: "8px 18px", borderRadius: 20, fontWeight: 700, animation: "jc-fadeup .5s", boxShadow: "0 4px 12px rgba(233,79,106,.15)" }}>✓ 열었어요 · 다음 페이지로</div>
+          <div style={{ fontSize: 13, color: "#1A1A1A", background: "#4ECDC4", padding: "6px 18px", borderRadius: 6, fontWeight: 700, animation: "jc-fadeup .5s", border: "2px solid #1A1A1A", boxShadow: "3px 3px 0 #1A1A1A" }}>✓ 열었어요 · 다음 페이지로</div>
         )}
       </div>
     </div>

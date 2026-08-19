@@ -37,9 +37,6 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
     }
   }, [answer, isPreview, onComplete, vibe, later]);
 
-  // 진동·타이머 예약은 setState updater 밖에서 한다.
-  // updater는 React가 여러 번 호출할 수 있어(StrictMode 개발 모드), 그 안에 부작용을 두면
-  // 키 한 번에 검사 타이머가 두 번 걸린다.
   const pressKey = useCallback((d: string) => {
     if (unlocked || pin.length >= 4) return;
     const next = pin + d;
@@ -63,30 +60,32 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
   const showEscape = attempts >= hintAfter * 2 && !unlocked;
 
   const keyBase: React.CSSProperties = {
-    height: 58, borderRadius: 18, border: "none",
-    background: "rgba(255,255,255,.09)", color: "#fff",
-    fontSize: 24, fontWeight: 600, cursor: "pointer",
+    height: 58, borderRadius: 8, border: "2px solid #1A1A1A",
+    background: "#FDF2E9", color: "#1A1A1A",
+    fontSize: 24, fontWeight: 700, cursor: "pointer",
+    fontFamily: "'Space Grotesk', sans-serif",
+    boxShadow: "3px 3px 0 #1A1A1A",
   };
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#2a1e46)`, color: "#fff", padding: "64px 26px 30px" }}>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", color: "#FDF2E9", padding: "64px 26px 30px" }}>
       <p style={{ fontSize: 19, fontWeight: 700, textAlign: "center", lineHeight: 1.45, margin: "0 0 26px" }}>{question}</p>
 
       <div style={{ animation: shake ? "jc-shake .45s" : "none", marginBottom: 18 }}>
         <svg width="92" height="106" viewBox="0 0 92 106" fill="none">
           <path d="M26 44 V31 a20 20 0 0 1 40 0 V44" stroke={accentColor} strokeWidth="9" strokeLinecap="round" />
-          <rect x="16" y="44" width="60" height="54" rx="12" fill={accentColor} />
-          <circle cx="46" cy="66" r="7" fill={backgroundColor} />
-          <rect x="43" y="70" width="6" height="16" rx="3" fill={backgroundColor} />
+          <rect x="16" y="44" width="60" height="54" rx="8" fill={accentColor} stroke="#1A1A1A" strokeWidth="2" />
+          <circle cx="46" cy="66" r="7" fill="#1A1A1A" />
+          <rect x="43" y="70" width="6" height="16" rx="3" fill="#1A1A1A" />
         </svg>
       </div>
 
       <div style={{ display: "flex", gap: 14, marginBottom: 22 }}>
         {[0, 1, 2, 3].map((i) => (
           <div key={i} style={{
-            width: 15, height: 15, borderRadius: "50%",
+            width: 15, height: 15, borderRadius: 4,
             background: i < pin.length ? accentColor : "transparent",
-            border: `2px solid ${i < pin.length ? accentColor : "#6a5c82"}`,
+            border: `2px solid ${i < pin.length ? "#1A1A1A" : "#555"}`,
             transition: "all .15s",
           }} />
         ))}
@@ -94,7 +93,7 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
 
       <div style={{ minHeight: 24, marginBottom: 14, textAlign: "center" }}>
         {showHint && (
-          <p style={{ fontSize: 13, color: accentColor, margin: 0, animation: "jc-fadeup .3s" }}>💡 {hint}</p>
+          <p style={{ fontSize: 13, color: "#FFE66D", fontWeight: 700, margin: 0, animation: "jc-fadeup .3s", background: "#1A1A1A", border: "2px solid #FFE66D", borderRadius: 6, padding: "4px 12px", display: "inline-block" }}>💡 {hint}</p>
         )}
       </div>
 
@@ -102,7 +101,7 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
         {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((label, i) => {
           if (label === "") return <div key={i} />;
           if (label === "⌫") return (
-            <button key={i} style={{ ...keyBase, fontSize: 22, background: "rgba(255,255,255,.04)" }} onClick={del}>⌫</button>
+            <button key={i} style={{ ...keyBase, fontSize: 22, background: "#FF6B6B", color: "#1A1A1A" }} onClick={del}>⌫</button>
           );
           return <button key={i} style={keyBase} onClick={() => pressKey(label)}>{label}</button>;
         })}
@@ -110,24 +109,24 @@ export default function PinLock({ data, onComplete, isPreview }: SlideProps<PinL
 
       <div style={{ minHeight: 44, marginTop: 12 }}>
         {showEscape && (
-          <button onClick={escape} style={{ background: "none", border: "none", color: "#9c8fb8", fontSize: 13, textDecoration: "underline", cursor: "pointer", padding: 10 }}>
+          <button onClick={escape} style={{ background: "none", border: "2px solid #555", borderRadius: 8, color: "#888", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: "8px 16px" }}>
             그냥 열어보기
           </button>
         )}
       </div>
 
       {unlocked && (
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(165deg,#241b3d,#3a2650)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, animation: "jc-fadeup .4s" }}>
+        <div style={{ position: "absolute", inset: 0, background: "#1A1A1A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, animation: "jc-fadeup .4s" }}>
           <div style={{ animation: "jc-pop .5s" }}>
             <svg width="100" height="112" viewBox="0 0 92 106" fill="none">
               <path d="M26 44 V31 a20 20 0 0 1 40 0 V51" stroke={accentColor} strokeWidth="9" strokeLinecap="round" />
-              <rect x="16" y="44" width="60" height="54" rx="12" fill={accentColor} />
-              <circle cx="46" cy="66" r="7" fill="#241b3d" />
-              <rect x="43" y="70" width="6" height="16" rx="3" fill="#241b3d" />
+              <rect x="16" y="44" width="60" height="54" rx="8" fill={accentColor} stroke="#1A1A1A" strokeWidth="2" />
+              <circle cx="46" cy="66" r="7" fill="#1A1A1A" />
+              <rect x="43" y="70" width="6" height="16" rx="3" fill="#1A1A1A" />
             </svg>
           </div>
-          <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 34, color: "#fff", margin: 0, textAlign: "center" }}>{successMessage}</p>
-          <div style={{ fontSize: 13, color: "#b6a9d0", background: "rgba(255,255,255,.1)", padding: "8px 18px", borderRadius: 20 }}>✓ 잠금 해제됨 · 다음 페이지로</div>
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 700, color: "#FDF2E9", margin: 0, textAlign: "center" }}>{successMessage}</p>
+          <div style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 700, background: "#4ECDC4", padding: "6px 18px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "3px 3px 0 #1A1A1A" }}>✓ 잠금 해제됨 · 다음 페이지로</div>
         </div>
       )}
     </div>

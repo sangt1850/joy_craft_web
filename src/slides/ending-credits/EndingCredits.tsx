@@ -100,27 +100,27 @@ export default function EndingCredits({ data, onComplete, isPreview }: SlideProp
   const btnLabel = playing ? "❚❚ 멈춤" : (done ? "↻ 다시 보기" : "▶ 재생");
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: "#0a0a12", overflow: "hidden" }}>
+    <div style={{ position: "absolute", inset: 0, background: "#1A1A1A", overflow: "hidden", fontFamily: "'Space Grotesk', sans-serif" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, transform: `translateY(${466 - y}px)`, willChange: "transform" }}>
         <div style={{ textAlign: "center", padding: "60px 30px 40px" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🎬</div>
-          <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 40, color: "#FFD97D", margin: 0, lineHeight: 1.2 }}>{movieTitle}</p>
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 36, fontWeight: 700, color: "#FFE66D", margin: 0, lineHeight: 1.2 }}>{movieTitle}</p>
         </div>
         {credits.map((c, i) => (
           <div key={i} style={{ textAlign: "center", padding: "16px 30px" }}>
-            <p style={{ fontSize: 13, color: "#8a8fa0", letterSpacing: ".1em", margin: "0 0 4px" }}>{c.role}</p>
-            <p style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: 0 }}>{c.name}</p>
+            <p style={{ fontSize: 13, color: "#A388EE", letterSpacing: ".1em", margin: "0 0 4px", fontWeight: 700 }}>{c.role}</p>
+            <p style={{ fontSize: 22, fontWeight: 700, color: "#FDF2E9", margin: 0 }}>{c.name}</p>
           </div>
         ))}
         <div style={{ textAlign: "center", padding: "50px 30px 80px" }}>
-          <p style={{ fontFamily: "'Nanum Pen Script',cursive", fontSize: 32, color: "#E94F6A", margin: 0, lineHeight: 1.4, whiteSpace: "pre-line" }}>{endMessage}</p>
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 700, color: "#FF6B6B", margin: 0, lineHeight: 1.4, whiteSpace: "pre-line" }}>{endMessage}</p>
         </div>
       </div>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80, background: "linear-gradient(#0a0a12,transparent)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 66, left: 0, right: 0, height: 80, background: "linear-gradient(transparent,#0a0a12)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", gap: 12, padding: "16px 22px", background: "#0a0a12" }}>
-        <button onClick={done ? restart : toggle} style={{ flex: 1, padding: 14, borderRadius: 12, border: "none", background: "#E94F6A", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{done ? "↻ 다시 보기" : btnLabel}</button>
-        <button onClick={restart} style={{ padding: "14px 20px", borderRadius: 12, border: "1px solid #2a2a3a", background: "#15151f", color: "#aab", fontSize: 15, cursor: "pointer" }}>↻</button>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80, background: "linear-gradient(#1A1A1A,transparent)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: 66, left: 0, right: 0, height: 80, background: "linear-gradient(transparent,#1A1A1A)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", gap: 12, padding: "16px 22px", background: "#1A1A1A" }}>
+        <button onClick={done ? restart : toggle} style={{ flex: 1, padding: 14, borderRadius: 8, border: "2px solid #1A1A1A", background: "#FF6B6B", color: "#1A1A1A", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "4px 4px 0 #FFE66D" }}>{done ? "↻ 다시 보기" : btnLabel}</button>
+        <button onClick={restart} style={{ padding: "14px 20px", borderRadius: 8, border: "2px solid #FDF2E9", background: "#2a2a2a", color: "#FDF2E9", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "3px 3px 0 #FDF2E9" }}>↻</button>
       </div>
     </div>
   );

@@ -41,9 +41,9 @@ export default function ScratchLottery({ data, onComplete, isPreview }: SlidePro
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "rgba(255,255,255,.35)";
     for (let i = -h; i < w; i += 26) { ctx.fillRect(i, 0, 8, h); }
-    ctx.fillStyle = "#7c828c"; ctx.textAlign = "center";
-    ctx.font = "700 30px Pretendard"; ctx.fillText("🪙", w / 2, h / 2 - 6);
-    ctx.font = "600 15px Pretendard"; ctx.fillText("여기를 긁어보세요", w / 2, h / 2 + 30);
+    ctx.fillStyle = "#1A1A1A"; ctx.textAlign = "center";
+    ctx.font = "700 30px 'Space Grotesk'"; ctx.fillText("🪙", w / 2, h / 2 - 6);
+    ctx.font = "600 15px 'Space Grotesk'"; ctx.fillText("여기를 긁어보세요", w / 2, h / 2 + 30);
     ctx.globalCompositeOperation = "destination-out";
     ctxRef.current = ctx;
     doneRef.current = false;
@@ -65,7 +65,6 @@ export default function ScratchLottery({ data, onComplete, isPreview }: SlidePro
     const { x, y } = getPos(e, c);
     ctx.beginPath(); ctx.arc(x, y, 24, 0, Math.PI * 2); ctx.fill();
     setShowHint(false);
-    // check ratio
     const img = ctx.getImageData(0, 0, c.width, c.height).data;
     let clear = 0; const N = 22, cw = c.width, ch = c.height;
     for (let gx = 0; gx < N; gx++) for (let gy = 0; gy < N; gy++) {
@@ -83,15 +82,15 @@ export default function ScratchLottery({ data, onComplete, isPreview }: SlidePro
   }, [vibe, isPreview, onComplete, later]);
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: `linear-gradient(165deg,${backgroundColor},#3d2c52)`, padding: "60px 26px 34px" }}>
-      <p style={{ fontSize: 19, fontWeight: 700, color: "#fff", textAlign: "center", margin: "0 0 6px" }}>🎫 오늘의 행운 복권</p>
-      <p style={{ fontSize: 13, color: accentColor, margin: "0 0 26px" }}>{prompt}</p>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "60px 26px 34px" }}>
+      <p style={{ fontSize: 19, fontWeight: 700, color: "#FDF2E9", textAlign: "center", margin: "0 0 6px" }}>🎫 오늘의 행운 복권</p>
+      <p style={{ fontSize: 13, color: accentColor, fontWeight: 700, margin: "0 0 26px" }}>{prompt}</p>
 
-      <div style={{ position: "relative", width: 300, height: 360, borderRadius: 22, overflow: "hidden", boxShadow: "0 14px 34px rgba(0,0,0,.3)" }}>
+      <div style={{ position: "relative", width: 300, height: 360, borderRadius: 8, overflow: "hidden", border: "2px solid #1A1A1A", boxShadow: "8px 8px 0 #1A1A1A" }}>
         {/* 상품 내용 (아래) */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "linear-gradient(150deg,#fff3d6,#ffe0e6)", padding: 26, textAlign: "center" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "#FDF2E9", padding: 26, textAlign: "center" }}>
           <div style={{ fontSize: 64 }}>{prizeEmoji}</div>
-          <p style={{ fontSize: 24, fontWeight: 900, color: "#E94F6A", lineHeight: 1.35, margin: 0, whiteSpace: "pre-line" }}>{prizeText}</p>
+          <p style={{ fontSize: 24, fontWeight: 900, color: "#FF6B6B", lineHeight: 1.35, margin: 0, whiteSpace: "pre-line" }}>{prizeText}</p>
         </div>
         {/* 긁기 canvas */}
         <canvas
@@ -108,8 +107,10 @@ export default function ScratchLottery({ data, onComplete, isPreview }: SlidePro
         )}
       </div>
 
-      <p style={{ fontSize: 13, color: revealed ? "#FFD97D" : accentColor, margin: "22px 0 0", fontWeight: 600, minHeight: 20 }}>
-        {revealed ? "🎉 당첨을 확인했어요!" : ratio > 0 ? `${Math.round(ratio * 100)}% 긁는 중...` : "긁어서 복권을 확인하세요"}
+      <p style={{ fontSize: 13, fontWeight: 700, margin: "22px 0 0", minHeight: 20 }}>
+        {revealed
+          ? <span style={{ color: "#1A1A1A", background: "#FFE66D", padding: "4px 12px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "2px 2px 0 #1A1A1A" }}>🎉 당첨을 확인했어요!</span>
+          : <span style={{ color: accentColor }}>{ratio > 0 ? `${Math.round(ratio * 100)}% 긁는 중...` : "긁어서 복권을 확인하세요"}</span>}
       </p>
     </div>
   );

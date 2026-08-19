@@ -32,9 +32,6 @@ export default function Flashlight({ data, onComplete, isPreview }: SlideProps<F
     const x = e.clientX - r.left;
     const yoff = e.pointerType === "touch" ? 56 : 0;
     const y = e.clientY - r.top - yoff;
-    // 부작용(진동·완료 타이머)은 updater 밖에서 처리한다.
-    // updater는 React가 여러 번 호출할 수 있어(StrictMode 개발 모드), 그 안에 두면
-    // 포인터 이동 한 번에 타이머가 두 번 잡힌다.
     const next = [...found];
     let changed = false;
     spots.forEach((sp, i) => {
@@ -77,45 +74,45 @@ export default function Flashlight({ data, onComplete, isPreview }: SlideProps<F
   };
 
   return (
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, padding: "52px 22px 30px" }}>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#FFD97D", background: "rgba(255,217,125,.12)", padding: "6px 14px", borderRadius: 20, margin: "0 0 6px" }}>{foundCount} / {spots.length} 발견</p>
-      <p style={{ fontSize: 16, fontWeight: 600, color: "#c9d4e0", margin: "6px 0 20px", textAlign: "center" }}>{instruction}</p>
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: backgroundColor, fontFamily: "'Space Grotesk', sans-serif", padding: "52px 22px 30px" }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A", background: "#FFE66D", padding: "4px 12px", borderRadius: 6, border: "2px solid #1A1A1A", boxShadow: "2px 2px 0 #1A1A1A", margin: "0 0 6px" }}>{foundCount} / {spots.length} 발견</span>
+      <p style={{ fontSize: 16, fontWeight: 700, color: "#FDF2E9", margin: "6px 0 20px", textAlign: "center" }}>{instruction}</p>
 
       <div
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
-        style={{ position: "relative", width: 320, height: 470, borderRadius: 22, overflow: "hidden", touchAction: "none", cursor: "crosshair", background: "radial-gradient(circle at 22% 26%,#3a4a6a 0 15%,transparent 34%),radial-gradient(circle at 78% 30%,#5a3a5a 0 14%,transparent 32%),radial-gradient(circle at 32% 74%,#3a5a4a 0 16%,transparent 34%),radial-gradient(circle at 74% 70%,#4a3a6a 0 15%,transparent 33%),linear-gradient(150deg,#1a2030,#241a2e)" }}
+        style={{ position: "relative", width: 320, height: 470, borderRadius: 8, overflow: "hidden", touchAction: "none", cursor: "crosshair", border: "2px solid #1A1A1A", boxShadow: "6px 6px 0 #1A1A1A", background: "radial-gradient(circle at 22% 26%,#3a4a6a 0 15%,transparent 34%),radial-gradient(circle at 78% 30%,#5a3a5a 0 14%,transparent 32%),radial-gradient(circle at 32% 74%,#3a5a4a 0 16%,transparent 34%),radial-gradient(circle at 74% 70%,#4a3a6a 0 15%,transparent 33%),linear-gradient(150deg,#1a2030,#241a2e)" }}
       >
         {spots.map((sp, i) => (
           <div key={i} style={{ position: "absolute", left: `${sp.x * 100}%`, top: `${sp.y * 100}%`, transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, background: found[i] ? "#fff" : "rgba(255,255,255,.06)", boxShadow: found[i] ? "0 0 22px rgba(255,217,125,.8)" : "none", filter: found[i] ? "none" : "grayscale(1) opacity(.35)", transition: "all .3s", animation: found[i] ? "jc-sparkle .5s" : "none" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, background: found[i] ? "#FDF2E9" : "rgba(255,255,255,.06)", border: found[i] ? "2px solid #1A1A1A" : "none", boxShadow: found[i] ? "3px 3px 0 #1A1A1A" : "none", filter: found[i] ? "none" : "grayscale(1) opacity(.35)", transition: "all .3s", animation: found[i] ? "jc-sparkle .5s" : "none" }}>
               {sp.emoji}
             </div>
             {found[i] && (
-              <div style={{ fontSize: 11, color: "#fff", fontWeight: 600, marginTop: 4, background: "rgba(0,0,0,.4)", padding: "2px 8px", borderRadius: 10, whiteSpace: "nowrap" }}>{sp.caption}</div>
+              <div style={{ fontSize: 11, color: "#1A1A1A", fontWeight: 700, marginTop: 4, background: "#FFE66D", padding: "2px 8px", borderRadius: 6, border: "2px solid #1A1A1A", whiteSpace: "nowrap" }}>{sp.caption}</div>
             )}
           </div>
         ))}
         <div style={maskStyle} />
       </div>
 
-      <p style={{ fontSize: 13, color: "#7c8a99", margin: "16px 0 0", minHeight: 18 }}>손가락 위쪽이 밝아져요 · 숨은 추억을 모두 찾아보세요</p>
+      <p style={{ fontSize: 13, color: "#888", fontWeight: 700, margin: "16px 0 0", minHeight: 18 }}>손가락 위쪽이 밝아져요 · 숨은 추억을 모두 찾아보세요</p>
 
       {clear && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 10, background: "linear-gradient(165deg,#141b2e,#20304a)", display: "flex", flexDirection: "column", padding: "56px 26px 34px", animation: "jc-fadeup .4s" }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#FFD97D", textAlign: "center", margin: "0 0 20px", letterSpacing: ".03em" }}>✨ 찾은 추억 {foundCount} / {spots.length}</p>
+        <div style={{ position: "absolute", inset: 0, zIndex: 10, background: "#1A1A1A", display: "flex", flexDirection: "column", padding: "56px 26px 34px", animation: "jc-fadeup .4s", fontFamily: "'Space Grotesk', sans-serif" }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A", background: "#FFE66D", border: "2px solid #1A1A1A", borderRadius: 6, padding: "4px 12px", boxShadow: "2px 2px 0 #1A1A1A", textAlign: "center", margin: "0 0 20px", display: "inline-block", alignSelf: "center" }}>찾은 추억 {foundCount} / {spots.length}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {spots.map((sp, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "12px 16px", animation: "jc-fadeup .4s both" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: "0 0 16px rgba(255,217,125,.6)" }}>{sp.emoji}</div>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{sp.caption}</span>
-                <span style={{ marginLeft: "auto", color: "#4ade80", fontSize: 18 }}>✓</span>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: "#FDF2E9", border: "2px solid #1A1A1A", borderRadius: 8, padding: "12px 16px", boxShadow: "4px 4px 0 #1A1A1A", animation: "jc-fadeup .4s both" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 8, background: "#FFE66D", border: "2px solid #1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: "2px 2px 0 #1A1A1A" }}>{sp.emoji}</div>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A" }}>{sp.caption}</span>
+                <span style={{ marginLeft: "auto", color: "#4ECDC4", fontSize: 18, fontWeight: 700 }}>✓</span>
               </div>
             ))}
           </div>
           <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <p style={{ whiteSpace: "pre-line", fontSize: 19, fontWeight: 700, color: "#fff", lineHeight: 1.5, margin: 0, textAlign: "center" }}>{clearText}</p>
-            <button onClick={retry} style={{ width: "100%", padding: 15, borderRadius: 14, border: "none", background: "#E94F6A", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 20px rgba(233,79,106,.35)" }}>다시 찾기</button>
+            <p style={{ whiteSpace: "pre-line", fontSize: 19, fontWeight: 700, color: "#FDF2E9", lineHeight: 1.5, margin: 0, textAlign: "center" }}>{clearText}</p>
+            <button onClick={retry} style={{ width: "100%", padding: 15, borderRadius: 8, border: "2px solid #1A1A1A", background: "#FF6B6B", color: "#1A1A1A", fontSize: 16, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", cursor: "pointer", boxShadow: "4px 4px 0 #1A1A1A" }}>다시 찾기</button>
           </div>
         </div>
       )}
