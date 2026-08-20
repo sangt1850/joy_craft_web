@@ -28,7 +28,9 @@ export type SchemaFieldType =
   | "select"
   | "boolean"
   | "array"
-  | "textlist";
+  | "textlist"
+  /** 이미지 URL / base64 배열. 값은 `string[]`. URL 입력 + 파일 업로드(base64) 지원 */
+  | "imagelist";
 
 export interface SchemaFieldDef {
   key: string;

@@ -22,3 +22,9 @@
 @keyframes jc-bloom { 0%{transform:rotate(var(--a)) translateY(0) scale(0)} 60%{transform:rotate(var(--a)) translateY(var(--d)) scale(1.12)} 100%{transform:rotate(var(--a)) translateY(var(--d)) scale(1)} }
 @keyframes jc-sway { 0%,100%{transform:translateX(0) rotate(-3deg)} 50%{transform:translateX(14px) rotate(3deg)} }
 @keyframes jc-flick { 0%,100%{transform:scale(1) rotate(-2deg);opacity:1} 50%{transform:scale(1.08) rotate(2deg);opacity:.85} }
+@keyframes mo-fadein { from{opacity:0} to{opacity:1} }
+@keyframes mo-heart { 0%{transform:translate(-50%,-50%) scale(0);opacity:0} 30%{transform:translate(-50%,-50%) scale(1.25);opacity:1} 70%{transform:translate(-50%,-50%) scale(1);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.3);opacity:0} }
+@keyframes mo-glow { 0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)} 50%{opacity:.8;transform:translate(-50%,-50%) scale(1.12)} }
+/* 스크롤바 숨김 — Instagram 슬라이드 내부 전용 */
+.ig-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.ig-scroll::-webkit-scrollbar { display: none; }

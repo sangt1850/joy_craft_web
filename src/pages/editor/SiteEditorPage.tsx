@@ -371,7 +371,7 @@ export default function SiteEditorPage() {
                       style={{ width: stageSize.width, height: stageSize.height }}
                     >
                       <SlideCanvas
-                        slideKey={`${selectedSlide.id}:${previewNonce}`}
+                        slideKey={`${selectedSlide.id}:${previewNonce}:${device}`}
                         componentRef={selectedSlide.componentRef}
                         values={previewValues}
                         isPreview

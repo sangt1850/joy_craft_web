@@ -123,6 +123,9 @@ function FieldControl({ field, value, onChange, compact, inArrayItem }: FieldWid
     case "textlist":
       return <TextListControl field={field} value={value} onChange={onChange} compact={compact} />;
 
+    case "imagelist":
+      return <ImageListControl value={value} onChange={onChange} />;
+
     case "textarea":
       return (
         <textarea
@@ -329,6 +332,99 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
           }}
         />
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// imagelist — URL 입력 + 파일 업로드(→ base64). 값은 string[].
+// DB 저장 전략:
+//   · URL 입력  → 그대로 URL 문자열 저장 (권장: Supabase Storage / Cloudinary 등 CDN)
+//   · 파일 업로드 → FileReader로 base64 data URL 변환 후 저장 (소용량 데모에 적합)
+//   · 프로덕션에서는 /api/assets 업로드 엔드포인트로 CDN URL을 받아 저장하는 방식 권장
+// ─────────────────────────────────────────────────────────────────────────────
+function ImageListControl({
+  value,
+  onChange,
+}: {
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
+  const [urlInput, setUrlInput] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const list: string[] = Array.isArray(value)
+    ? (value as unknown[]).filter((v) => typeof v === "string") as string[]
+    : [];
+
+  const add = (urls: string[]) => {
+    const trimmed = urls.map((u) => u.trim()).filter(Boolean);
+    if (!trimmed.length) return;
+    onChange([...list, ...trimmed]);
+  };
+
+  const remove = (i: number) => onChange(list.filter((_, idx) => idx !== i));
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") add([reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {list.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          {list.map((url, i) => (
+            <div key={i} className="relative shrink-0">
+              <img
+                src={url}
+                alt=""
+                className="w-14 h-14 object-cover neo-border bg-black/10"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.3"; }}
+              />
+              <button
+                onClick={() => remove(i)}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ink text-cream rounded-full flex items-center justify-center font-pixel text-[9px] leading-none"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { add([urlInput]); setUrlInput(""); }
+          }}
+          placeholder="이미지 URL 입력 후 Enter"
+          className="neo-input flex-1 text-[12px]"
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-cream hover:bg-mustard/20"
+        >
+          파일
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={onFile}
+          className="hidden"
+        />
+      </div>
     </div>
   );
 }

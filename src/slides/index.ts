@@ -29,3 +29,7 @@ import "./ending-credits";
 // F그룹 — 연출
 import "./dday-counter";
 import "./wish-lantern";
+
+// G그룹 — 인터랙션 (재미)
+import "./fleeing-button";
+import "./instagram";
