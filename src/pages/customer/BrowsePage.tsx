@@ -4,6 +4,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 import SearchInput from "../../components/ui/SearchInput";
 import TemplateCard from "../../components/ui/TemplateCard";
+import TemplatePreviewModal from "../../components/ui/TemplatePreviewModal";
 import { fetchTemplates, fetchCategories } from "../../api/templates";
 import type { TemplateListResponse } from "../../types/api";
 
@@ -27,6 +28,7 @@ export default function BrowsePage() {
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<string[]>(["전체"]);
   const [templates, setTemplates] = useState<TemplateListResponse[]>([]);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateListResponse | null>(null);
 
   useEffect(() => {
     fetchCategories().then((cats) => setCategories(["전체", ...cats])).catch(() => {});
@@ -80,6 +82,7 @@ export default function BrowsePage() {
             emoji="🎨"
             price={t.pricing === "free" ? "FREE" : "PRO"}
             bg={BG_COLORS[i % BG_COLORS.length]}
+            onPreview={() => setPreviewTemplate(t)}
           />
         ))}
       </div>
@@ -88,6 +91,14 @@ export default function BrowsePage() {
         <div className="text-center py-[60px] font-body text-[14px] text-[#888]">
           검색 결과가 없습니다.
         </div>
+      )}
+
+      {/* 미리보기 모달 */}
+      {previewTemplate && (
+        <TemplatePreviewModal
+          template={previewTemplate}
+          onClose={() => setPreviewTemplate(null)}
+        />
       )}
     </div>
   );

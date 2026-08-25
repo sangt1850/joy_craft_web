@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { ApiResponse, TemplateListResponse } from "../types/api";
+import type { ApiResponse, TemplateListResponse, TemplateDetailResponse } from "../types/api";
 
 export async function fetchTemplates(category?: string, search?: string): Promise<TemplateListResponse[]> {
   const params = new URLSearchParams();
@@ -12,5 +12,10 @@ export async function fetchTemplates(category?: string, search?: string): Promis
 
 export async function fetchCategories(): Promise<string[]> {
   const res = await api.get<ApiResponse<string[]>>("/templates/categories");
+  return res.data;
+}
+
+export async function fetchTemplateDetail(id: string): Promise<TemplateDetailResponse> {
+  const res = await api.get<ApiResponse<TemplateDetailResponse>>(`/templates/${encodeURIComponent(id)}`);
   return res.data;
 }

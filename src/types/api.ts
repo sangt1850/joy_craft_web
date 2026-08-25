@@ -117,6 +117,16 @@ export interface TemplateListResponse {
   thumbnailUrl: string | null;
 }
 
+export interface TemplateDetailResponse {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  pricing: "free" | "premium";
+  componentRef: string;
+  defaultValues: Record<string, unknown>;
+}
+
 export interface PublishResponse {
   id: string;
   slug: string;

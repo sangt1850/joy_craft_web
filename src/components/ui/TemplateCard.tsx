@@ -11,6 +11,7 @@ interface TemplateCardProps {
   subLabel?: string;      // 부가 텍스트 (e.g. "3페이지 · 인터랙티브")
   thumbHeight?: number;
   onUse?: (id: string | number) => void;
+  onPreview?: (id: string | number) => void;
   showButton?: boolean;
 }
 
@@ -23,6 +24,7 @@ export default function TemplateCard({
   subLabel,
   thumbHeight = 130,
   onUse,
+  onPreview,
   showButton = true,
 }: TemplateCardProps) {
   const isPro = price === "PRO";
@@ -34,12 +36,27 @@ export default function TemplateCard({
     >
       {/* 썸네일 */}
       <div
-        className="bg-black/[0.08] flex items-center justify-center text-[48px] relative"
+        className="bg-black/[0.08] flex items-center justify-center text-[48px] relative group"
         style={{ height: thumbHeight }}
       >
         {emoji}
         {isPro && (
           <span className="pixel-badge-pro absolute top-2.5 right-2.5">PRO</span>
+        )}
+        {/* 미리보기 버튼 — 호버 시 노출 */}
+        {onPreview && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPreview(id); }}
+            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            style={{ background: "rgba(17,17,17,0.55)" }}
+          >
+            <span
+              className="font-sub text-cream neo-border px-3 py-1.5"
+              style={{ fontSize: 12, background: "#111", boxShadow: "3px 3px 0 #555" }}
+            >
+              🔍 미리보기
+            </span>
+          </button>
         )}
       </div>
 
@@ -52,7 +69,19 @@ export default function TemplateCard({
         )}
 
         {showButton && (
-          <div className={subLabel ? "" : "mt-3"}>
+          <div className={`flex flex-col gap-2 ${subLabel ? "" : "mt-3"}`}>
+            {onPreview && (
+              <NeoButton
+                bg="var(--color-cream)"
+                color="#111"
+                size="sm"
+                shadow={3}
+                block
+                onClick={() => onPreview(id)}
+              >
+                🔍 미리보기
+              </NeoButton>
+            )}
             <NeoButton
               bg={isPro ? "var(--color-mustard)" : "#111"}
               color={isPro ? "#111" : "#FFF7E6"}
