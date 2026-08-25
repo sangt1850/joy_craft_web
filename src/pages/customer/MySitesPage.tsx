@@ -8,6 +8,7 @@ import TabBar from "../../components/ui/TabBar";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useSiteStore } from "../../store/siteStore";
 import { createSite, deleteSite } from "../../api/sites";
+import { publishSite } from "../../api/editor";
 
 type FilterTab = "전체" | "공개" | "초안";
 
@@ -41,6 +42,17 @@ export default function MySitesPage() {
       navigate(`/editor/${site.id}`);
     } catch {
       navigate("/editor/new");
+    }
+  };
+
+  const handleShare = async (id: string | number) => {
+    try {
+      const result = await publishSite(String(id));
+      const link = window.location.origin + result.url;
+      await navigator.clipboard.writeText(link).catch(() => {});
+      alert(`링크가 복사되었습니다!\n${link}`);
+    } catch {
+      alert("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
@@ -93,6 +105,7 @@ export default function MySitesPage() {
             bg={s.bgColor}
             thumbHeight={140}
             onEdit={(id) => navigate(`/editor/${id}`)}
+            onShare={handleShare}
             onDelete={handleDelete}
           />
         ))}

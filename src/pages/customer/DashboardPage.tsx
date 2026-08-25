@@ -9,6 +9,7 @@ import SectionHeader from "../../components/ui/SectionHeader";
 import { useAuthStore } from "../../store/authStore";
 import { useSiteStore } from "../../store/siteStore";
 import { createSite } from "../../api/sites";
+import { publishSite } from "../../api/editor";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -23,6 +24,17 @@ export default function DashboardPage() {
     loadSites();
     loadStats();
   }, [loadSites, loadStats]);
+
+  const handleShare = async (id: string | number) => {
+    try {
+      const result = await publishSite(String(id));
+      const link = window.location.origin + result.url;
+      await navigator.clipboard.writeText(link).catch(() => {});
+      alert(`링크가 복사되었습니다!\n${link}`);
+    } catch {
+      alert("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+    }
+  };
 
   const handleNewSite = async () => {
     try {
@@ -98,6 +110,7 @@ export default function DashboardPage() {
             bg={s.bgColor}
             thumbHeight={120}
             onEdit={(id) => navigate(`/editor/${id}`)}
+            onShare={handleShare}
           />
         ))}
       </div>

@@ -150,11 +150,12 @@
 }
 @utility pixel-badge-muted {
   font-family: var(--font-pixel);
-  font-size: 8px;
+  font-size: 12px;
   padding: 3px 7px;
   background: rgba(0, 0, 0, 0.2);
   color: var(--color-ink);
   white-space: nowrap;
+  border-radius: 4px;
 }
 @utility pixel-badge-pro {
   font-family: var(--font-pixel);
@@ -188,6 +189,45 @@
   background: #fff;
   outline: none;
   box-sizing: border-box;
+}
+
+/* Range 슬라이더 — Neo Brutalism 스타일 (Swishy 패턴) */
+@utility neo-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--color-cream);
+  border: 2px solid var(--color-ink);
+  outline: none;
+  cursor: pointer;
+}
+.neo-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--color-mustard);
+  border: 2px solid var(--color-ink);
+  cursor: grab;
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.neo-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  box-shadow: 1px 1px 0 var(--color-ink);
+  transform: scale(0.95);
+}
+.neo-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--color-mustard);
+  border: 2px solid var(--color-ink);
+  cursor: grab;
+  box-shadow: 2px 2px 0 var(--color-ink);
+  border-radius: 0;
+}
+.neo-range::-moz-range-thumb:active {
+  cursor: grabbing;
+  box-shadow: 1px 1px 0 var(--color-ink);
 }
 
 /* ════════════════════════════════════════════════

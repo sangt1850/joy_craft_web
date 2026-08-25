@@ -68,14 +68,24 @@ export default function FleetingButton({ data, onComplete, isPreview }: SlidePro
     const bw = b?.offsetWidth || BTN_W, bh = b?.offsetHeight || 44;
     const pad = 10;
 
-    // 텍스트 영역 하단 측정 → 그 아래부터만 이동 허용
+    // 텍스트 영역 하단을 CSS 픽셀로 환산한다.
+    // getBoundingClientRect()는 transform:scale 이후 시각 픽셀을 반환하므로
+    // arena의 시각 크기(getBCR)와 CSS 레이아웃 크기(clientHeight)의 비율로 역산한다.
     const textEl = textRef.current;
-    const arenaTop = a.getBoundingClientRect().top;
-    const textBottom = textEl ? textEl.getBoundingClientRect().bottom - arenaTop : 260;
-    const topSafe = textBottom + 20;
+    const arenaBCR = a.getBoundingClientRect();
+    const visualH = arenaBCR.height || h;
+    const cssScale = h / visualH; // 시각→CSS 변환 비율
+    const textBottomVisual = textEl
+      ? textEl.getBoundingClientRect().bottom - arenaBCR.top
+      : visualH * 0.35;
+    const topSafe = textBottomVisual * cssScale + 20;
 
     const xMax = Math.max(pad, w - bw - pad);
     const yMax = Math.max(topSafe, h - bh - pad);
+
+    // 최소 도약 거리: 화면이 작을수록 비례해서 줄임
+    const minDist = Math.min(220, (yMax - topSafe) * 0.55);
+    const minDistYes = minDist * 0.5;
 
     const cur = noPosRef.current  || { x: w / 2, y: h - 120 };
     const yp  = yesPosRef.current || null;
@@ -85,8 +95,8 @@ export default function FleetingButton({ data, onComplete, isPreview }: SlidePro
       y = topSafe + Math.random() * (yMax - topSafe);
       tries++;
     } while (tries < 30 && (
-      Math.hypot(x - cur.x, y - cur.y) < 220 ||
-      (yp !== null && Math.hypot(x - yp.x, y - yp.y) < 110)
+      Math.hypot(x - cur.x, y - cur.y) < minDist ||
+      (yp !== null && Math.hypot(x - yp.x, y - yp.y) < minDistYes)
     ));
 
     // 화면 밖으로 나가지 않도록 클램핑
@@ -104,19 +114,7 @@ export default function FleetingButton({ data, onComplete, isPreview }: SlidePro
     if (!acceptedRef.current) jump();
   }, [jump]);
 
-  const fleeHard = useCallback((e: React.PointerEvent | React.TouchEvent) => {
-    if (acceptedRef.current) return;
-    e.preventDefault();
-    e.stopPropagation();
-    jump();
-  }, [jump]);
 
-  const onMove = useCallback((e: React.PointerEvent) => {
-    const b = noBtnRef.current;
-    if (acceptedRef.current || !b) return;
-    const r = b.getBoundingClientRect();
-    if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) < 92) jump();
-  }, [jump]);
 
   const onYes = useCallback(() => {
     acceptedRef.current = true;
@@ -162,10 +160,10 @@ export default function FleetingButton({ data, onComplete, isPreview }: SlidePro
   return (
     <div
       ref={arenaRef}
-      onPointerMove={onMove}
       style={{
         position: "absolute", inset: 0, overflow: "hidden", touchAction: "manipulation",
         background: `linear-gradient(170deg, ${backgroundColor} 0%, #e0e4ea 100%)`,
+        fontFamily: "'Noto Sans KR', 'Noto Sans', sans-serif",
       }}
     >
       {/* 질문 + 서브라인 */}
@@ -198,8 +196,6 @@ export default function FleetingButton({ data, onComplete, isPreview }: SlidePro
         <button
           ref={noBtnRef}
           onPointerEnter={flee}
-          onPointerDown={fleeHard}
-          onTouchStart={fleeHard as unknown as React.TouchEventHandler}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!acceptedRef.current) jump(); }}
           style={{
             ...btnBase,

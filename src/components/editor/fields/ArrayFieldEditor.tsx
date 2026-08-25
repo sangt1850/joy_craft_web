@@ -5,7 +5,7 @@
 // 편집 UI에 노출하지 않는 키(예: cassette 트랙의 scale)는 항목에 그대로 보존된다.
 //
 // JSON이 깨져 있어도 에디터가 죽으면 안 되므로 raw(원본 텍스트) 편집 폴백을 제공한다.
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { SchemaFieldDef } from "../../../slides/SlideProps";
 import {
   parseArrayValue,
@@ -52,6 +52,43 @@ export default function ArrayFieldEditor({
   const useRaw = !parsed.ok || itemFields.length === 0 || rawByChoice;
 
   const commit = (items: Record<string, unknown>[]) => onChange(serializeArrayValue(items));
+
+  // 항상 최신 parsed.items 를 참조하기 위한 ref (oEmbed 비동기 콜백에서 사용)
+  const parsedRef = useRef(parsed);
+  parsedRef.current = parsed;
+
+  // itemFields 안에 'title' 키가 있으면 youtubeUrl 변경 시 자동 채우기 활성화
+  const hasTitleField = itemFields.some((f) => f.key === "title");
+
+  function handleItemFieldChange(idx: number, fieldKey: string, v: unknown) {
+    const newItems = parsed.items.map((it, i) =>
+      i === idx ? setItemValue(it, fieldKey, v) : it
+    );
+    commit(newItems);
+
+    if (fieldKey === "youtubeUrl" && hasTitleField && typeof v === "string") {
+      const vid = extractYouTubeVideoId(v);
+      if (vid) {
+        fetch(
+          `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`
+        )
+          .then((r) => r.json())
+          .then((d: { title?: string }) => {
+            if (d.title) {
+              const latest = parsedRef.current;
+              if (latest.ok) {
+                commit(
+                  latest.items.map((it, i) =>
+                    i === idx ? setItemValue(it, "title", d.title!) : it
+                  )
+                );
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -102,9 +139,7 @@ export default function ArrayFieldEditor({
                     value={item[f.key]}
                     compact
                     inArrayItem
-                    onChange={(v) =>
-                      commit(parsed.items.map((it, i) => (i === idx ? setItemValue(it, f.key, v) : it)))
-                    }
+                    onChange={(v) => handleItemFieldChange(idx, f.key, v)}
                   />
                 ))}
               </div>
@@ -151,6 +186,21 @@ export default function ArrayFieldEditor({
       )}
     </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 유틸 — YouTube 동영상 ID 추출
+// ─────────────────────────────────────────────────────────────────────────────
+function extractYouTubeVideoId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtu.be")) return u.pathname.slice(1).split("?")[0];
+    if (u.pathname.startsWith("/shorts/")) return u.pathname.split("/")[2];
+    if (u.pathname.startsWith("/embed/")) return u.pathname.split("/")[2];
+    return u.searchParams.get("v");
+  } catch {
+    return null;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -7,7 +7,6 @@
 //   text    → neo-input
 import { useRef, useState } from "react";
 import type { SchemaFieldDef } from "../../../slides/SlideProps";
-import ColorPicker from "../../ui/ColorPicker";
 import ToggleSwitch from "../../ui/ToggleSwitch";
 import { cn } from "../../../utils/cn";
 import { commitNumberInput, resolveArrayItemNumberBlur } from "./numberField";
@@ -172,12 +171,9 @@ function asText(v: unknown): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// color — 팔레트 스와치(ColorPicker) + 임의 색상(네이티브 피커)
+// color — Swishy 스타일: 원형 프리뷰 + hex 입력 (한 줄) + 스와치 행
 // ─────────────────────────────────────────────────────────────────────────────
 function ColorControl({ field, value, onChange }: Omit<FieldWidgetProps, "compact">) {
-  // NumberControl과 같은 로컬 버퍼 패턴.
-  // (기존 버그: 값이 빈 문자열이면 입력창이 기본값을 표시해 놓고, 거기서 이어 타이핑하면
-  //  "#FFF8F0#ff0000" 같은 값이 저장됐다 — 입력창은 항상 **저장값 그대로**를 보여야 한다)
   const canonical = asText(value);
 
   const [text, setText] = useState(canonical);
@@ -194,28 +190,30 @@ function ColorControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
     onChange(v);
   };
 
-  // 스와치/네이티브 피커가 보여줄 색 — 값이 비었을 때만 기본값으로 대신한다
   const effective = text.trim() === "" ? asText(field.default) : text;
-  const swatches = Array.from(
-    new Set([effective, asText(field.default), ...PALETTE].filter((c) => c !== ""))
-  );
 
   return (
-    <div className="flex flex-col gap-2">
-      <ColorPicker colors={swatches} value={effective} onChange={emit} swatchSize={24} />
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={toColorInputValue(effective)}
-          onChange={(e) => emit(e.target.value)}
-          aria-label={`${field.label} 직접 선택`}
-          className="w-9 h-8 neo-border bg-transparent p-0 cursor-pointer shrink-0"
-        />
+    <div className="flex flex-col gap-2.5">
+      {/* 프리뷰 원 + hex 입력 — 한 줄 */}
+      <div className="flex items-center gap-2.5">
+        <label className="relative w-9 h-9 shrink-0 cursor-pointer">
+          <span
+            className="block w-full h-full rounded-full neo-border"
+            style={{ background: effective, boxShadow: "2px 2px 0 #111" }}
+          />
+          <input
+            type="color"
+            value={toColorInputValue(effective)}
+            onChange={(e) => emit(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label={`${field.label} 직접 선택`}
+          />
+        </label>
         <input
           value={text}
           onChange={(e) => emit(e.target.value)}
           aria-label={`${field.label} 색상 코드`}
-          className="neo-input font-pixel text-[10px]"
+          className="neo-input font-pixel text-[11px] tracking-wider uppercase"
         />
       </div>
     </div>
@@ -223,7 +221,8 @@ function ColorControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// number — 입력 중간 상태("2.", "")를 위해 로컬 버퍼를 둔다
+// number — Swishy 스타일: range 슬라이더 + 우측 수치 표시 (min/max 있을 때)
+//          min/max 없으면 기존 number input 사용
 // ─────────────────────────────────────────────────────────────────────────────
 function NumberControl({
   field,
@@ -234,8 +233,6 @@ function NumberControl({
   const canonical = value === null || value === undefined || value === "" ? "" : String(value);
 
   const [text, setText] = useState(canonical);
-  // 우리가 방금 내보낸 값이면 되돌려 받아도 로컬 버퍼를 건드리지 않는다.
-  // 그래야 "2." 같은 입력 중간 상태가 지워지지 않는다.
   const sentRef = useRef(canonical);
   const prevRef = useRef(canonical);
   if (canonical !== prevRef.current) {
@@ -245,14 +242,12 @@ function NumberControl({
 
   const handle = (raw: string) => {
     setText(raw);
-    // 배열 항목 안에서는 빈 값을 커밋하지 않는다 (키가 지워져 슬라이드가 NaN이 된다)
     const commit = commitNumberInput(raw, inArrayItem);
     if (!commit.emit) return;
     sentRef.current = commit.value === undefined ? "" : String(commit.value);
     onChange(commit.value);
   };
 
-  // 배열 항목: 비운 채 포커스를 잃으면 저장값(없으면 스키마 기본값)으로 되돌린다
   const handleBlur = () => {
     if (!inArrayItem) return;
     const { text: next, commit } = resolveArrayItemNumberBlur(text, value, field);
@@ -263,6 +258,33 @@ function NumberControl({
     }
   };
 
+  const hasRange = field.min !== undefined && field.max !== undefined;
+
+  // range 슬라이더 모드
+  if (hasRange) {
+    const numVal = text === "" ? Number(field.default ?? field.min) : Number(text);
+    const step = field.step ?? 1;
+    const decimals = step < 1 ? String(step).split(".")[1]?.length ?? 1 : 0;
+
+    return (
+      <div className="flex items-center gap-2.5">
+        <input
+          type="range"
+          min={field.min}
+          max={field.max}
+          step={step}
+          value={numVal}
+          onChange={(e) => handle(e.target.value)}
+          className="neo-range flex-1"
+        />
+        <span className="font-pixel text-[11px] text-ink min-w-[38px] text-right tabular-nums neo-border px-1.5 py-0.5 bg-cream">
+          {numVal.toFixed(decimals)}
+        </span>
+      </div>
+    );
+  }
+
+  // 일반 number input (min/max 없음)
   return (
     <input
       type="number"
@@ -310,28 +332,43 @@ function SelectControl({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// image — 베타 범위: 업로드 없이 URL 직접 입력 (백엔드 asset 컨트롤러 부재)
+// image — Swishy 스타일: 미리보기 상단 + URL 입력 하단
 // ─────────────────────────────────────────────────────────────────────────────
 function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compact">) {
+  const [imgError, setImgError] = useState(false);
   const url = asText(value);
+
+  const handleChange = (v: string) => {
+    setImgError(false);
+    onChange(v === "" ? null : v);
+  };
+
   return (
     <div className="flex flex-col gap-2">
+      {/* 미리보기 */}
+      <div className="neo-border overflow-hidden bg-black/5" style={{ height: 100 }}>
+        {url !== "" && !imgError ? (
+          <img
+            src={url}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="font-pixel text-[10px] text-ink/30">
+              {url === "" ? "이미지 없음" : "불러올 수 없음"}
+            </span>
+          </div>
+        )}
+      </div>
+      {/* URL 입력 */}
       <input
         value={url}
         placeholder={field.placeholder ?? "https://... 이미지 주소를 붙여넣으세요"}
-        onChange={(e) => onChange(e.target.value === "" ? null : e.target.value)}
-        className="neo-input"
+        onChange={(e) => handleChange(e.target.value)}
+        className="neo-input text-[12px]"
       />
-      {url !== "" && (
-        <img
-          src={url}
-          alt=""
-          className="w-full h-[90px] object-cover neo-border bg-black/5"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-        />
-      )}
     </div>
   );
 }
