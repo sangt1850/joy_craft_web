@@ -33,3 +33,6 @@ import "./wish-lantern";
 // G그룹 — 인터랙션 (재미)
 import "./fleeing-button";
 import "./instagram";
+
+// H그룹 — 음악
+import "./vinyl-player";

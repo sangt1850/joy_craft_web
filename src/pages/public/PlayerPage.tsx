@@ -15,9 +15,6 @@ import NeoButton from "../../components/ui/NeoButton";
 import StatusBadge from "../../components/ui/StatusBadge";
 import SlideCanvas from "../../components/player/SlideCanvas";
 
-/** 슬라이드 캔버스 최대 폭/높이 — 슬라이드는 모바일 세로 화면 기준으로 만들어져 있다 */
-const STAGE_MAX_W = 460;
-const STAGE_MAX_H = 900;
 
 type LoadState =
   | { status: "loading" }
@@ -176,15 +173,9 @@ export default function PlayerPage() {
   const showEscape = !free && canEscape && !finished;
 
   return (
-    <div className="flex items-center justify-center bg-ink min-h-dvh w-full">
+    <div className="w-screen h-dvh">
       {/* 슬라이드 캔버스 — position:relative + 크기만 제공. 스타일 주입 금지 */}
-      <div
-        className="neo-border-4 bg-cream relative overflow-hidden"
-        style={{
-          width: `min(100vw, ${STAGE_MAX_W}px)`,
-          height: `min(100dvh, ${STAGE_MAX_H}px)`,
-        }}
-      >
+      <div className="bg-cream relative overflow-hidden w-full h-full">
         {slide ? (
           // values는 서버에서 이미 병합된 최종 값 — 그대로 넘긴다 (재병합 금지)
           <SlideCanvas
