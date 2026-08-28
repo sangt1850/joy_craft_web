@@ -36,3 +36,9 @@ import "./instagram";
 
 // H그룹 — 음악
 import "./vinyl-player";
+
+// I그룹 — 연출 (여권/티켓)
+import "./passport-ticket";
+
+// J그룹 — 연출 (발렌타인)
+import "./valentine-letter";
