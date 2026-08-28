@@ -34,6 +34,8 @@ interface EditorState {
 
   loadSite: (id: string) => Promise<void>;
   selectSlide: (id: string) => void;
+  /** 선택 슬라이드의 overrides를 비워 기본값으로 되돌린다 */
+  resetSlideOverrides: (slideId: string) => void;
   /** 저장 실패 시 UnsavedChangesError를 던지고 아무것도 추가하지 않는다 */
   addSlide: (templateId: string) => Promise<void>;
   /** 저장 실패 시 UnsavedChangesError를 던지고 아무것도 삭제하지 않는다 */
@@ -53,7 +55,7 @@ interface EditorState {
   reset: () => void;
 }
 
-const SAVE_DEBOUNCE_MS = 600;
+// const SAVE_DEBOUNCE_MS = 600;
 
 // debounce 타이머. 스토어가 싱글턴이라 모듈 스코프에 두되,
 // 예약/취소를 함수로 감싸고 loadSite·reset·saveDraft에서 반드시 정리한다.
@@ -75,13 +77,14 @@ function cancelScheduledSave() {
 }
 
 export const useEditorStore = create<EditorState>()((set, get) => {
-  const scheduleSave = () => {
-    cancelScheduledSave();
-    saveTimer = setTimeout(() => {
-      saveTimer = null;
-      void get().saveDraft();
-    }, SAVE_DEBOUNCE_MS);
-  };
+  // TODO: 자동 저장 스케줄러 — 향후 자동 저장 기능 복원 시 사용
+  // const scheduleSave = () => {
+  //   cancelScheduledSave();
+  //   saveTimer = setTimeout(() => {
+  //     saveTimer = null;
+  //     void get().saveDraft();
+  //   }, SAVE_DEBOUNCE_MS);
+  // };
 
   /**
    * 예약된 저장을 지금 실행하고 기다린다 (구조 변경 API 호출 전에 쓴다).
@@ -185,6 +188,18 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       }
     },
 
+    resetSlideOverrides: (slideId: string) => {
+      const { site } = get();
+      if (!site) return;
+      const newSlides = site.slides.map((s) =>
+        s.id === slideId ? { ...s, overrides: {} } : s
+      );
+      const dirty = get().dirtySlideIds.includes(slideId)
+        ? get().dirtySlideIds
+        : [...get().dirtySlideIds, slideId];
+      set({ site: { ...site, slides: newSlides }, dirtySlideIds: dirty, isDirty: true });
+    },
+
     updateSlideOverrides: (slideId: string, overrides: Record<string, unknown>) => {
       const { site } = get();
       if (!site) return;
@@ -197,14 +212,12 @@ export const useEditorStore = create<EditorState>()((set, get) => {
         : [...get().dirtySlideIds, slideId];
 
       set({ site: { ...site, slides: newSlides }, dirtySlideIds: dirty, isDirty: true });
-      scheduleSave();
     },
 
     updateTitle: (title: string) => {
       const { site } = get();
       if (!site) return;
       set({ site: { ...site, title }, titleDirty: true, isDirty: true });
-      scheduleSave();
     },
 
     /**

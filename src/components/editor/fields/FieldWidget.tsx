@@ -15,7 +15,8 @@ const LABEL_CLASS = "font-sub text-[12px] text-ink block mb-1.5";
 const HINT_CLASS = "font-body text-[10px] text-black/50 leading-snug mt-1";
 
 /** 색상 필드 프리셋 — 브랜드 팔레트 7색. 현재 값/스키마 기본값은 앞에 자동으로 덧붙는다 */
-const PALETTE = ["#ffc93c", "#ff57a6", "#7fe0bb", "#9fd3f5", "#ffb784", "#fff7e6", "#111111"];
+// TODO: 색상 프리셋 팔레트 — 향후 ColorPicker 연동 시 복원
+// const PALETTE = ["#ffc93c", "#ff57a6", "#7fe0bb", "#9fd3f5", "#ffb784", "#fff7e6", "#111111"];
 
 /** font 필드 선택지 — docs/DESIGN_SYSTEM.md의 4종 */
 const FONT_OPTIONS: { label: string; value: string }[] = [

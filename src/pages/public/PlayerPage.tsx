@@ -26,7 +26,7 @@ export default function PlayerPage() {
 
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [index, setIndex] = useState(0);
-  const [canEscape, setCanEscape] = useState(false);
+  const [, setCanEscape] = useState(false);
 
   // onComplete 중복 호출로 슬라이드를 건너뛰지 않도록 현재 인덱스를 즉시 추적한다
   const indexRef = useRef(0);
@@ -115,6 +115,50 @@ export default function PlayerPage() {
   // index가 바뀌면 어차피 캔버스가 리마운트되므로 참조가 바뀌어도 문제없다.
   const handleCompleteHere = useCallback(() => handleComplete(index), [handleComplete, index]);
 
+  // ─── 키보드 네비게이션 (PC) ────────────────────────────────────────────────
+  useEffect(() => {
+    if (state.status !== "ready" || finished) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); goNext(); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state.status, finished, goNext, goPrev]);
+
+  // ─── 스와이프 네비게이션 (모바일) ─────────────────────────────────────────
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // 수직 스크롤이 수평보다 크면 슬라이드 내부 스크롤로 간주 — 무시
+    if (Math.abs(dy) > Math.abs(dx)) return;
+    // 너무 짧은 스와이프 무시
+    if (Math.abs(dx) < 60) return;
+    // iOS 뒤로가기 제스처 영역(왼쪽 30px) 무시
+    if (dx > 0 && touchStartX.current !== null && touchStartX.current < 30) return;
+
+    if (dx < 0) goNext();
+    else goPrev();
+  }, [goNext, goPrev]);
+
+  const onTouchCancel = useCallback(() => {
+    touchStartX.current = null;
+    touchStartY.current = null;
+  }, []);
+
   // ─── escapeAfter — N초 뒤 건너뛰기 허용 ───────────────────────────────────
   // 슬라이드별 값이 있으면 우선, 없으면 사이트 flowPolicy 값을 쓴다.
   const escapeSeconds = slide?.escapeAfter ?? policy.escapeAfter;
@@ -169,13 +213,16 @@ export default function PlayerPage() {
     );
   }
 
-  const free = policy.mode === "free";
-  const showEscape = !free && canEscape && !finished;
 
   return (
-    <div className="w-screen h-dvh">
+    <div className="w-screen h-dvh select-none" style={{ WebkitUserSelect: "none" }}>
       {/* 슬라이드 캔버스 — position:relative + 크기만 제공. 스타일 주입 금지 */}
-      <div className="bg-cream relative overflow-hidden w-full h-full">
+      <div
+        className="bg-cream relative overflow-hidden w-full h-full"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchCancel}
+      >
         {slide ? (
           // values는 서버에서 이미 병합된 최종 값 — 그대로 넘긴다 (재병합 금지)
           <SlideCanvas
@@ -192,33 +239,11 @@ export default function PlayerPage() {
         {/* 플레이어 크롬 — 슬라이드 위에 겹치는 오버레이.
             슬라이드 내부 z-index 최대값은 10 (BalloonPop.tsx:89, Flashlight.tsx:98 —
             둘 다 inset:0 풀커버 오버레이)이므로 크롬은 50으로 항상 위에 온다. */}
-        {slide && (
-          <div className="absolute top-0 left-0 right-0 z-50 flex items-start justify-between gap-2 p-2.5 pointer-events-none">
-            {policy.showProgress ? (
-              <StatusBadge variant="default">
-                {index + 1} / {total}
-              </StatusBadge>
-            ) : (
-              <span />
-            )}
-
-            <div className="flex gap-1.5 pointer-events-auto">
-              {free && index > 0 && (
-                <NeoButton bg="var(--color-cream)" size="sm" shadow={3} onClick={goPrev}>
-                  이전
-                </NeoButton>
-              )}
-              {free && (
-                <NeoButton bg="var(--color-mustard)" size="sm" shadow={3} onClick={goNext}>
-                  다음
-                </NeoButton>
-              )}
-              {showEscape && (
-                <NeoButton bg="var(--color-cream)" size="sm" shadow={3} onClick={goNext}>
-                  건너뛰기
-                </NeoButton>
-              )}
-            </div>
+        {slide && policy.showProgress && (
+          <div className="absolute top-0 left-0 right-0 z-50 flex p-2.5 pointer-events-none">
+            <StatusBadge variant="default">
+              {index + 1} / {total}
+            </StatusBadge>
           </div>
         )}
       </div>

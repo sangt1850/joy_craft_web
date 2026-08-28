@@ -82,6 +82,7 @@ export default function SiteEditorPage() {
     loadSite,
     selectSlide,
     updateSlideOverrides,
+    resetSlideOverrides,
     updateTitle,
     flush,
     addSlide,
@@ -93,6 +94,7 @@ export default function SiteEditorPage() {
   const [device, setDevice] = useState<Device>("mobile");
   const [mobileTab, setMobileTab] = useState<MobileTab>("preview");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSavingManual, setIsSavingManual] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loadError, setLoadError] = useState(false);
   // 미리보기 강제 리마운트용 — 애니메이션이 한 번만 도는 슬라이드를 다시 보기 위해
@@ -152,6 +154,21 @@ export default function SiteEditorPage() {
     },
     [selectedSlideId, updateSlideOverrides]
   );
+
+  const handleSave = async () => {
+    setIsSavingManual(true);
+    try {
+      await flush();
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (!siteId || siteId === "new") return;
+    if (!window.confirm("편집 중인 내용을 모두 취소하고 마지막 저장 상태로 되돌릴까요?")) return;
+    await loadSite(siteId);
+  };
 
   // 발행 스냅샷은 불변이라 되돌릴 수 없다 →
   // 렌더 클로저(isDirty)가 아니라 getState()로 최신 상태를 읽고,
@@ -213,8 +230,6 @@ export default function SiteEditorPage() {
           <input
             value={site.title}
             onChange={(e) => updateTitle(e.target.value)}
-            // 포커스를 잃으면 debounce를 기다리지 않고 지금 저장한다 (dirty가 아니면 no-op)
-            onBlur={() => void flush()}
             aria-label="사이트 제목"
             className="neo-input flex-1 min-w-0 font-headline text-base text-center h-9"
           />
@@ -252,6 +267,28 @@ export default function SiteEditorPage() {
         </div>
 
         <div className="flex gap-2 shrink-0">
+          {isDirty && (
+            <NeoButton
+              bg="var(--color-cream)"
+              color="#111"
+              size="sm"
+              shadow={3}
+              onClick={handleDiscard}
+              disabled={isSaving || isSavingManual}
+            >
+              취소
+            </NeoButton>
+          )}
+          <NeoButton
+            bg={isDirty ? "var(--color-mustard)" : "var(--color-cream)"}
+            color="#111"
+            size="sm"
+            shadow={3}
+            onClick={handleSave}
+            disabled={!isDirty || isSaving || isSavingManual || !site}
+          >
+            {isSaving || isSavingManual ? "저장 중..." : "저장"}
+          </NeoButton>
           <NeoButton
             bg="var(--color-mint)"
             color="#111"
@@ -411,8 +448,21 @@ export default function SiteEditorPage() {
             mobileTab === "edit" ? "flex" : "hidden md:flex"
           )}
         >
-          <div className="px-4 pt-3 pb-2 font-sub text-[12px] text-[#888] border-b-[2px] border-black/10 truncate">
-            {selectedSlide ? `편집 · ${selectedSlide.templateName}` : "편집"}
+          <div className="px-4 pt-3 pb-2 border-b-[2px] border-black/10 flex items-center gap-2">
+            <span className="font-sub text-[12px] text-[#888] truncate flex-1 min-w-0">
+              {selectedSlide ? `편집 · ${selectedSlide.templateName}` : "편집"}
+            </span>
+            {selectedSlide && (
+              <button
+                onClick={() => {
+                  if (!window.confirm("이 페이지의 모든 편집을 기본값으로 되돌릴까요?")) return;
+                  resetSlideOverrides(selectedSlide.id);
+                }}
+                className="font-body text-[11px] text-[#888] hover:text-ink border border-black/20 rounded px-2 py-0.5 shrink-0 cursor-pointer bg-transparent hover:bg-black/5"
+              >
+                기본값으로
+              </button>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
