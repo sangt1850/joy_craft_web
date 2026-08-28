@@ -60,7 +60,7 @@ export const schema: SlideSchema = {
       key: "scrollSpeed",
       label: "제목 스크롤 속도 (초/순환)",
       type: "number",
-      default: 12,
+      default: 18,
       min: 4,
       max: 60,
       step: 1,

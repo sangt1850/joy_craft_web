@@ -45,6 +45,19 @@ function fmtTime(sec: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+/** hex 색상 → rgba(r,g,b,alpha). 잘못된 형식이면 흰색 폴백 */
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "");
+  const full = clean.length === 3
+    ? clean.split("").map((c) => c + c).join("")
+    : clean;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(255,255,255,${alpha})`;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 // ──────────────────────────────────────────────────────────
 // YouTube IFrame API 전역 타입
 // ──────────────────────────────────────────────────────────
@@ -316,7 +329,10 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
   const titleText =
     currentTrack.title || (videoId ? fetchedTitles[videoId] : "") || "곡 제목 없음";
 
-  const isWide = containerSize.w >= 580;
+  const isWide = containerSize.w >= 600;
+
+  // 모바일 스케일 — 390px 기준, 컨테이너 너비에 비례
+  const mobileScale = !isWide && containerSize.w > 0 ? containerSize.w / 390 : 1;
 
   // 디스크 지름 — 컨테이너 크기에 비례, 상하단 여백 고려
   const discSize = Math.max(
@@ -326,7 +342,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
       : Math.min(
           Math.floor(containerSize.w - 60),
           Math.floor(containerSize.h * 0.42),
-          250
+          Math.round(250 * mobileScale)
         )
   );
   const albumArtSize = Math.max(50, Math.round(discSize * 0.632));
@@ -444,7 +460,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
           left: 0,
           right: 0,
           height: 2,
-          background: "rgba(255,255,255,.16)",
+          background: hexToRgba(textColor, 0.2),
           borderRadius: 2,
         }}
       />
@@ -477,8 +493,8 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
       style={{
         display: "flex",
         justifyContent: "space-between",
-        fontSize: 9,
-        color: "rgba(255,255,255,.4)",
+        fontSize: isWide ? 12 : Math.round(9 * mobileScale),
+        color: hexToRgba(textColor, 0.5),
         letterSpacing: ".5px",
       }}
     >
@@ -486,6 +502,11 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
       <span>{displayDuration}</span>
     </div>
   );
+
+  const smIcon      = isWide ? 26 : Math.round(20 * mobileScale);
+  const lgIcon      = isWide ? 28 : Math.round(22 * mobileScale);
+  const playBtnSize = isWide ? 70 : Math.round(56 * mobileScale);
+  const ctrlBtnSize = isWide ? 44 : Math.round(34 * mobileScale);
 
   const controlsRow = (
     <div
@@ -498,16 +519,17 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
     >
       <CtrlBtn
         onClick={() => setShuffle((s) => !s)}
-        color={shuffle ? textColor : "rgba(255,255,255,.55)"}
+        color={shuffle ? textColor : hexToRgba(textColor, 0.45)}
+        size={ctrlBtnSize}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width={smIcon} height={smIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 3h5v5" /><path d="M4 20 21 3" />
           <path d="M21 16v5h-5" /><path d="M15 15l6 6" /><path d="M4 4l5 5" />
         </svg>
       </CtrlBtn>
 
-      <CtrlBtn onClick={goPrev} color="#fff">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <CtrlBtn onClick={goPrev} color={textColor} size={ctrlBtnSize}>
+        <svg width={lgIcon} height={lgIcon} viewBox="0 0 24 24" fill="currentColor">
           <path d="M7 5h2v14H7z" /><path d="M20 5v14L9.5 12z" />
         </svg>
       </CtrlBtn>
@@ -516,11 +538,11 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
         onClick={noVideo ? undefined : togglePlay}
         disabled={noVideo}
         style={{
-          width: 56,
-          height: 56,
+          width: playBtnSize,
+          height: playBtnSize,
           borderRadius: "50%",
-          background: noVideo ? "#333" : "#fff",
-          color: "#121212",
+          background: noVideo ? hexToRgba(textColor, 0.2) : textColor,
+          color: backgroundColor,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -539,28 +561,29 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
         }}
       >
         {playing ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <svg width={lgIcon} height={lgIcon} viewBox="0 0 24 24" fill="currentColor">
             <rect x="6.5" y="4.5" width="3.6" height="15" rx="1" />
             <rect x="13.9" y="4.5" width="3.6" height="15" rx="1" />
           </svg>
         ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <svg width={lgIcon} height={lgIcon} viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5l12 7-12 7z" />
           </svg>
         )}
       </button>
 
-      <CtrlBtn onClick={goNext} color="#fff">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <CtrlBtn onClick={goNext} color={textColor} size={ctrlBtnSize}>
+        <svg width={lgIcon} height={lgIcon} viewBox="0 0 24 24" fill="currentColor">
           <path d="M15 5h2v14h-2z" /><path d="M4 5v14l10.5-7z" />
         </svg>
       </CtrlBtn>
 
       <CtrlBtn
         onClick={() => setRepeat((r) => !r)}
-        color={repeat ? textColor : "rgba(255,255,255,.55)"}
+        color={repeat ? textColor : hexToRgba(textColor, 0.45)}
+        size={ctrlBtnSize}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width={smIcon} height={smIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" />
           <path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
         </svg>
@@ -575,7 +598,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
         borderRadius: 10,
         background: "rgba(255,255,255,.06)",
         fontSize: 10,
-        color: "rgba(255,255,255,.5)",
+        color: hexToRgba(textColor, 0.5),
         textAlign: "center",
         lineHeight: 1.6,
       }}
@@ -633,10 +656,10 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
           }}
         >
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "-.2px" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "-.2px", color: textColor }}>
               재생목록
             </div>
-            <div style={{ fontSize: 9.5, color: "rgba(255,255,255,.42)", marginTop: 3 }}>
+            <div style={{ fontSize: 9.5, color: hexToRgba(textColor, 0.5), marginTop: 3 }}>
               {tracks.length}곡 · {safeIdx + 1}번째 재생 중
             </div>
           </div>
@@ -651,21 +674,21 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "rgba(255,255,255,.7)",
+              color: hexToRgba(textColor, 0.7),
               border: "none",
               fontFamily: "inherit",
               transition: "background .15s, color .15s",
             }}
             onPointerEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background =
-                "rgba(255,255,255,.18)";
-              (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+                hexToRgba(textColor, 0.18);
+              (e.currentTarget as HTMLButtonElement).style.color = textColor;
             }}
             onPointerLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background =
                 "rgba(255,255,255,.08)";
               (e.currentTarget as HTMLButtonElement).style.color =
-                "rgba(255,255,255,.7)";
+                hexToRgba(textColor, 0.7);
             }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -717,7 +740,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
                     width: 18,
                     textAlign: "right",
                     fontSize: 9.5,
-                    color: isCurrent ? textColor : "rgba(255,255,255,.34)",
+                    color: isCurrent ? textColor : hexToRgba(textColor, 0.4),
                     flexShrink: 0,
                   }}
                 >
@@ -729,7 +752,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
                   spanStyle={{
                     fontSize: 11,
                     fontWeight: 700,
-                    color: isCurrent ? textColor : "rgba(255,255,255,.88)",
+                    color: isCurrent ? textColor : hexToRgba(textColor, 0.85),
                   }}
                 >
                   {trackTitle}
@@ -737,7 +760,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
                 <div
                   style={{
                     fontSize: 9,
-                    color: "rgba(255,255,255,.34)",
+                    color: hexToRgba(textColor, 0.4),
                     flexShrink: 0,
                   }}
                 >
@@ -763,7 +786,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
         inset: 0,
         background: backgroundColor,
         fontFamily: "'Noto Sans KR', 'Noto Sans', sans-serif",
-        color: "#fff",
+        color: textColor,
         overflow: "hidden",
       }}
     >
@@ -847,18 +870,18 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
               }}
             >
               <span
-                style={{ fontSize: 9.5, letterSpacing: 1.6, color: "rgba(255,255,255,.4)" }}
+                style={{ fontSize: 12, letterSpacing: 1.6, color: hexToRgba(textColor, 0.5) }}
               >
                 NOW PLAYING
               </span>
-              <QueueBtn onClick={() => setQueueOpen(true)} count={tracks.length} />
+              <QueueBtn onClick={() => setQueueOpen(true)} count={tracks.length} textColor={textColor} />
             </div>
 
             {/* 곡 제목 */}
             <OverflowMarquee
               animDuration={scrollSpeed}
               containerStyle={{ marginBottom: 32 }}
-              spanStyle={{ fontSize: 24, fontWeight: 700, letterSpacing: "-.5px" }}
+              spanStyle={{ fontSize: 32, fontWeight: 700, letterSpacing: "-.5px" }}
             >
               {titleText}
             </OverflowMarquee>
@@ -885,7 +908,7 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
             inset: 0,
             display: "flex",
             flexDirection: "column",
-            padding: "22px 20px 28px",
+            padding: "22px 20px 48px",
             boxSizing: "border-box",
           }}
         >
@@ -900,11 +923,11 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
             }}
           >
             <div
-              style={{ fontSize: 9.5, letterSpacing: 1.6, color: "rgba(255,255,255,.4)" }}
+              style={{ fontSize: Math.round(9.5 * mobileScale), letterSpacing: 1.6, color: hexToRgba(textColor, 0.5) }}
             >
               NOW PLAYING
             </div>
-            <QueueBtn onClick={() => setQueueOpen(true)} count={tracks.length} />
+            <QueueBtn onClick={() => setQueueOpen(true)} count={tracks.length} textColor={textColor} />
           </div>
 
           {/* 디스크 (남은 세로 공간 채움) */}
@@ -924,17 +947,17 @@ export default function VinylPlayer({ data }: SlideProps<VinylPlayerData>) {
           {/* 곡 제목 */}
           <OverflowMarquee
             animDuration={scrollSpeed}
-            containerStyle={{ marginBottom: 16, flexShrink: 0 }}
-            spanStyle={{ fontSize: 17, fontWeight: 700, letterSpacing: "-.3px" }}
+            containerStyle={{ marginBottom: Math.round(16 * mobileScale), flexShrink: 0 }}
+            spanStyle={{ fontSize: Math.round(17 * mobileScale), fontWeight: 700, letterSpacing: "-.3px" }}
           >
             {titleText}
           </OverflowMarquee>
 
           {/* 프로그레스 */}
-          <div style={{ marginBottom: 8, flexShrink: 0 }}>{progressBar}</div>
+          <div style={{ marginBottom: Math.round(8 * mobileScale), flexShrink: 0 }}>{progressBar}</div>
 
           {/* 시간 */}
-          <div style={{ marginBottom: 16, flexShrink: 0 }}>{timeRow}</div>
+          <div style={{ marginBottom: Math.round(20 * mobileScale), flexShrink: 0 }}>{timeRow}</div>
 
           {/* 컨트롤 */}
           <div style={{ flexShrink: 0 }}>{controlsRow}</div>
@@ -1003,7 +1026,9 @@ function OverflowMarquee({
 
       {overflow ? (
         /* seamless 루프: 텍스트 두 벌 → translateX(-50%) 무한 반복 */
+        /* key: animDuration이 바뀌면 span을 리마운트해 CSS 애니메이션을 즉시 재시작 */
         <span
+          key={animDuration}
           style={{
             whiteSpace: "nowrap",
             display: "inline-flex",
@@ -1024,7 +1049,7 @@ function OverflowMarquee({
   );
 }
 
-function QueueBtn({ onClick, count }: { onClick: () => void; count: number }) {
+function QueueBtn({ onClick, count, textColor }: { onClick: () => void; count: number; textColor: string }) {
   return (
     <button
       onClick={onClick}
@@ -1035,8 +1060,8 @@ function QueueBtn({ onClick, count }: { onClick: () => void; count: number }) {
         height: 26,
         padding: "0 10px",
         borderRadius: 13,
-        background: "rgba(255,255,255,.07)",
-        color: "rgba(255,255,255,.72)",
+        background: hexToRgba(textColor, 0.07),
+        color: hexToRgba(textColor, 0.72),
         cursor: "pointer",
         border: "none",
         fontSize: 10,
@@ -1046,12 +1071,12 @@ function QueueBtn({ onClick, count }: { onClick: () => void; count: number }) {
         transition: "background .15s, color .15s",
       }}
       onPointerEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,.16)";
-        (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+        (e.currentTarget as HTMLButtonElement).style.background = hexToRgba(textColor, 0.16);
+        (e.currentTarget as HTMLButtonElement).style.color = textColor;
       }}
       onPointerLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,.07)";
-        (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.72)";
+        (e.currentTarget as HTMLButtonElement).style.background = hexToRgba(textColor, 0.07);
+        (e.currentTarget as HTMLButtonElement).style.color = hexToRgba(textColor, 0.72);
       }}
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -1067,17 +1092,19 @@ function CtrlBtn({
   children,
   onClick,
   color,
+  size = 34,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   color: string;
+  size?: number;
 }) {
   return (
     <button
       onClick={onClick}
       style={{
-        width: 34,
-        height: 34,
+        width: size,
+        height: size,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
