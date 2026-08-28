@@ -792,6 +792,58 @@ DC 원본의 `@keyframes`는 `src/slides/slide-animations.css`에 모아둔다.
 | Gaegu | 손글씨 (롤링페이퍼, 카세트) | Google Fonts |
 | Special Elite | 타자기 | Google Fonts |
 
+### 8-5. 반응형 UI 크기 조정 (PC / 모바일 분기)
+
+슬라이드가 **버튼·텍스트 등 UI 요소**를 직접 렌더링할 때는 컨테이너 너비 기준으로 PC/모바일을 분기한다. VinylPlayer(`vinyl-player`)가 기준 구현체이며 아래 패턴을 따른다.
+
+**핵심 규칙: `isWide = containerWidth >= 600`**
+
+```tsx
+// 1. ResizeObserver로 컨테이너 실제 크기 측정 (window.innerWidth 사용 금지)
+const containerRef = useRef<HTMLDivElement>(null);
+const [vw, setVw] = useState(0);
+const [vh, setVh] = useState(0);
+
+useEffect(() => {
+  const el = containerRef.current;
+  if (!el) return;
+  const ro = new ResizeObserver(([entry]) => {
+    setVw(entry.contentRect.width);
+    setVh(entry.contentRect.height);
+  });
+  ro.observe(el);
+  return () => ro.disconnect();
+}, []);
+
+// 2. isWide 분기
+const isWide = vw >= 600;
+
+// 3. 크기 값을 isWide로 분기
+const btnStyle: React.CSSProperties = {
+  padding: isWide ? "10px 28px" : "6px 14px",
+  fontSize: isWide ? 14 : 11,
+  letterSpacing: isWide ? "0.12em" : "0.08em",
+  // ...
+};
+
+// 모바일에서 390px 기준 비례 스케일이 필요하면:
+const mobileScale = !isWide && vw > 0 ? vw / 390 : 1;
+const fontSize = isWide ? 17 : Math.round(13 * mobileScale);
+```
+
+**분기 기준 요약**
+
+| 요소 | 모바일 (`vw < 600`) | PC (`vw ≥ 600`) |
+|------|---------------------|-----------------|
+| 버튼 패딩 | `6–8px 14–16px` | `10–12px 24–28px` |
+| 버튼 폰트 | `11px` | `13–15px` |
+| 고정 영역 높이(버튼 바 등) | `56px` | `68–72px` |
+| 간격(gap) | `8px` | `12–16px` |
+
+**왜 `window.innerWidth`를 쓰면 안 되는가**
+
+에디터의 폰 프레임(~390px)처럼 슬라이드가 브라우저 전체가 아닌 **작은 컨테이너 안에 임베드**되는 경우, `window.innerWidth`는 브라우저 전체 너비(1920px 등)를 반환해 fit·레이아웃 계산이 틀어진다. ResizeObserver로 **슬라이드 루트 div의 실제 크기**를 측정해야 한다.
+
 ---
 
 ## 9. 등록 방법
@@ -1006,3 +1058,125 @@ B3 = { inside: '짜잔!', hint: '리본을 당겨보세요', pull: 130 };
 
 어댑터 로직이 틀리면 편집 패널이 조용히 빈 값을 저장하므로
 `schemaAdapter.test.ts` 테스트를 유지한다.
+
+---
+
+## 13. DB 마이그레이션 (Flyway SQL)
+
+슬라이드 컴포넌트는 React 코드 작성 후 반드시 **Flyway 마이그레이션**으로 DB에도 등록해야 한다.
+에디터에서 컴포넌트를 선택·배치하려면 `component_types`, `component_type_versions`, `component_templates` 세 테이블에 데이터가 있어야 한다.
+
+### 13-1. 마이그레이션 파일 위치
+
+```
+joy_craft_api/src/main/resources/db/migration/
+└── V{N}__seed_{slug}.sql     ← 슬라이드 1종 또는 묶음
+```
+
+**버전 번호 규칙**: 기존 파일 중 가장 큰 번호 + 1. 반드시 `ls` 로 현황 확인 후 결정.
+버전이 겹치면 Flyway가 서버 시작을 거부하므로 주의.
+
+### 13-2. 테이블 구조
+
+| 테이블 | 역할 |
+|--------|------|
+| `component_types` | 슬라이드 종류 등록 (slug, 이름, 카테고리) |
+| `component_type_versions` | 버전별 schema·capabilities 등록 |
+| `component_templates` | CUSTOMER에게 노출할 기본값 세트 |
+
+### 13-3. SQL 템플릿
+
+```sql
+-- V{N}__seed_{slug}.sql
+
+DO $$
+DECLARE
+  ct_id  uuid;
+  ctv_id uuid;
+BEGIN
+
+-- ① component_types
+INSERT INTO component_types (id, slug, name, description, category, created_at, updated_at)
+VALUES (
+  gen_random_uuid(),
+  '{componentRef}',          -- 예: 'passport-ticket'
+  '{한글 이름}',
+  '{한 줄 설명}',
+  '{카테고리}',              -- 인터랙션 | 감정 | 읽기 | 이야기 | 연출
+  now(), now()
+)
+RETURNING id INTO ct_id;
+
+-- ② component_type_versions
+INSERT INTO component_type_versions (
+  id, type_id, version, schema, capabilities, layerable, platform_mode, pricing,
+  tags, use_cases, bundle_object_key, status, published_at, created_at
+) VALUES (
+  gen_random_uuid(), ct_id, 1,
+  '[
+    {"key":"{key}", "label":"{label}", "field":{"kind":"{kind}"}},
+    ...
+  ]'::jsonb,
+  ARRAY['haptics'],          -- 필요 기능: haptics | audio | camera 등
+  false,                     -- layerable: 레이어 합성 여부 (보통 false)
+  'responsive',              -- platform_mode
+  'free',                    -- pricing: free | pro
+  ARRAY['{태그1}', '{태그2}'],
+  ARRAY['{유스케이스1}'],
+  'builtin:{componentRef}',  -- bundle_object_key
+  'APPROVED', now(), now()
+) RETURNING id INTO ctv_id;
+
+-- ③ component_templates
+INSERT INTO component_templates (
+  id, group_id, version, type_version_id, name, description,
+  default_values, status, published_at, created_at
+) VALUES (
+  gen_random_uuid(), gen_random_uuid(), 1, ctv_id,
+  '{템플릿 이름}',
+  '{한 줄 설명}',
+  '{
+    "key1": "value1",
+    "key2": "value2"
+  }'::jsonb,
+  'PUBLISHED', now(), now()
+);
+
+END $$;
+```
+
+### 13-4. schema 필드의 `field.kind` 값
+
+| SchemaFieldType (로컬) | field.kind (DB) |
+|----------------------|-----------------|
+| `text` / `textarea` | `"string"` |
+| `color` | `"color"` |
+| `number` | `"number"` |
+| `image` | `"image"` |
+| `boolean` | `"boolean"` |
+| `select` | `"string"` (options는 별도 관리) |
+| `array` / `textlist` | `"string"` (JSON 문자열로 직렬화) |
+
+`number` 타입에는 `min`, `max`, `step`을 함께 기록한다:
+
+```json
+{"key":"animationSpeed", "label":"속도", "field":{"kind":"number","min":0.4,"max":2,"step":0.1}}
+```
+
+### 13-5. default_values 작성 규칙
+
+- `schema.ts`의 `default` 값과 **반드시 일치**시킨다. 불일치 시 에디터가 서버값을 우선해 로컬 기본값을 무시한다.
+- `array` / `textlist` 필드는 JSON 문자열로 직렬화: `"[{\"q\":\"...\"}]"`
+- `null` 허용 필드(이미지 등)는 그대로 `null` 기재.
+- JSONB이므로 `'{...}'::jsonb` 캐스팅 필수.
+
+### 13-6. 변환 체크리스트 (DB)
+
+```
+□ 기존 마이그레이션 버전 확인 후 V{N+1} 번호 결정
+□ component_types — slug가 componentRef와 동일한지 확인
+□ component_type_versions — schema의 key가 schema.ts fields와 일치하는지 확인
+□ component_templates — default_values가 schema.ts defaultValues와 일치하는지 확인
+□ 서버 재시작 후 Flyway 로그에 "Successfully applied 1 migration" 확인
+□ API로 컴포넌트 목록 조회 시 새 슬라이드가 노출되는지 확인
+```
