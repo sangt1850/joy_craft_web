@@ -5,11 +5,18 @@
 //   color   → ColorPicker
 //   boolean → ToggleSwitch
 //   text    → neo-input
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SchemaFieldDef } from "../../../slides/SlideProps";
 import ToggleSwitch from "../../ui/ToggleSwitch";
 import { cn } from "../../../utils/cn";
 import { commitNumberInput, resolveArrayItemNumberBlur } from "./numberField";
+import {
+  fetchMyImages,
+  resolveImageValue,
+  toAssetRef,
+  uploadImage,
+  type AssetImage,
+} from "../../../api/assets";
 
 const LABEL_CLASS = "font-sub text-[12px] text-ink block mb-1.5";
 const HINT_CLASS = "font-body text-[10px] text-black/50 leading-snug mt-1";
@@ -75,7 +82,7 @@ export default function FieldWidget({
     <div>
       <label className={LABEL_CLASS}>
         {field.label}
-        {field.required && <span className="text-pink"> *</span>}
+        {field.required && <span className="text-primary"> *</span>}
       </label>
       <FieldControl
         field={field}
@@ -278,7 +285,7 @@ function NumberControl({
           onChange={(e) => handle(e.target.value)}
           className="neo-range flex-1"
         />
-        <span className="font-pixel text-[11px] text-ink min-w-[38px] text-right tabular-nums neo-border px-1.5 py-0.5 bg-cream">
+        <span className="font-pixel text-[11px] text-ink min-w-[38px] text-right tabular-nums neo-border px-1.5 py-0.5 bg-bg">
           {numVal.toFixed(decimals)}
         </span>
       </div>
@@ -337,20 +344,56 @@ function SelectControl({
 // ─────────────────────────────────────────────────────────────────────────────
 function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compact">) {
   const [imgError, setImgError] = useState(false);
-  const url = asText(value);
+  const [images, setImages] = useState<AssetImage[]>([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const stored = asText(value);
+  const previewUrl = resolveImageValue(value);
 
   const handleChange = (v: string) => {
     setImgError(false);
     onChange(v === "" ? null : v);
   };
 
+  const loadImages = async () => {
+    setLoading(true);
+    try {
+      setImages(await fetchMyImages());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (libraryOpen) void loadImages();
+  }, [libraryOpen]);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const asset = await uploadImage(file);
+      setImages((prev) => [asset, ...prev.filter((item) => item.id !== asset.id)]);
+      setImgError(false);
+      onChange(toAssetRef(asset.id));
+    } catch {
+      alert("이미지 업로드에 실패했습니다.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       {/* 미리보기 */}
       <div className="neo-border overflow-hidden bg-black/5" style={{ height: 100 }}>
-        {url !== "" && !imgError ? (
+        {previewUrl !== "" && !imgError ? (
           <img
-            src={url}
+            src={previewUrl}
             alt=""
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}
@@ -358,18 +401,52 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="font-pixel text-[10px] text-ink/30">
-              {url === "" ? "이미지 없음" : "불러올 수 없음"}
+              {previewUrl === "" ? "이미지 없음" : "불러올 수 없음"}
             </span>
           </div>
         )}
       </div>
-      {/* URL 입력 */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
+        >
+          {uploading ? "업로드 중" : "파일"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setLibraryOpen((open) => !open)}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-accent/20"
+        >
+          내 이미지
+        </button>
+        <button
+          type="button"
+          onClick={() => handleChange("")}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-primary/20"
+        >
+          비우기
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      </div>
       <input
-        value={url}
+        value={stored}
         placeholder={field.placeholder ?? "https://... 이미지 주소를 붙여넣으세요"}
         onChange={(e) => handleChange(e.target.value)}
         className="neo-input text-[12px]"
       />
+      {libraryOpen && (
+        <ImageLibraryGrid
+          images={images}
+          loading={loading}
+          onSelect={(asset) => {
+            setImgError(false);
+            onChange(toAssetRef(asset.id));
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -389,6 +466,10 @@ function ImageListControl({
   onChange: (v: unknown) => void;
 }) {
   const [urlInput, setUrlInput] = useState("");
+  const [images, setImages] = useState<AssetImage[]>([]);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const list: string[] = Array.isArray(value)
@@ -403,17 +484,36 @@ function ImageListControl({
 
   const remove = (i: number) => onChange(list.filter((_, idx) => idx !== i));
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") add([reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+  const loadImages = async () => {
+    setLoading(true);
+    try {
+      setImages(await fetchMyImages());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (libraryOpen) void loadImages();
+  }, [libraryOpen]);
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = await Promise.all(files.map(uploadImage));
+      setImages((prev) => [
+        ...uploaded,
+        ...prev.filter((item) => !uploaded.some((asset) => asset.id === item.id)),
+      ]);
+      add(uploaded.map((asset) => toAssetRef(asset.id)));
+    } catch {
+      alert("이미지 업로드에 실패했습니다.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -423,14 +523,14 @@ function ImageListControl({
           {list.map((url, i) => (
             <div key={i} className="relative shrink-0">
               <img
-                src={url}
+                src={resolveImageValue(url)}
                 alt=""
                 className="w-14 h-14 object-cover neo-border bg-black/10"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.3"; }}
               />
               <button
                 onClick={() => remove(i)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ink text-cream rounded-full flex items-center justify-center font-pixel text-[9px] leading-none"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ink text-bg rounded-full flex items-center justify-center font-pixel text-[9px] leading-none"
               >
                 ×
               </button>
@@ -449,10 +549,19 @@ function ImageListControl({
           className="neo-input flex-1 text-[12px]"
         />
         <button
+          type="button"
           onClick={() => fileRef.current?.click()}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-cream hover:bg-mustard/20"
+          disabled={uploading}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
         >
-          파일
+          {uploading ? "업로드" : "파일"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setLibraryOpen((open) => !open)}
+          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-accent/20"
+        >
+          내 이미지
         </button>
         <input
           ref={fileRef}
@@ -463,6 +572,45 @@ function ImageListControl({
           className="hidden"
         />
       </div>
+      {libraryOpen && (
+        <ImageLibraryGrid
+          images={images}
+          loading={loading}
+          onSelect={(asset) => add([toAssetRef(asset.id)])}
+        />
+      )}
+    </div>
+  );
+}
+
+function ImageLibraryGrid({
+  images,
+  loading,
+  onSelect,
+}: {
+  images: AssetImage[];
+  loading: boolean;
+  onSelect: (asset: AssetImage) => void;
+}) {
+  if (loading) {
+    return <div className="font-body text-[11px] text-black/50">이미지를 불러오는 중...</div>;
+  }
+  if (images.length === 0) {
+    return <div className="font-body text-[11px] text-black/50">저장된 이미지가 없습니다.</div>;
+  }
+  return (
+    <div className="grid grid-cols-4 gap-2 max-h-36 overflow-y-auto pr-1">
+      {images.map((asset) => (
+        <button
+          key={asset.id}
+          type="button"
+          title={asset.originalFilename ?? asset.id}
+          onClick={() => onSelect(asset)}
+          className="neo-border bg-black/5 overflow-hidden aspect-square hover:translate-y-[-1px]"
+        >
+          <img src={asset.url} alt="" className="w-full h-full object-cover" />
+        </button>
+      ))}
     </div>
   );
 }
