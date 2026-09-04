@@ -1,5 +1,27 @@
-﻿{
+{
   "worktree": {
     "bgIsolation": "none"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/LeeSangHyun/AppData/Roaming/uv/tools/graphifyy/Scripts/graphify.exe hook-guard search"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/LeeSangHyun/AppData/Roaming/uv/tools/graphifyy/Scripts/graphify.exe hook-guard read"
+          }
+        ]
+      }
+    ]
   }
 }
