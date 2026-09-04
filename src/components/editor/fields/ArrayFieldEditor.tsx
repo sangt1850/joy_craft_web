@@ -95,7 +95,7 @@ export default function ArrayFieldEditor({
       <div className="flex items-center justify-between gap-2">
         <span className={LABEL_CLASS}>
           {field.label}
-          {field.required && <span className="text-pink"> *</span>}
+          {field.required && <span className="text-primary"> *</span>}
         </span>
         {parsed.ok && itemFields.length > 0 && (
           <button
@@ -121,7 +121,7 @@ export default function ArrayFieldEditor({
       ) : (
         <>
           {parsed.items.map((item, idx) => (
-            <NeoCard key={idx} bg="var(--color-cream)" pad={10} shadow={3} border={2}>
+            <NeoCard key={idx} bg="var(--color-bg)" pad={10} shadow={3} border={2}>
               <div className="flex items-center gap-1.5 mb-2">
                 <StatusBadge variant="default">
                   {itemLabel} {idx + 1}
@@ -146,7 +146,7 @@ export default function ArrayFieldEditor({
 
               <div className="flex gap-1.5 mt-2.5">
                 <NeoButton
-                  bg="var(--color-cream)"
+                  bg="var(--color-bg)"
                   size="sm"
                   shadow={2}
                   disabled={idx === 0}
@@ -155,7 +155,7 @@ export default function ArrayFieldEditor({
                   ↑
                 </NeoButton>
                 <NeoButton
-                  bg="var(--color-cream)"
+                  bg="var(--color-bg)"
                   size="sm"
                   shadow={2}
                   disabled={idx === parsed.items.length - 1}
@@ -164,7 +164,7 @@ export default function ArrayFieldEditor({
                   ↓
                 </NeoButton>
                 <NeoButton
-                  bg="var(--color-peach)"
+                  bg="var(--color-surface)"
                   size="sm"
                   shadow={2}
                   onClick={() => commit(parsed.items.filter((_, i) => i !== idx))}
@@ -220,7 +220,7 @@ function RawEditor({
   return (
     <div className="flex flex-col gap-2">
       {broken && (
-        <NeoCard bg="var(--color-peach)" pad={10} shadow={3} border={2}>
+        <NeoCard bg="var(--color-surface)" pad={10} shadow={3} border={2}>
           <p className="font-body text-[11px] leading-snug">
             목록 형식이 아니어서 목록 편집기를 열 수 없습니다. 아래에서 직접 고치거나 기본값으로
             되돌려 주세요.
@@ -234,7 +234,7 @@ function RawEditor({
         spellCheck={false}
         className="neo-input font-pixel text-[10px] resize-y leading-snug"
       />
-      <NeoButton bg="var(--color-mustard)" size="sm" shadow={3} block onClick={onReset}>
+      <NeoButton bg="var(--color-secondary)" size="sm" shadow={3} block onClick={onReset}>
         기본값으로 되돌리기
       </NeoButton>
     </div>

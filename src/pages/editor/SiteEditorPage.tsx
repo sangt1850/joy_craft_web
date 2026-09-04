@@ -19,6 +19,7 @@ import TemplatePickerModal from "../../components/editor/TemplatePickerModal";
 import { useEditorStore, UnsavedChangesError } from "../../store/editorStore";
 import { createSite } from "../../api/sites";
 import { publishSite } from "../../api/editor";
+import { resolveAssetRefsDeep } from "../../api/assets";
 import {
   resolveEditorSchema,
   mergeSlideValues,
@@ -142,9 +143,14 @@ export default function SiteEditorPage() {
   );
 
   // 값이 비면 렌더 중 throw하는 슬라이드가 있어 스키마 기본값으로 구멍을 메운다
-  const previewValues = useMemo(
+  const editorValues = useMemo(
     () => (schema ? fillMissingWithDefaults(schema, values) : values),
     [schema, values]
+  );
+
+  const previewValues = useMemo(
+    () => resolveAssetRefsDeep(editorValues),
+    [editorValues]
   );
 
   const setField = useCallback(
@@ -217,7 +223,7 @@ export default function SiteEditorPage() {
   return (
     <div className="flex flex-col h-dvh bg-[#F5F0E8] overflow-hidden">
       {/* ── 상단 헤더 ── */}
-      <header className="flex items-center justify-between px-4 h-14 bg-cream border-b-[3px] border-ink shrink-0 gap-3">
+      <header className="flex items-center justify-between px-4 h-14 bg-bg border-b-[3px] border-ink shrink-0 gap-3">
         <button
           onClick={() => navigate(-1)}
           aria-label="뒤로"
@@ -242,7 +248,7 @@ export default function SiteEditorPage() {
         <div
           className={cn(
             "font-body text-[11px] shrink-0 hidden sm:block",
-            saveError ? "text-pink" : isDirty || isSaving ? "text-peach" : "text-mint"
+            saveError ? "text-primary" : isDirty || isSaving ? "text-surface" : "text-accent"
           )}
         >
           {saveLabel}
@@ -269,7 +275,7 @@ export default function SiteEditorPage() {
         <div className="flex gap-2 shrink-0">
           {isDirty && (
             <NeoButton
-              bg="var(--color-cream)"
+              bg="var(--color-bg)"
               color="#111"
               size="sm"
               shadow={3}
@@ -280,7 +286,7 @@ export default function SiteEditorPage() {
             </NeoButton>
           )}
           <NeoButton
-            bg={isDirty ? "var(--color-mustard)" : "var(--color-cream)"}
+            bg={isDirty ? "var(--color-secondary)" : "var(--color-bg)"}
             color="#111"
             size="sm"
             shadow={3}
@@ -290,7 +296,7 @@ export default function SiteEditorPage() {
             {isSaving || isSavingManual ? "저장 중..." : "저장"}
           </NeoButton>
           <NeoButton
-            bg="var(--color-mint)"
+            bg="var(--color-accent)"
             color="#111"
             size="sm"
             shadow={3}
@@ -299,7 +305,7 @@ export default function SiteEditorPage() {
             다시 보기
           </NeoButton>
           <NeoButton
-            bg="var(--color-pink)"
+            bg="var(--color-primary)"
             size="sm"
             shadow={3}
             onClick={handlePublish}
@@ -311,14 +317,14 @@ export default function SiteEditorPage() {
       </header>
 
       {/* ── 모바일 세그먼트 탭 ── */}
-      <div className="flex md:hidden border-b-[3px] border-ink bg-cream shrink-0">
+      <div className="flex md:hidden border-b-[3px] border-ink bg-bg shrink-0">
         {MOBILE_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setMobileTab(tab.id)}
             className={cn(
               "flex-1 py-[10px] border-none border-r-2 border-ink font-sub text-[13px] cursor-pointer last:border-r-0",
-              mobileTab === tab.id ? "bg-ink text-cream" : "bg-transparent text-ink"
+              mobileTab === tab.id ? "bg-ink text-bg" : "bg-transparent text-ink"
             )}
           >
             {tab.label}
@@ -331,7 +337,7 @@ export default function SiteEditorPage() {
         {/* 좌측: 페이지 목록 */}
         <aside
           className={cn(
-            "w-full md:w-[200px] bg-cream md:border-r-[3px] border-ink flex-col overflow-hidden shrink-0",
+            "w-full md:w-[200px] bg-bg md:border-r-[3px] border-ink flex-col overflow-hidden shrink-0",
             mobileTab === "pages" ? "flex" : "hidden md:flex"
           )}
         >
@@ -402,7 +408,7 @@ export default function SiteEditorPage() {
                     */}
                     <div
                       className={cn(
-                        "neo-border-4 bg-cream relative overflow-hidden",
+                        "neo-border-4 bg-bg relative overflow-hidden",
                         device === "mobile" ? "rounded-b-xl" : ""
                       )}
                       style={{ width: stageSize.width, height: stageSize.height }}
@@ -422,7 +428,7 @@ export default function SiteEditorPage() {
             </div>
           ) : (
             <div className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
-              <NeoCard bg="var(--color-cream)" pad={24} shadow={6} className="max-w-[360px]">
+              <NeoCard bg="var(--color-bg)" pad={24} shadow={6} className="max-w-[360px]">
                 <h2 className="font-headline text-[18px] mb-2">
                   {loadError ? "사이트를 불러오지 못했어요" : "페이지를 추가해 보세요"}
                 </h2>
@@ -432,7 +438,7 @@ export default function SiteEditorPage() {
                     : "왼쪽 목록에서 '페이지 추가'를 눌러 원하는 슬라이드를 고르면 여기에서 바로 편집할 수 있어요."}
                 </p>
                 {!loadError && (
-                  <NeoButton bg="var(--color-pink)" size="sm" onClick={() => setPickerOpen(true)}>
+                  <NeoButton bg="var(--color-primary)" size="sm" onClick={() => setPickerOpen(true)}>
                     페이지 추가
                   </NeoButton>
                 )}
@@ -444,7 +450,7 @@ export default function SiteEditorPage() {
         {/* 우측: 편집 패널 — 스키마 순회로 자동 생성 */}
         <aside
           className={cn(
-            "w-full md:w-[320px] bg-cream md:border-l-[3px] border-ink flex-col overflow-hidden shrink-0",
+            "w-full md:w-[320px] bg-bg md:border-l-[3px] border-ink flex-col overflow-hidden shrink-0",
             mobileTab === "edit" ? "flex" : "hidden md:flex"
           )}
         >
@@ -473,7 +479,7 @@ export default function SiteEditorPage() {
                 schema={schema}
                 // 미리보기와 같은 값을 본다 — 패널만 "항목 없음"으로 보이던 괴리를 없앤다.
                 // 채워진 기본값은 화면 표시용일 뿐, 사용자가 건드리기 전까지 override는 생기지 않는다.
-                values={previewValues}
+                values={editorValues}
                 defaultValues={selectedSlide.defaultValues}
                 onChange={setField}
               />
@@ -485,7 +491,7 @@ export default function SiteEditorPage() {
           </div>
 
           {/* 공유 CTA */}
-          <div className="px-4 py-3 border-t-[3px] border-ink bg-mustard shrink-0">
+          <div className="px-4 py-3 border-t-[3px] border-ink bg-secondary shrink-0">
             <NeoButton
               bg="#111"
               color="#FFF7E6"
