@@ -6,6 +6,7 @@ import { useSlideTimeout } from "../useSlideTimeout";
 
 interface GiftBoxData {
   insideMessage: string;
+  insideImage: string | null;
   hint: string;
   boxColor: string;
   ribbonColor: string;
@@ -16,7 +17,7 @@ const PULL_DIST = 130;
 const CONFETTI_COLORS = ["#FF6B6B", "#FFE66D", "#4ECDC4", "#A388EE", "#F7A072", "#FF6B6B"];
 
 export default function GiftBox({ data, onComplete, isPreview }: SlideProps<GiftBoxData>) {
-  const { insideMessage, hint, boxColor, ribbonColor, backgroundColor } = data;
+  const { insideMessage, insideImage, hint, boxColor, ribbonColor, backgroundColor } = data;
   const vibe = useVibrate();
   const { blip } = useAudio();
   const later = useSlideTimeout();
@@ -81,7 +82,15 @@ export default function GiftBox({ data, onComplete, isPreview }: SlideProps<Gift
           {/* 내용물 */}
           <div style={{ position: "absolute", left: "50%", bottom: 96, transform: opened ? "translateX(-50%) scale(1)" : "translateX(-50%) scale(.5)", transformOrigin: "center bottom", opacity: opened ? 1 : 0, transition: "transform .5s cubic-bezier(.34,1.56,.64,1) .18s, opacity .4s .18s", zIndex: 1, display: "flex", justifyContent: "center" }}>
             <div style={{ width: 150, background: "#FDF2E9", borderRadius: 8, padding: "20px 18px", textAlign: "center", boxShadow: "4px 4px 0 #1A1A1A", border: "2px solid #1A1A1A" }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>💝</div>
+              {insideImage ? (
+                <img
+                  src={insideImage}
+                  alt=""
+                  style={{ width: "100%", maxHeight: 92, objectFit: "cover", borderRadius: 6, border: "2px solid #1A1A1A", marginBottom: 10 }}
+                />
+              ) : (
+                <div style={{ fontSize: 40, marginBottom: 8 }}>💝</div>
+              )}
               <p style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", lineHeight: 1.5, margin: 0, whiteSpace: "pre-line" }}>{insideMessage}</p>
             </div>
           </div>
