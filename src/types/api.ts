@@ -4,6 +4,7 @@ export interface UserResponse {
   displayName: string;
   email: string | null;
   role: "MASTER" | "CREATOR" | "CUSTOMER";
+  marketingAgreed: boolean;
   createdAt: string;
 }
 

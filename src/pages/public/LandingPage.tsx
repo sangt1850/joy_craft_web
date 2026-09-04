@@ -1,6 +1,6 @@
 // JoyCraft 랜딩 페이지 — Neo Brutalism UI 컴포넌트 기반
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import NeoButton from "../../components/ui/NeoButton";
 import LoginModal from "../../components/ui/LoginModal";
 import RegisterModal from "../../components/ui/RegisterModal";
@@ -12,6 +12,7 @@ import {
   NbAccordion,
   NbSeparator,
 } from "../../components/nb";
+import { useAuthStore } from "../../store/authStore";
 
 /* ─── 상수 ─────────────────────────────────────────── */
 const TICKER_TEXT =
@@ -74,13 +75,32 @@ const FAQ_ITEMS = [
 /* ─── 컴포넌트 ─────────────────────────────────────── */
 export default function LandingPage() {
   const navigate = useNavigate();
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
 
   function handleLoginSuccess() {
     setLoginOpen(false);
     setRegisterOpen(false);
     navigate("/dashboard");
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-bg">
+        <div className="font-pixel text-[12px] text-ink animate-pulse">LOADING...</div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
@@ -105,7 +125,7 @@ export default function LandingPage() {
       </div>
 
       {/* 네비게이션 */}
-      <nav className="flex items-center justify-between px-8 py-4 border-b-[3px] border-ink bg-cream sticky top-0 z-50">
+      <nav className="flex items-center justify-between px-8 py-4 border-b-[3px] border-ink bg-bg sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
           <span className="font-pixel text-[22px]">JoyCraft</span>
         </div>
@@ -113,10 +133,10 @@ export default function LandingPage() {
           <a href="#how"        className="font-sub text-[14px] text-ink no-underline">작동방식</a>
           <a href="#components" className="font-sub text-[14px] text-ink no-underline">컴포넌트</a>
           <a href="#gallery"    className="font-sub text-[14px] text-ink no-underline">예시</a>
-          <NeoButton bg="var(--color-cream)" color="#111" size="sm" onClick={() => setLoginOpen(true)}>
+          <NeoButton bg="var(--color-bg)" color="#111" size="sm" onClick={() => setLoginOpen(true)}>
             로그인
           </NeoButton>
-          <NeoButton bg="var(--color-mustard)" color="#111" size="sm" onClick={() => setRegisterOpen(true)}>
+          <NeoButton bg="var(--color-secondary)" color="#111" size="sm" onClick={() => setRegisterOpen(true)}>
             시작하기
           </NeoButton>
         </div>
@@ -189,7 +209,7 @@ export default function LandingPage() {
             </p>
             <div style={{ display: "flex", gap: "10px" }}>
               <NbButton variant="accent" size="sm">좋았어요!</NbButton>
-              <RunAwayButton bg="var(--color-cream)" color="#111" size="sm">아니요</RunAwayButton>
+              <RunAwayButton bg="var(--color-bg)" color="#111" size="sm">아니요</RunAwayButton>
             </div>
           </div>
         </NbCard>

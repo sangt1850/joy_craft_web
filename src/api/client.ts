@@ -1,4 +1,6 @@
 const BASE_URL = "/api";
+const REFRESHED_ACCESS_TOKEN_HEADER = "X-Access-Token";
+let refreshPromise: Promise<string | null> | null = null;
 
 /** request()가 throw하는 에러 형태 */
 export interface ApiError {
@@ -23,17 +25,31 @@ interface RequestOptions extends RequestInit {
    * (로그아웃은 이미 죽은 토큰으로도 불릴 수 있어서 401이 정상 응답이다)
    */
   skipAuthRedirect?: boolean;
+  alreadyRetried?: boolean;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { skipAuth = false, skipAuthRedirect = false, ...init } = options;
+  const { skipAuth = false, skipAuthRedirect = false, alreadyRetried = false, ...init } = options;
   const token = skipAuth ? null : localStorage.getItem("accessToken");
+  const isFormData = init.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...Object.fromEntries(new Headers(init.headers).entries()),
   };
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers, credentials: "include" });
+  const refreshedToken = skipAuth ? null : res.headers.get(REFRESHED_ACCESS_TOKEN_HEADER);
+  if (refreshedToken) {
+    localStorage.setItem("accessToken", refreshedToken);
+  }
+
+  if (res.status === 401 && !skipAuth && !skipAuthRedirect && !alreadyRetried) {
+    const token = await refreshAccessToken();
+    if (token) {
+      return request<T>(path, { ...options, alreadyRetried: true });
+    }
+  }
 
   // 공개 요청은 세션과 무관하므로 401이어도 로그인 상태를 건드리지 않는다
   if (res.status === 401 && !skipAuth && !skipAuthRedirect) {
@@ -55,10 +71,42 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
+export async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      localStorage.removeItem("accessToken");
+      return null;
+    }
+
+    const body = await res.json().catch(() => null) as { data?: { accessToken?: string } } | null;
+    const accessToken = body?.data?.accessToken ?? null;
+    if (accessToken) {
+      localStorage.setItem("accessToken", accessToken);
+    }
+    return accessToken;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
 export const api = {
   get:    <T>(path: string) => request<T>(path),
   post:   <T>(path: string, body?: unknown) => request<T>(path, { method: "POST", body: JSON.stringify(body) }),
+  postForm: <T>(path: string, body: FormData) => request<T>(path, { method: "POST", body }),
   put:    <T>(path: string, body?: unknown) => request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+  patch:  <T>(path: string, body?: unknown) => request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
 

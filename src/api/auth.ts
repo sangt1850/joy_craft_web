@@ -42,7 +42,6 @@ export async function fetchMe(): Promise<UserResponse> {
  * 실패해도 던지지 않는다 — 로컬 로그아웃은 무슨 일이 있어도 진행되어야 한다.
  */
 export async function logout(): Promise<void> {
-  if (!localStorage.getItem("accessToken")) return;
   try {
     await quietApi.post("/auth/logout");
   } catch {
@@ -67,4 +66,18 @@ export async function kakaoRegister(registerToken: string, nickname: string): Pr
     nickname,
   });
   return res.data;
+}
+
+export async function updateProfile(displayName: string): Promise<UserResponse> {
+  const res = await api.patch<ApiResponse<UserResponse>>("/auth/me", { displayName });
+  return res.data;
+}
+
+export async function updateNotification(marketingAgreed: boolean): Promise<UserResponse> {
+  const res = await api.patch<ApiResponse<UserResponse>>("/auth/me/notifications", { marketingAgreed });
+  return res.data;
+}
+
+export async function withdrawAccount(): Promise<void> {
+  await api.delete("/auth/me");
 }

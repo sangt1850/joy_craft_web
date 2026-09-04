@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { fetchMe, logout as apiLogout } from "../api/auth";
+import { refreshAccessToken } from "../api/client";
 import type { UserResponse } from "../types/api";
 
 interface AuthState {
@@ -8,6 +9,8 @@ interface AuthState {
   isAuthenticated: boolean;
   fetchMe: () => Promise<void>;
   setUser: (user: UserResponse, token: string) => void;
+  /** 서버 응답으로 받은 부분 필드를 로컬 user 상태에 즉시 반영한다. */
+  updateUser: (partial: Partial<UserResponse>) => void;
   /** 서버 세션까지 지운다. 서버 호출이 실패해도 로컬 상태는 반드시 정리된다. */
   logout: () => Promise<void>;
 }
@@ -27,11 +30,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isAuthenticated: false,
 
   fetchMe: async () => {
-    const token = localStorage.getItem("accessToken");
+    let token = localStorage.getItem("accessToken");
     if (!token) {
-      verifiedToken = null;
-      set({ user: null, isAuthenticated: false, isLoading: false });
-      return;
+      token = await refreshAccessToken();
+      if (!token) {
+        verifiedToken = null;
+        set({ user: null, isAuthenticated: false, isLoading: false });
+        return;
+      }
     }
 
     // 같은 토큰으로 이미 확인이 끝났다 — 그대로 쓴다
@@ -46,7 +52,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     inflight = (async () => {
       try {
         const user = await fetchMe();
-        verifiedToken = token;
+        verifiedToken = localStorage.getItem("accessToken");
         set({ user, isAuthenticated: true, isLoading: false });
       } catch {
         verifiedToken = null;
@@ -68,6 +74,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     verifiedToken = token;
     set({ user, isAuthenticated: true, isLoading: false });
   },
+
+  updateUser: (partial) => set((s) => ({ user: s.user ? { ...s.user, ...partial } : null })),
 
   logout: async () => {
     // 먼저 서버 세션을 지운다. 이걸 빼먹으면 토큰이 만료될 때까지 계속 살아 있다.
