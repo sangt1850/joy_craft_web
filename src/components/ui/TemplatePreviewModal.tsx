@@ -115,7 +115,7 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
     >
       {/* 모달 패널 */}
       <div
-        className="neo-border bg-cream flex flex-col"
+        className="neo-border bg-bg flex flex-col"
         style={{
           width: "min(calc(100vw - 32px), 980px)",
           maxHeight: "calc(100dvh - 40px)",
@@ -157,7 +157,7 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
             <div className="font-body text-[#aaa] text-[13px] text-center">
               <div className="mb-2">미리보기를 불러오지 못했습니다.</div>
               <NeoButton
-                bg="var(--color-mustard)"
+                bg="var(--color-secondary)"
                 size="sm"
                 shadow={3}
                 onClick={() => {
@@ -196,7 +196,7 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
                       </div>
                     )}
                     <div
-                      className={`neo-border-4 bg-cream relative overflow-hidden ${viewport === "mobile" ? "rounded-b-xl" : ""}`}
+                      className={`neo-border-4 bg-bg relative overflow-hidden ${viewport === "mobile" ? "rounded-b-xl" : ""}`}
                       style={{ width: stageSize.width, height: stageSize.height }}
                     >
                       <SlideCanvas
@@ -226,11 +226,11 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
             {template.description ? ` · ${template.description}` : ""}
           </span>
           <div className="flex gap-2">
-            <NeoButton bg="var(--color-cream)" size="sm" shadow={3} onClick={onClose}>
+            <NeoButton bg="var(--color-bg)" size="sm" shadow={3} onClick={onClose}>
               닫기
             </NeoButton>
             <NeoButton
-              bg={isPro ? "var(--color-mustard)" : "var(--color-pink)"}
+              bg={isPro ? "var(--color-secondary)" : "var(--color-primary)"}
               color={isPro ? "#111" : "#fff"}
               size="sm"
               shadow={3}

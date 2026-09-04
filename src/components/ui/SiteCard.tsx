@@ -8,7 +8,7 @@ interface SiteCardProps {
   title: string;
   pages: number;
   status: string;       // "공개" | "초안" | 등
-  bg?: string;          // Tailwind 클래스 (e.g. "bg-mint")
+  bg?: string;          // Tailwind 클래스 (e.g. "bg-accent")
   emoji?: string;
   thumbHeight?: number;
   onEdit?: (id: string | number) => void;
@@ -22,7 +22,7 @@ export default function SiteCard({
   title,
   pages,
   status,
-  bg = "bg-cream",
+  bg = "bg-bg",
   emoji = "🎁",
   thumbHeight = 130,
   onEdit,
@@ -60,7 +60,7 @@ export default function SiteCard({
             편집
           </NeoButton>
           <NeoButton
-            bg="var(--color-cream)"
+            bg="var(--color-bg)"
             color="#111"
             size="sm"
             shadow={3}
@@ -70,7 +70,7 @@ export default function SiteCard({
           </NeoButton>
           {onDelete && (
             <NeoButton
-              bg="var(--color-peach)"
+              bg="var(--color-surface)"
               color="#111"
               size="sm"
               shadow={3}

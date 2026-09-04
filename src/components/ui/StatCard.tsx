@@ -8,7 +8,7 @@ interface StatCardProps {
   label: string;
   value: string | number;
   icon: IconName;
-  bg?: string;           // Tailwind 클래스 (e.g. "bg-blue") 또는 CSS 변수
+  bg?: string;           // Tailwind 클래스 (e.g. "bg-info") 또는 CSS 변수
   iconFill?: string;
 }
 
@@ -16,7 +16,7 @@ export default function StatCard({
   label,
   value,
   icon,
-  bg = "bg-blue",
+  bg = "bg-info",
   iconFill = "#111",
 }: StatCardProps) {
   return (

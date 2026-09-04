@@ -36,7 +36,7 @@ export default function ToggleSwitch({
         <div
           className={cn(
             "absolute top-0.5 w-[14px] h-[14px] border border-ink rounded-full transition-[left]",
-            checked ? "bg-mustard" : "bg-[#888]"
+            checked ? "bg-secondary" : "bg-[#888]"
           )}
           style={{ left: checked ? 18 : 2 }}
         />

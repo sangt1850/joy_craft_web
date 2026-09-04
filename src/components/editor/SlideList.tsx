@@ -20,7 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { SlideResponse } from "../../types/api";
 import { cn } from "../../utils/cn";
 
-const PAGE_COLORS = ["bg-pink", "bg-mustard", "bg-mint", "bg-blue"];
+const PAGE_COLORS = ["bg-primary", "bg-secondary", "bg-accent", "bg-info"];
 
 interface SlideListProps {
   slides: SlideResponse[];
@@ -125,7 +125,7 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
         <span
           className={cn(
             "font-sub text-[13px] truncate",
-            selected ? "text-cream" : "text-ink"
+            selected ? "text-bg" : "text-ink"
           )}
         >
           {slide.templateName}
@@ -142,7 +142,7 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
           selected ? "opacity-70" : ""
         )}
       >
-        <span className={cn("font-pixel text-[11px]", selected ? "text-cream" : "text-ink")}>
+        <span className={cn("font-pixel text-[11px]", selected ? "text-bg" : "text-ink")}>
           ✕
         </span>
       </button>

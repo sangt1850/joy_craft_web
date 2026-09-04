@@ -65,14 +65,14 @@ function SlideBody({ componentRef, values, isPreview, onComplete, onSkip, skipLa
 
   if (!SlideComponent) {
     return (
-      <div className="bg-cream absolute inset-0 flex items-center justify-center p-6">
-        <NeoCard bg="var(--color-peach)" pad={20} shadow={5}>
+      <div className="bg-bg absolute inset-0 flex items-center justify-center p-6">
+        <NeoCard bg="var(--color-surface)" pad={20} shadow={5}>
           <h2 className="font-headline text-[18px] mb-2">표시할 수 없는 슬라이드</h2>
           <p className="font-body text-[12px] leading-relaxed mb-4">
             이 슬라이드 유형은 현재 버전에서 지원하지 않습니다.
           </p>
           <p className="font-pixel text-[10px] mb-4 break-all">{componentRef}</p>
-          <NeoButton bg="var(--color-mustard)" size="sm" onClick={onSkip}>
+          <NeoButton bg="var(--color-secondary)" size="sm" onClick={onSkip}>
             {skipLabel}
           </NeoButton>
         </NeoCard>

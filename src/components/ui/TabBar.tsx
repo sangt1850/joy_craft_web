@@ -1,5 +1,5 @@
 // TabBar — 세그먼트 컨트롤 형태의 탭 필터 (MySitesPage, BrowsePage 등)
-// 활성 탭: bg-ink text-cream / 비활성: bg-transparent text-ink
+// 활성 탭: bg-ink text-bg / 비활성: bg-transparent text-ink
 import { cva } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 

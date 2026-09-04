@@ -40,29 +40,48 @@
    테마 정의 시 참조용으로만 사용
    ════════════════════════════════════════════════ */
 :root {
-  --palette-mustard: #ffc93c;
-  --palette-pink:    #ff57a6;
-  --palette-mint:    #7fe0bb;
-  --palette-blue:    #9fd3f5;
-  --palette-peach:   #ffb784;
-  --palette-cream:   #fff7e6;
-  --palette-ink:     #111111;
+  /* 메인 */
+  --palette-bg:       #fff7e6;  /* 크림 — 기본 페이지 배경 */
+  --palette-surface:  #FBE3CB;  /* 베이지 — 카드/패널 */
+  --palette-ink:      #111111;  /* 잉크 블랙 — 외곽선/텍스트 */
+
+  /* 브랜드 */
+  --palette-primary:   #EE5B61;  /* 레드 — 주요 버튼, FAB */
+  --palette-secondary: #EFC65D;  /* 골드 — CTA, 배지, 별 */
+  --palette-accent:    #67BDB0;  /* 틸 — 보조 강조, 타이틀바 */
+
+  /* 상태 */
+  --palette-info:     #829FEF;  /* 블루 — 정보, 통계 */
+  --palette-success:  #92D07A;  /* 그린 — 성공, 완료 */
+  --palette-warning:  #EE7F2D;  /* 오렌지 — 경고 */
+  --palette-danger:   #EE5B61;  /* 레드 — 삭제, 위험 */
+
+  /* 기타 */
+  --palette-pink:     #FF81B0;  /* 핑크 — 슬라이더 등 */
+  --palette-lavender: #D1E1FB;  /* 라벤더 — 보조 배경 */
 }
 
 /* ════════════════════════════════════════════════
    Semantic Layer (@theme)
    Tailwind 유틸리티 클래스 자동 생성:
-   bg-mustard, text-ink, font-headline 등
+   bg-primary, text-ink, font-headline 등
    ════════════════════════════════════════════════ */
 @theme {
-  /* 색상 — 기본 (Y2K Bright) */
-  --color-mustard: var(--palette-mustard);
-  --color-pink:    var(--palette-pink);
-  --color-mint:    var(--palette-mint);
-  --color-blue:    var(--palette-blue);
-  --color-peach:   var(--palette-peach);
-  --color-cream:   var(--palette-cream);
-  --color-ink:     var(--palette-ink);
+  /* ── 레이아웃 ── */
+  --color-bg:        var(--palette-bg);        /* 페이지 기본 배경 */
+  --color-surface:   var(--palette-surface);   /* 카드 / 패널 표면 */
+  --color-ink:       var(--palette-ink);       /* 외곽선, 텍스트, 섀도우 */
+
+  /* ── 브랜드 액션 ── */
+  --color-primary:   var(--palette-primary);   /* 주요 버튼, FAB, 하트 */
+  --color-secondary: var(--palette-secondary); /* CTA, 배지, 골드 강조 */
+  --color-accent:    var(--palette-accent);    /* 보조 강조, 타이틀바 */
+
+  /* ── 상태 ── */
+  --color-info:      var(--palette-info);      /* 정보, 통계 카드 */
+  --color-success:   var(--palette-success);   /* 성공, 완료 */
+  --color-warning:   var(--palette-warning);   /* 경고 */
+  --color-danger:    var(--palette-danger);    /* 삭제, 위험, 취소 */
 
   /* 폰트 */
   /* 영문 → 각 라틴 폰트, 한글 → G마켓 산스 자동 폴백 */
@@ -72,7 +91,7 @@
   /* 픽셀 폰트: 둥근모꼴 (한글 완전 지원) */
   --font-pixel:    "DungGeunMo", monospace;
 
-  /* 그림자 */
+  /* ── 그림자 ── */
   --shadow-sm: 3px 3px 0 var(--color-ink);
   --shadow-md: 5px 5px 0 var(--color-ink);
   --shadow-lg: 8px 8px 0 var(--color-ink);
@@ -80,40 +99,49 @@
 
 /* ════════════════════════════════════════════════
    Theme Overrides — data-theme 속성으로 런타임 전환
-   bg-mustard 등 모든 Tailwind 클래스가 자동으로 새 값 참조
+   bg-primary 등 모든 Tailwind 클래스가 자동으로 새 값 참조
    ════════════════════════════════════════════════ */
 
 /* Pastel — 파스텔 톤 */
 [data-theme="pastel"] {
-  --color-mustard: #ffe082;
-  --color-pink:    #f48fb1;
-  --color-mint:    #a5d6a7;
-  --color-blue:    #b3e5fc;
-  --color-peach:   #ffcc80;
-  --color-cream:   #fafafa;
-  --color-ink:     #222222;
+  --color-bg:        #eaf1fe;
+  --color-surface:   #fdf0e0;
+  --color-ink:       #5a3a37;
+  --color-primary:   #f4a0a4;
+  --color-secondary: #f7dfa0;
+  --color-accent:    #a8d9d4;
+  --color-info:      #b8cafe;
+  --color-success:   #b8e0a8;
+  --color-warning:   #f5c490;
+  --color-danger:    #f4a0a4;
 }
 
 /* Dark — 다크 모드 */
 [data-theme="dark"] {
-  --color-mustard: #e6b400;
-  --color-pink:    #e91e8c;
-  --color-mint:    #4db6ac;
-  --color-blue:    #42a5f5;
-  --color-peach:   #ff8a65;
-  --color-cream:   #1a1a1a;
-  --color-ink:     #f5f5f5;
+  --color-bg:        #1a1e2e;
+  --color-surface:   #2a2015;
+  --color-ink:       #f0e8e8;
+  --color-primary:   #c93d42;
+  --color-secondary: #c9a030;
+  --color-accent:    #3d9e93;
+  --color-info:      #5a78d0;
+  --color-success:   #5a9e48;
+  --color-warning:   #c96820;
+  --color-danger:    #c93d42;
 }
 
 /* Mono — 흑백 */
 [data-theme="mono"] {
-  --color-mustard: #e0e0e0;
-  --color-pink:    #9e9e9e;
-  --color-mint:    #bdbdbd;
-  --color-blue:    #d5d5d5;
-  --color-peach:   #c8c8c8;
-  --color-cream:   #fafafa;
-  --color-ink:     #111111;
+  --color-bg:        #f5f5f5;
+  --color-surface:   #e8e8e8;
+  --color-ink:       #1a1a1a;
+  --color-primary:   #888888;
+  --color-secondary: #d0d0d0;
+  --color-accent:    #b0b0b0;
+  --color-info:      #c8c8c8;
+  --color-success:   #a0a0a0;
+  --color-warning:   #909090;
+  --color-danger:    #888888;
 }
 
 /* ════════════════════════════════════════════════
@@ -145,7 +173,7 @@
   font-size: 8px;
   padding: 3px 7px;
   background: var(--color-ink);
-  color: var(--color-mustard);
+  color: var(--color-secondary);
   white-space: nowrap;
 }
 @utility pixel-badge-muted {
@@ -161,7 +189,7 @@
   font-family: var(--font-pixel);
   font-size: 8px;
   padding: 4px 8px;
-  background: var(--color-mustard);
+  background: var(--color-secondary);
   color: var(--color-ink);
   border: 2px solid var(--color-ink);
   box-shadow: 2px 2px 0 var(--color-ink);
@@ -197,7 +225,7 @@
   appearance: none;
   width: 100%;
   height: 8px;
-  background: var(--color-cream);
+  background: var(--color-bg);
   border: 2px solid var(--color-ink);
   outline: none;
   cursor: pointer;
@@ -206,7 +234,7 @@
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  background: var(--color-mustard);
+  background: var(--color-secondary);
   border: 2px solid var(--color-ink);
   cursor: grab;
   box-shadow: 2px 2px 0 var(--color-ink);
@@ -219,7 +247,7 @@
 .neo-range::-moz-range-thumb {
   width: 18px;
   height: 18px;
-  background: var(--color-mustard);
+  background: var(--color-secondary);
   border: 2px solid var(--color-ink);
   cursor: grab;
   box-shadow: 2px 2px 0 var(--color-ink);
@@ -276,7 +304,7 @@
 
   body {
     font-family: var(--font-body);
-    background-color: var(--color-cream);
+    background-color: var(--color-bg);
     color: var(--color-ink);
     margin: 0;
     padding: 0;

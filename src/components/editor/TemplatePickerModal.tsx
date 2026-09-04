@@ -10,7 +10,7 @@ import SearchInput from "../ui/SearchInput";
 import TemplateCard from "../ui/TemplateCard";
 import TabBar from "../ui/TabBar";
 
-const BG_COLORS = ["bg-mustard", "bg-pink", "bg-mint", "bg-blue", "bg-peach", "bg-cream"];
+const BG_COLORS = ["bg-secondary", "bg-primary", "bg-accent", "bg-info", "bg-surface", "bg-bg"];
 
 interface TemplatePickerModalProps {
   open: boolean;
@@ -90,11 +90,11 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
         aria-modal="true"
         aria-label="페이지 추가"
       >
-        <NeoCard bg="var(--color-cream)" pad={0} shadow={8} className="flex flex-col max-h-[86dvh]">
+        <NeoCard bg="var(--color-bg)" pad={0} shadow={8} className="flex flex-col max-h-[86dvh]">
           {/* 헤더 */}
           <div className="flex items-center justify-between gap-3 px-5 py-3 border-b-[3px] border-ink shrink-0">
             <h2 className="font-headline text-[18px] m-0">페이지 추가</h2>
-            <NeoButton bg="var(--color-cream)" size="sm" shadow={3} onClick={onClose}>
+            <NeoButton bg="var(--color-bg)" size="sm" shadow={3} onClick={onClose}>
               닫기
             </NeoButton>
           </div>

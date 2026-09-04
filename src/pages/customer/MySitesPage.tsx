@@ -76,7 +76,7 @@ export default function MySitesPage() {
         as="h1"
         className="mb-7"
         action={
-          <NeoButton bg="var(--color-pink)" size="sm" onClick={handleNewSite}>
+          <NeoButton bg="var(--color-primary)" size="sm" onClick={handleNewSite}>
             <span className="flex items-center gap-1.5">
               <PixelIcon name="plus" size={12} fill="#fff" />
               새 사이트
@@ -116,7 +116,7 @@ export default function MySitesPage() {
           className="neo-border cursor-pointer min-h-[260px] flex flex-col items-center justify-center gap-3 hover:bg-black/5 transition-colors neo-shadow-md"
           style={{ background: "transparent", outline: "none" }}
         >
-          <div className="w-12 h-12 bg-pink neo-border flex items-center justify-center neo-shadow-sm">
+          <div className="w-12 h-12 bg-primary neo-border flex items-center justify-center neo-shadow-sm">
             <PixelIcon name="plus" size={20} fill="#fff" />
           </div>
           <span className="font-sub text-[14px] text-ink">새 사이트 만들기</span>

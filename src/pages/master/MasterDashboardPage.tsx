@@ -18,12 +18,12 @@ export default function MasterDashboardPage() {
 
   const statCards = stats
     ? [
-        { label: "전체 사용자",      value: stats.totalUsers.toLocaleString(),  bg: "bg-blue",    icon: "doc"   as const },
-        { label: "전체 사이트",      value: stats.totalSites.toLocaleString(),  bg: "bg-mint",    icon: "grid"  as const },
-        { label: "오늘 신규가입",    value: String(stats.todaySignups),          bg: "bg-mustard", icon: "plus"  as const },
-        { label: "오늘 생성 사이트", value: String(stats.todaySites),            bg: "bg-pink",    icon: "heart" as const },
-        { label: "PRO 구독자",       value: String(stats.proSubscribers),        bg: "bg-peach",   icon: "star"  as const },
-        { label: "이번 달 매출",     value: stats.monthlyRevenue,               bg: "bg-cream",   icon: "check" as const },
+        { label: "전체 사용자",      value: stats.totalUsers.toLocaleString(),  bg: "bg-info",    icon: "doc"   as const },
+        { label: "전체 사이트",      value: stats.totalSites.toLocaleString(),  bg: "bg-accent",    icon: "grid"  as const },
+        { label: "오늘 신규가입",    value: String(stats.todaySignups),          bg: "bg-secondary", icon: "plus"  as const },
+        { label: "오늘 생성 사이트", value: String(stats.todaySites),            bg: "bg-primary",    icon: "heart" as const },
+        { label: "PRO 구독자",       value: String(stats.proSubscribers),        bg: "bg-surface",   icon: "star"  as const },
+        { label: "이번 달 매출",     value: stats.monthlyRevenue,               bg: "bg-bg",   icon: "check" as const },
       ]
     : [];
 

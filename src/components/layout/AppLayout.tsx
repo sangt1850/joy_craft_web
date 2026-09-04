@@ -30,7 +30,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-cream">
+    <div className="flex min-h-screen bg-bg">
 
       {/* 데스크탑 사이드바 */}
       <aside className="hidden md:flex w-[240px] min-h-screen bg-ink border-r-[4px] border-ink flex-col px-4 py-6 shrink-0">
@@ -40,7 +40,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           className="flex items-center gap-2.5 mb-8 bg-transparent border-none cursor-pointer p-0"
           onClick={() => navigate("/dashboard")}
         >
-          <span className="font-pixel text-[32px] text-cream" style={{ letterSpacing: -0.5 }}>
+          <span className="font-pixel text-[32px] text-bg" style={{ letterSpacing: -0.5 }}>
             JoyCraft
           </span>
         </button>
@@ -54,8 +54,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   className={cn(
                     "flex items-center gap-3 px-[14px] py-[10px] rounded-lg border-2 transition-colors",
                     isActive
-                      ? "bg-mustard border-mustard text-ink cursor-default"
-                      : "bg-transparent border-transparent text-cream cursor-pointer hover:bg-white/[0.08]"
+                      ? "bg-secondary border-secondary text-ink cursor-default"
+                      : "bg-transparent border-transparent text-bg cursor-pointer hover:bg-white/[0.08]"
                   )}
                 >
                   <PixelIcon name={icon} size={18} fill={isActive ? "#111" : "#FFF7E6"} />
@@ -82,7 +82,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           className="flex items-center gap-2.5 px-[14px] py-[10px] bg-transparent border-none cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors w-full"
         >
           <PixelIcon name="logout" size={18} fill="#9FD3F5" />
-          <span className="font-sub text-sm text-blue">
+          <span className="font-sub text-sm text-info">
             로그아웃
           </span>
         </button>
@@ -101,14 +101,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <div
                 className={cn(
                   "flex flex-col items-center justify-center py-2 gap-1",
-                  isActive ? "bg-mustard" : "bg-transparent"
+                  isActive ? "bg-secondary" : "bg-transparent"
                 )}
               >
                 <PixelIcon name={icon} size={16} fill={isActive ? "#111" : "#FFF7E6"} />
                 <span
                   className={cn(
                     "font-body text-[10px]",
-                    isActive ? "text-ink" : "text-cream"
+                    isActive ? "text-ink" : "text-bg"
                   )}
                 >
                   {label}
@@ -121,7 +121,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* FAB — 새 사이트 */}
         <button
           onClick={() => navigate("/editor/new")}
-          className="flex-1 flex flex-col items-center justify-center py-2 gap-1 bg-pink border-none cursor-pointer"
+          className="flex-1 flex flex-col items-center justify-center py-2 gap-1 bg-primary border-none cursor-pointer"
         >
           <PixelIcon name="plus" size={16} fill="#fff" />
           <span className="font-body text-[10px] text-white">만들기</span>

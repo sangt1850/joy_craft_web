@@ -7,7 +7,7 @@ interface TemplateCardProps {
   title: string;
   emoji?: string;
   price?: "FREE" | "PRO";
-  bg?: string;            // Tailwind 클래스 (e.g. "bg-peach")
+  bg?: string;            // Tailwind 클래스 (e.g. "bg-surface")
   subLabel?: string;      // 부가 텍스트 (e.g. "3페이지 · 인터랙티브")
   thumbHeight?: number;
   onUse?: (id: string | number) => void;
@@ -20,7 +20,7 @@ export default function TemplateCard({
   title,
   emoji = "🎁",
   price = "FREE",
-  bg = "bg-cream",
+  bg = "bg-bg",
   subLabel,
   thumbHeight = 130,
   onUse,
@@ -51,7 +51,7 @@ export default function TemplateCard({
             style={{ background: "rgba(17,17,17,0.55)" }}
           >
             <span
-              className="font-sub text-cream neo-border px-3 py-1.5"
+              className="font-sub text-bg neo-border px-3 py-1.5"
               style={{ fontSize: 12, background: "#111", boxShadow: "3px 3px 0 #555" }}
             >
               🔍 미리보기
@@ -72,7 +72,7 @@ export default function TemplateCard({
           <div className={`flex flex-col gap-2 ${subLabel ? "" : "mt-3"}`}>
             {onPreview && (
               <NeoButton
-                bg="var(--color-cream)"
+                bg="var(--color-bg)"
                 color="#111"
                 size="sm"
                 shadow={3}
@@ -83,7 +83,7 @@ export default function TemplateCard({
               </NeoButton>
             )}
             <NeoButton
-              bg={isPro ? "var(--color-mustard)" : "#111"}
+              bg={isPro ? "var(--color-secondary)" : "#111"}
               color={isPro ? "#111" : "#FFF7E6"}
               size="sm"
               shadow={3}

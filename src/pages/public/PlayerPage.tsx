@@ -173,7 +173,7 @@ export default function PlayerPage() {
   // ─── 로딩 / 에러 ──────────────────────────────────────────────────────────
   if (state.status === "loading") {
     return (
-      <PlayerMessage title="불러오는 중..." bg="var(--color-blue)">
+      <PlayerMessage title="불러오는 중..." bg="var(--color-info)">
         <p className="font-body text-[13px] leading-relaxed">잠시만 기다려주세요.</p>
       </PlayerMessage>
     );
@@ -184,7 +184,7 @@ export default function PlayerPage() {
     return (
       <PlayerMessage
         title={notFound ? "없거나 삭제된 링크예요" : "사이트를 불러오지 못했어요"}
-        bg={notFound ? "var(--color-peach)" : "var(--color-mustard)"}
+        bg={notFound ? "var(--color-surface)" : "var(--color-secondary)"}
       >
         <p className="font-body text-[13px] leading-relaxed">
           {notFound
@@ -193,11 +193,11 @@ export default function PlayerPage() {
         </p>
         <div className="mt-5 flex gap-2">
           {!notFound && (
-            <NeoButton bg="var(--color-mustard)" size="sm" onClick={load}>
+            <NeoButton bg="var(--color-secondary)" size="sm" onClick={load}>
               다시 시도
             </NeoButton>
           )}
-          <NeoButton bg="var(--color-cream)" size="sm" href="/">
+          <NeoButton bg="var(--color-bg)" size="sm" href="/">
             홈으로
           </NeoButton>
         </div>
@@ -207,7 +207,7 @@ export default function PlayerPage() {
 
   if (total === 0) {
     return (
-      <PlayerMessage title="아직 준비 중이에요" bg="var(--color-mint)">
+      <PlayerMessage title="아직 준비 중이에요" bg="var(--color-accent)">
         <p className="font-body text-[13px] leading-relaxed">이 사이트에는 아직 슬라이드가 없습니다.</p>
       </PlayerMessage>
     );
@@ -218,7 +218,7 @@ export default function PlayerPage() {
     <div className="w-screen h-dvh select-none" style={{ WebkitUserSelect: "none" }}>
       {/* 슬라이드 캔버스 — position:relative + 크기만 제공. 스타일 주입 금지 */}
       <div
-        className="bg-cream relative overflow-hidden w-full h-full"
+        className="bg-bg relative overflow-hidden w-full h-full"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchCancel}
@@ -256,17 +256,17 @@ export default function PlayerPage() {
 // ─────────────────────────────────────────────────────────────────────────────
 function EndScreen({ title, onRestart }: { title: string; onRestart: () => void }) {
   return (
-    <div className="bg-cream absolute inset-0 flex flex-col items-center justify-center p-6">
-      <NeoCard bg="var(--color-mustard)" pad={24} shadow={6}>
+    <div className="bg-bg absolute inset-0 flex flex-col items-center justify-center p-6">
+      <NeoCard bg="var(--color-secondary)" pad={24} shadow={6}>
         <div className="text-center">
           <div className="font-pixel text-[10px] mb-3">THE END</div>
           <h1 className="font-headline text-[24px] mb-2">{title}</h1>
           <p className="font-body text-[13px] leading-relaxed mb-5">끝까지 봐주셔서 고마워요 🎁</p>
           <div className="flex justify-center gap-2">
-            <NeoButton bg="var(--color-pink)" size="sm" onClick={onRestart}>
+            <NeoButton bg="var(--color-primary)" size="sm" onClick={onRestart}>
               처음부터 다시 보기
             </NeoButton>
-            <NeoButton bg="var(--color-cream)" size="sm" href="/">
+            <NeoButton bg="var(--color-bg)" size="sm" href="/">
               JoyCraft
             </NeoButton>
           </div>

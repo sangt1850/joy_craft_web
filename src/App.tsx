@@ -26,7 +26,7 @@ const MasterDashboardPage = lazy(() => import("./pages/master/MasterDashboardPag
 /** 청크를 받아오는 동안 잠깐 보이는 화면 */
 function RouteFallback() {
   return (
-    <div className="flex items-center justify-center h-screen bg-cream">
+    <div className="flex items-center justify-center h-screen bg-bg">
       <div className="font-pixel text-[12px] text-ink animate-pulse">LOADING...</div>
     </div>
   );

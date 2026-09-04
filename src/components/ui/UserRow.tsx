@@ -2,7 +2,7 @@
 import { cn } from "../../utils/cn";
 import StatusBadge, { inferVariant } from "./StatusBadge";
 
-const AVATAR_COLORS = ["bg-blue", "bg-pink", "bg-mint", "bg-mustard", "bg-peach"];
+const AVATAR_COLORS = ["bg-info", "bg-primary", "bg-accent", "bg-secondary", "bg-surface"];
 
 interface UserRowProps {
   name: string;

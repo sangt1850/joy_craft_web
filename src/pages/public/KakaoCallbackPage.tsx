@@ -84,7 +84,7 @@ export default function KakaoCallbackPage() {
 
   if (step === "loading") {
     return (
-      <div className="flex items-center justify-center h-screen bg-cream">
+      <div className="flex items-center justify-center h-screen bg-bg">
         <div className="font-pixel text-[12px] text-ink animate-pulse">카카오 로그인 중...</div>
       </div>
     );
@@ -92,12 +92,12 @@ export default function KakaoCallbackPage() {
 
   if (step === "error") {
     return (
-      <div className="flex items-center justify-center h-screen bg-cream">
-        <NeoCard bg="var(--color-cream)" pad={32} shadow={6}>
+      <div className="flex items-center justify-center h-screen bg-bg">
+        <NeoCard bg="var(--color-bg)" pad={32} shadow={6}>
           <div className="text-center flex flex-col gap-4" style={{ width: 300 }}>
             <p className="font-headline text-[20px] text-ink m-0">로그인 실패</p>
             <p className="font-body text-[13px] m-0" style={{ color: "#666" }}>{error}</p>
-            <NeoButton bg="var(--color-pink)" size="md" block onClick={() => navigate("/")}>
+            <NeoButton bg="var(--color-primary)" size="md" block onClick={() => navigate("/")}>
               돌아가기
             </NeoButton>
           </div>
@@ -108,12 +108,12 @@ export default function KakaoCallbackPage() {
 
   // step === "nickname"
   return (
-    <div className="flex items-center justify-center h-screen bg-cream">
-      <NeoCard bg="var(--color-cream)" pad={0} shadow={8} border={4}>
+    <div className="flex items-center justify-center h-screen bg-bg">
+      <NeoCard bg="var(--color-bg)" pad={0} shadow={8} border={4}>
         <div style={{ width: 360 }}>
           {/* 헤더 */}
           <div className="bg-ink px-6 py-4 flex items-center gap-2">
-            <span className="font-pixel text-[11px] text-cream">JoyCraft에 오신 걸 환영해요!</span>
+            <span className="font-pixel text-[11px] text-bg">JoyCraft에 오신 걸 환영해요!</span>
           </div>
 
           {/* 본문 */}
@@ -139,14 +139,14 @@ export default function KakaoCallbackPage() {
             {error && (
               <div
                 className="font-body text-[12px] px-3 py-2 neo-border"
-                style={{ background: "var(--color-peach)", color: "#111" }}
+                style={{ background: "var(--color-surface)", color: "#111" }}
               >
                 {error}
               </div>
             )}
 
             <NeoButton
-              bg="var(--color-pink)"
+              bg="var(--color-primary)"
               size="md"
               block
               onClick={handleRegister}

@@ -46,10 +46,10 @@ export default function DashboardPage() {
   };
 
   const statCards = [
-    { label: "내 사이트",   value: String(stats?.totalSites ?? "-"),         bg: "bg-blue",    icon: "doc"   as const },
-    { label: "받은 하트",   value: String(stats?.totalHearts ?? "-"),         bg: "bg-pink",    icon: "heart" as const },
-    { label: "공개 사이트", value: String(stats?.publishedSites ?? "-"),      bg: "bg-mint",    icon: "share" as const },
-    { label: "무료 체험",   value: stats ? `D-${stats.trialDaysLeft}` : "-",  bg: "bg-mustard", icon: "clock" as const },
+    { label: "내 사이트",   value: String(stats?.totalSites ?? "-"),         bg: "bg-info",    icon: "doc"   as const },
+    { label: "받은 하트",   value: String(stats?.totalHearts ?? "-"),         bg: "bg-primary",    icon: "heart" as const },
+    { label: "공개 사이트", value: String(stats?.publishedSites ?? "-"),      bg: "bg-accent",    icon: "share" as const },
+    { label: "무료 체험",   value: stats ? `D-${stats.trialDaysLeft}` : "-",  bg: "bg-secondary", icon: "clock" as const },
   ];
 
   const recentSites = sites.slice(0, 3);
@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
       {/* 웰컴 배너 */}
       <div className="mb-7 relative overflow-hidden">
-        <NeoCard bg="var(--color-mustard)" pad={28} shadow={6}>
+        <NeoCard bg="var(--color-secondary)" pad={28} shadow={6}>
           <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[64px] opacity-20 pointer-events-none">
             ❤️
           </div>

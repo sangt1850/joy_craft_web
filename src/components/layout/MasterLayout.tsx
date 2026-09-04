@@ -46,8 +46,8 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
             <rect x="5" y="12" width="6" height="2" fill="#FFC93C" />
           </svg>
           <div>
-            <div className="font-pixel text-base text-cream">JoyCraft</div>
-            <div className="font-pixel text-[8px] text-mustard mt-0.5">MASTER</div>
+            <div className="font-pixel text-base text-bg">JoyCraft</div>
+            <div className="font-pixel text-[8px] text-secondary mt-0.5">MASTER</div>
           </div>
         </div>
 
@@ -61,7 +61,7 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
                   className={cn(
                     "flex items-center gap-2.5 px-3 py-[9px] rounded-md transition-colors",
                     isActive
-                      ? "bg-mustard cursor-default"
+                      ? "bg-secondary cursor-default"
                       : "bg-transparent cursor-pointer hover:bg-white/[0.08]"
                   )}
                 >
@@ -69,7 +69,7 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
                   <span
                     className={cn(
                       "font-sub text-[13px]",
-                      isActive ? "text-ink" : "text-cream"
+                      isActive ? "text-ink" : "text-bg"
                     )}
                   >
                     {label}
@@ -86,7 +86,7 @@ export default function MasterLayout({ children }: MasterLayoutProps) {
           className="flex items-center gap-2.5 px-3 py-[9px] bg-transparent border-none cursor-pointer rounded-md hover:bg-white/[0.08] transition-colors w-full"
         >
           <PixelIcon name="logout" size={16} fill="#9FD3F5" />
-          <span className="font-sub text-[13px] text-blue">로그아웃</span>
+          <span className="font-sub text-[13px] text-info">로그아웃</span>
         </button>
       </aside>
 

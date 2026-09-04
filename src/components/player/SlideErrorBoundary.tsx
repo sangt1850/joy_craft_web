@@ -54,13 +54,13 @@ export default class SlideErrorBoundary extends Component<
     if (!this.state.error) return this.props.children;
 
     return (
-      <div className="absolute inset-0 bg-cream flex items-center justify-center p-6">
-        <NeoCard bg="var(--color-peach)" pad={20} shadow={5}>
+      <div className="absolute inset-0 bg-bg flex items-center justify-center p-6">
+        <NeoCard bg="var(--color-surface)" pad={20} shadow={5}>
           <h2 className="font-headline text-[18px] mb-2">이 슬라이드를 표시할 수 없어요</h2>
           <p className="font-body text-[12px] leading-relaxed mb-4">
             내용을 불러오는 중 문제가 생겼습니다. 다음 장으로 넘어가 주세요.
           </p>
-          <NeoButton bg="var(--color-mustard)" size="sm" onClick={this.props.onSkip}>
+          <NeoButton bg="var(--color-secondary)" size="sm" onClick={this.props.onSkip}>
             다음으로
           </NeoButton>
         </NeoCard>

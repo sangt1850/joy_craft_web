@@ -14,14 +14,14 @@ const pillVariants = cva(
   {
     variants: {
       active: {
-        true:  "bg-ink text-cream",
-        false: "bg-cream text-ink hover:bg-black/5",
+        true:  "bg-ink text-bg",
+        false: "bg-bg text-ink hover:bg-black/5",
       },
     },
   }
 );
 
-const BG_COLORS = ["bg-mustard", "bg-pink", "bg-mint", "bg-blue", "bg-peach", "bg-cream"];
+const BG_COLORS = ["bg-secondary", "bg-primary", "bg-accent", "bg-info", "bg-surface", "bg-bg"];
 
 export default function BrowsePage() {
   const [category, setCategory] = useState("전체");

@@ -34,17 +34,17 @@ export default function LoginModal({ onClose }: LoginModalProps) {
       style={{ background: "rgba(17,17,17,0.55)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <NeoCard bg="var(--color-cream)" pad={0} shadow={8} border={4}>
+      <NeoCard bg="var(--color-bg)" pad={0} shadow={8} border={4}>
         <div className="w-[360px] max-w-full">
           {/* 헤더 */}
           <div className="bg-ink px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src={logoSvg} width={16} height={14} alt="" />
-              <span className="font-pixel text-[11px] text-cream">JoyCraft 시작하기</span>
+              <span className="font-pixel text-[11px] text-bg">JoyCraft 시작하기</span>
             </div>
             <button
               onClick={onClose}
-              className="font-pixel text-[13px] text-cream leading-none"
+              className="font-pixel text-[13px] text-bg leading-none"
               style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}
             >
               ✕
@@ -63,7 +63,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
             {error && (
               <div
                 className="w-full font-body text-[12px] px-3 py-2 neo-border text-center"
-                style={{ background: "var(--color-peach)", color: "#111" }}
+                style={{ background: "var(--color-surface)", color: "#111" }}
               >
                 {error}
               </div>
