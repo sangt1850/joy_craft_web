@@ -1,0 +1,76 @@
+name: Deploy joyCraft_web
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies and build
+        run: |
+          npm install
+          npm run build
+
+  # 🔥 여기 추가 (Debug)
+      - name: Debug Secrets
+        run: |
+          echo "HOST=${HOST:-empty}"
+          echo "PORT=${PORT:-empty}"
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          PORT: ${{ secrets.SERVER_PORT }}
+          
+      # ✅ SSH 포트 연결 확인
+      - name: Check SSH connectivity (pre-check)
+        run: |
+          echo "🔍 Checking if $HOST:$PORT is reachable..."
+          timeout 5 bash -c "</dev/tcp/$HOST/$PORT" \
+            && echo "✅ SSH port reachable" \
+            || (echo "❌ SSH port unreachable. Stopping." && exit 1)
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          PORT: ${{ secrets.SERVER_PORT }}
+
+      # ✅ SSH 연결 확인 (디버깅용)
+      - name: Debug SSH connectivity
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: echo "✅ SSH 연결 성공"
+
+      # ✅ 빌드된 파일을 서버로 전송
+      - name: Copy build directory to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "dist/"
+          target: "/home/sangt/joyCraft/web"
+
+      # ✅ Nginx 재시작
+      - name: Restart nginx
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            sudo systemctl restart nginx
