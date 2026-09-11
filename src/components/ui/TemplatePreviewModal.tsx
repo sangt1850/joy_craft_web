@@ -34,7 +34,10 @@ const STAGE = {
 /** 모바일 노치 바 높이 — 에디터와 동일 */
 const NOTCH_H = 28;
 
-/** 컨테이너 실측 크기에 맞춰 디자인 해상도를 transform:scale 로 맞춘다 */
+/**
+ * 컨테이너 실측 크기에 맞춰 디자인 해상도를 transform:scale 로 맞춘다.
+ * scale은 1을 초과하지 않는다 — 원본보다 확대하면 슬라이드가 컨테이너를 벗어난다.
+ */
 function useFitScale(designWidth: number, designHeight: number) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -45,7 +48,7 @@ function useFitScale(designWidth: number, designHeight: number) {
     const update = () => {
       const { width, height } = el.getBoundingClientRect();
       if (width <= 0 || height <= 0) return;
-      setScale(Math.min(width / designWidth, height / designHeight));
+      setScale(Math.min(1, width / designWidth, height / designHeight));
     };
     update();
     const ro = new ResizeObserver(update);
@@ -60,6 +63,12 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
   const [viewport, setViewport] = useState<Viewport>("mobile");
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [slideKey, setSlideKey] = useState(0);
+
+  // 뷰포트 전환 시 슬라이드를 처음부터 재시작
+  const handleViewport = useCallback((v: Viewport) => {
+    setViewport(v);
+    setSlideKey((k) => k + 1);
+  }, []);
 
   const stageSize = STAGE[viewport];
   const designWidth = stageSize.width;
@@ -117,8 +126,8 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
       <div
         className="neo-border bg-bg flex flex-col"
         style={{
-          width: "min(calc(100vw - 32px), 980px)",
-          maxHeight: "calc(100dvh - 40px)",
+          width: "min(calc(100vw - 24px), 1100px)",
+          maxHeight: "calc(100dvh - 24px)",
           boxShadow: "8px 8px 0 #111",
         }}
         onClick={(e) => e.stopPropagation()}
@@ -135,8 +144,8 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
           </div>
 
           <div className="flex neo-border overflow-hidden shrink-0" style={{ boxShadow: "3px 3px 0 #111" }}>
-            <ViewportBtn label="💻 PC" active={viewport === "pc"} onClick={() => setViewport("pc")} />
-            <ViewportBtn label="📱 모바일" active={viewport === "mobile"} onClick={() => setViewport("mobile")} borderLeft />
+            <ViewportBtn label="가로" orientation="landscape" active={viewport === "pc"} onClick={() => handleViewport("pc")} />
+            <ViewportBtn label="세로" orientation="portrait" active={viewport === "mobile"} onClick={() => handleViewport("mobile")} borderLeft />
           </div>
 
           <NeoButton bg="var(--color-ink)" color="#fff7e6" size="sm" shadow={3} onClick={onClose}>
@@ -147,7 +156,7 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
         {/* ── 콘텐츠 영역 ── */}
         <div
           className="flex-1 flex items-center justify-center overflow-hidden bg-[#E8E0D4]"
-          style={{ padding: "16px 24px" }}
+          style={{ padding: "12px 16px" }}
         >
           {state.status === "loading" && (
             <div className="font-pixel text-[#888] text-[11px]">불러오는 중...</div>
@@ -244,28 +253,44 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
   );
 }
 
-// ─── 기기 토글 버튼 ────────────────────────────────────────────────────────────
+// ─── 방향 토글 버튼 ────────────────────────────────────────────────────────────
 function ViewportBtn({
   label,
+  orientation,
   active,
   onClick,
   borderLeft,
 }: {
   label: string;
+  orientation: "landscape" | "portrait";
   active: boolean;
   onClick: () => void;
   borderLeft?: boolean;
 }) {
+  const color = active ? "#fff7e6" : "#111";
   return (
     <button
       onClick={onClick}
-      className="font-sub text-[12px] px-3.5 py-1.5 transition-colors cursor-pointer"
+      className="font-sub text-[11px] flex items-center gap-1.5 px-3 py-1.5 transition-colors cursor-pointer"
       style={{
         background: active ? "#111" : "#fff7e6",
-        color: active ? "#fff7e6" : "#111",
+        color,
         borderLeft: borderLeft ? "3px solid #111" : undefined,
       }}
     >
+      {/* 화면 방향 아이콘 */}
+      {orientation === "landscape" ? (
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <rect x="0.5" y="0.5" width="15" height="11" rx="1.5" stroke={color} strokeWidth="1.5" />
+          <rect x="2" y="2" width="12" height="8" rx="0.5" fill={color} opacity="0.25" />
+        </svg>
+      ) : (
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+          <rect x="0.5" y="0.5" width="9" height="15" rx="1.5" stroke={color} strokeWidth="1.5" />
+          <rect x="3.5" y="1.5" width="3" height="1" rx="0.5" fill={color} opacity="0.5" />
+          <rect x="2" y="4" width="6" height="9" rx="0.5" fill={color} opacity="0.25" />
+        </svg>
+      )}
       {label}
     </button>
   );

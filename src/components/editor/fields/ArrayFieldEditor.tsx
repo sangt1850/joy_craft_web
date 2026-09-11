@@ -5,7 +5,7 @@
 // 편집 UI에 노출하지 않는 키(예: cassette 트랙의 scale)는 항목에 그대로 보존된다.
 //
 // JSON이 깨져 있어도 에디터가 죽으면 안 되므로 raw(원본 텍스트) 편집 폴백을 제공한다.
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import type { SchemaFieldDef } from "../../../slides/SlideProps";
 import {
   parseArrayValue,
@@ -42,14 +42,47 @@ export default function ArrayFieldEditor({
   onChange,
   resetValue,
 }: ArrayFieldEditorProps) {
-  const [rawByChoice, setRawByChoice] = useState(false);
+  const [textMode, setTextMode] = useState(false);
+  const [localText, setLocalText] = useState('');
 
   const parsed = parseArrayValue(value);
   const itemFields = field.itemFields ?? [];
   const itemLabel = field.itemLabel ?? "항목";
 
-  // 구조화 편집이 불가능한 조건: 값이 깨졌거나, 항목 필드 정의가 없거나, 사용자가 직접 선택
-  const useRaw = !parsed.ok || itemFields.length === 0 || rawByChoice;
+  // 구조화 편집이 불가능한 조건: 값이 깨졌거나, 항목 필드 정의가 없는 경우
+  const useRaw = !parsed.ok || itemFields.length === 0;
+
+  // role + name 키가 모두 있을 때만 텍스트 모드 지원
+  const supportsTextMode = !useRaw
+    && itemFields.some(f => f.key === 'role')
+    && itemFields.some(f => f.key === 'name');
+
+  function itemsToText(items: ArrayItem[]): string {
+    return items.map(item => {
+      const role = String(item.role ?? '');
+      const name = String(item.name ?? '');
+      return role ? `${role}|${name}` : name;
+    }).join('\n');
+  }
+
+  function textToItems(text: string): ArrayItem[] {
+    return text.split('\n').filter(line => line.trim()).map(line => {
+      const idx = line.indexOf('|');
+      return idx < 0
+        ? { role: '', name: line.trim() }
+        : { role: line.slice(0, idx).trim(), name: line.slice(idx + 1).trim() };
+    });
+  }
+
+  function handleEnterTextMode() {
+    setLocalText(itemsToText(parsed.items));
+    setTextMode(true);
+  }
+
+  function handleTextChange(text: string) {
+    setLocalText(text);
+    commit(textToItems(text));
+  }
 
   const commit = (items: Record<string, unknown>[]) => onChange(serializeArrayValue(items));
 
@@ -97,20 +130,32 @@ export default function ArrayFieldEditor({
           {field.label}
           {field.required && <span className="text-primary"> *</span>}
         </span>
-        {parsed.ok && itemFields.length > 0 && (
+        {supportsTextMode && (
           <button
             type="button"
-            onClick={() => setRawByChoice((v) => !v)}
-            className="font-pixel text-[9px] underline bg-transparent border-none cursor-pointer text-black/50 p-0"
+            onClick={() => textMode ? setTextMode(false) : handleEnterTextMode()}
+            className="font-body text-[11px] text-ink border border-black/40 rounded px-2 py-0.5 shrink-0 cursor-pointer bg-white hover:bg-black/10"
           >
-            {rawByChoice ? "목록으로" : "JSON 편집"}
+            {textMode ? '목록으로' : '텍스트로'}
           </button>
         )}
       </div>
 
       {field.hint && <p className={HINT_CLASS}>{field.hint}</p>}
 
-      {useRaw ? (
+      {!useRaw && textMode ? (
+        <div className="flex flex-col gap-2">
+          <p className={HINT_CLASS}>한 줄에 하나씩 · 역할|이름 (역할 생략 시 이름만)</p>
+          <textarea
+            value={localText}
+            onChange={(e) => handleTextChange(e.target.value)}
+            rows={10}
+            spellCheck={false}
+            placeholder={"주연|너 그리고 나\n감독|운명\n각본|매일의 대화"}
+            className="neo-input font-body text-[12px] resize-y leading-relaxed"
+          />
+        </div>
+      ) : useRaw ? (
         <RawEditor
           value={typeof value === "string" ? value : parsed.raw}
           broken={!parsed.ok}

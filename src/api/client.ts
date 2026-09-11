@@ -1,4 +1,4 @@
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const REFRESHED_ACCESS_TOKEN_HEADER = "X-Access-Token";
 let refreshPromise: Promise<string | null> | null = null;
 

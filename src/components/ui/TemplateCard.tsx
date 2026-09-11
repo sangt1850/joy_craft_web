@@ -1,6 +1,7 @@
 // TemplateCard — 템플릿/갤러리 카드 (BrowsePage, LandingPage 공통)
 // 이모지 썸네일 + PRO 배지 + 제목 + 사용 버튼
 import NeoButton from "./NeoButton";
+import LiveThumbnail, { type ThumbViewport } from "./LiveThumbnail";
 
 interface TemplateCardProps {
   id: string | number;
@@ -13,6 +14,8 @@ interface TemplateCardProps {
   onUse?: (id: string | number) => void;
   onPreview?: (id: string | number) => void;
   showButton?: boolean;
+  enableLiveThumb?: boolean;
+  liveThumbViewport?: ThumbViewport;
 }
 
 export default function TemplateCard({
@@ -26,6 +29,8 @@ export default function TemplateCard({
   onUse,
   onPreview,
   showButton = true,
+  enableLiveThumb = false,
+  liveThumbViewport = "mobile",
 }: TemplateCardProps) {
   const isPro = price === "PRO";
 
@@ -35,30 +40,41 @@ export default function TemplateCard({
       style={{ "--neo-shadow": "5px" } as React.CSSProperties}
     >
       {/* 썸네일 */}
-      <div
-        className="bg-black/[0.08] flex items-center justify-center text-[48px] relative group"
-        style={{ height: thumbHeight }}
-      >
-        {emoji}
-        {isPro && (
-          <span className="pixel-badge-pro absolute top-2.5 right-2.5">PRO</span>
-        )}
-        {/* 미리보기 버튼 — 호버 시 노출 */}
-        {onPreview && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onPreview(id); }}
-            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            style={{ background: "rgba(17,17,17,0.55)" }}
-          >
-            <span
-              className="font-sub text-bg neo-border px-3 py-1.5"
-              style={{ fontSize: 12, background: "#111", boxShadow: "3px 3px 0 #555" }}
+      {enableLiveThumb ? (
+        <LiveThumbnail
+          templateId={String(id)}
+          viewport={liveThumbViewport}
+          emoji={emoji}
+          bg={bg}
+          isPro={isPro}
+          onPreview={onPreview ? () => onPreview(id) : undefined}
+        />
+      ) : (
+        <div
+          className="bg-black/[0.08] flex items-center justify-center text-[48px] relative group"
+          style={{ height: thumbHeight }}
+        >
+          {emoji}
+          {isPro && (
+            <span className="pixel-badge-pro absolute top-2.5 right-2.5">PRO</span>
+          )}
+          {/* 미리보기 버튼 — 호버 시 노출 */}
+          {onPreview && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPreview(id); }}
+              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              style={{ background: "rgba(17,17,17,0.55)" }}
             >
-              🔍 미리보기
-            </span>
-          </button>
-        )}
-      </div>
+              <span
+                className="font-sub text-bg neo-border px-3 py-1.5"
+                style={{ fontSize: 12, background: "#111", boxShadow: "3px 3px 0 #555" }}
+              >
+                미리보기
+              </span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 본문 */}
       <div className="p-4">

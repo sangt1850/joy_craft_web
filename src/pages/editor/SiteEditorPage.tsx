@@ -368,10 +368,14 @@ export default function SiteEditorPage() {
             mobileTab === "preview" ? "flex" : "hidden md:flex"
           )}
         >
-          {selectedSlide && schema ? (
-            // 실측 컨테이너 — 패딩이 없는 순수 가용 공간을 ResizeObserver로 측정해
-            // 고정 디자인 해상도(designWidth x designHeight)를 빈틈/잘림 없이 채운다
-            <div ref={previewAreaRef} className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
+          {/*
+            실측 컨테이너를 항상 마운트해 두어야 useFitScale의 ResizeObserver가
+            초기 로딩 시에도 올바른 크기를 잡을 수 있다.
+            조건부로 마운트하면 데이터 로드 전 useLayoutEffect 실행 시 ref가 null이어서
+            scale이 1로 고정되는 버그가 발생한다.
+          */}
+          <div ref={previewAreaRef} className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
+            {selectedSlide && schema ? (
               <div
                 className="shrink-0"
                 style={{ width: designWidth * scale, height: designHeight * scale }}
@@ -404,7 +408,8 @@ export default function SiteEditorPage() {
                     {/*
                       슬라이드 캔버스 — position:relative + 크기만 제공.
                       슬라이드는 absolute; inset:0 풀블리드이므로 스타일 주입 금지.
-                      key(slideKey)가 바뀌면 리마운트되어 이전 슬라이드의 타이머가 튀지 않는다.
+                      React key가 바뀌면 컴포넌트 전체가 리마운트된다 —
+                      device 전환 시에도 슬라이드가 처음부터 다시 렌더링된다.
                     */}
                     <div
                       className={cn(
@@ -414,6 +419,7 @@ export default function SiteEditorPage() {
                       style={{ width: stageSize.width, height: stageSize.height }}
                     >
                       <SlideCanvas
+                        key={`${selectedSlide.id}:${previewNonce}:${device}`}
                         slideKey={`${selectedSlide.id}:${previewNonce}:${device}`}
                         componentRef={selectedSlide.componentRef}
                         values={previewValues}
@@ -425,9 +431,7 @@ export default function SiteEditorPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 min-w-0 min-h-0 flex items-center justify-center">
+            ) : (
               <NeoCard bg="var(--color-bg)" pad={24} shadow={6} className="max-w-[360px]">
                 <h2 className="font-headline text-[18px] mb-2">
                   {loadError ? "사이트를 불러오지 못했어요" : "페이지를 추가해 보세요"}
@@ -443,8 +447,8 @@ export default function SiteEditorPage() {
                   </NeoButton>
                 )}
               </NeoCard>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* 우측: 편집 패널 — 스키마 순회로 자동 생성 */}

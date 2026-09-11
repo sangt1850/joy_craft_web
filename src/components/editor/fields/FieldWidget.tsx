@@ -119,6 +119,9 @@ function FieldControl({ field, value, onChange, compact, inArrayItem }: FieldWid
       );
 
     case "select":
+      if (field.widget === "segment") {
+        return <SegmentControl options={field.options ?? []} value={value} onChange={onChange} />;
+      }
       return <SelectControl options={field.options ?? []} value={value} onChange={onChange} />;
 
     case "font":
@@ -340,6 +343,45 @@ function SelectControl({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// segment — 적은 선택지를 아이콘+라벨 버튼 그룹으로 표시
+// ─────────────────────────────────────────────────────────────────────────────
+function SegmentControl({
+  options,
+  value,
+  onChange,
+}: {
+  options: { label: string; value: string; icon?: string }[];
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
+  const current = asText(value);
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {options.map((o) => {
+        const active = current === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onChange(o.value)}
+            className={cn(
+              "flex-1 min-w-[72px] flex flex-col items-center gap-1.5 py-3 px-2",
+              "neo-border font-sub text-[11px] leading-tight transition-colors",
+              active
+                ? "bg-ink text-cream neo-shadow-sm"
+                : "bg-bg text-ink hover:bg-black/5"
+            )}
+          >
+            {o.icon && <span className="text-[22px] leading-none">{o.icon}</span>}
+            <span>{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // image — Swishy 스타일: 미리보기 상단 + URL 입력 하단
 // ─────────────────────────────────────────────────────────────────────────────
 function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compact">) {
@@ -452,11 +494,7 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// imagelist — URL 입력 + 파일 업로드(→ base64). 값은 string[].
-// DB 저장 전략:
-//   · URL 입력  → 그대로 URL 문자열 저장 (권장: Supabase Storage / Cloudinary 등 CDN)
-//   · 파일 업로드 → FileReader로 base64 data URL 변환 후 저장 (소용량 데모에 적합)
-//   · 프로덕션에서는 /api/assets 업로드 엔드포인트로 CDN URL을 받아 저장하는 방식 권장
+// imagelist — 여러 이미지 추가/삭제. 값은 string[].
 // ─────────────────────────────────────────────────────────────────────────────
 function ImageListControl({
   value,
@@ -465,15 +503,17 @@ function ImageListControl({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  const [urlMode, setUrlMode] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [images, setImages] = useState<AssetImage[]>([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const urlInputRef = useRef<HTMLInputElement>(null);
 
   const list: string[] = Array.isArray(value)
-    ? (value as unknown[]).filter((v) => typeof v === "string") as string[]
+    ? (value as unknown[]).filter((v): v is string => typeof v === "string")
     : [];
 
   const add = (urls: string[]) => {
@@ -497,6 +537,10 @@ function ImageListControl({
     if (libraryOpen) void loadImages();
   }, [libraryOpen]);
 
+  useEffect(() => {
+    if (urlMode) urlInputRef.current?.focus();
+  }, [urlMode]);
+
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
@@ -516,62 +560,136 @@ function ImageListControl({
     }
   };
 
+  const handleAddUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    add([trimmed]);
+    setUrlInput("");
+  };
+
   return (
     <div className="flex flex-col gap-2">
-      {list.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {list.map((url, i) => (
-            <div key={i} className="relative shrink-0">
-              <img
-                src={resolveImageValue(url)}
-                alt=""
-                className="w-14 h-14 object-cover neo-border bg-black/10"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.3"; }}
-              />
-              <button
-                onClick={() => remove(i)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ink text-bg rounded-full flex items-center justify-center font-pixel text-[9px] leading-none"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          value={urlInput}
-          onChange={(e) => setUrlInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") { add([urlInput]); setUrlInput(""); }
-          }}
-          placeholder="이미지 URL 입력 후 Enter"
-          className="neo-input flex-1 text-[12px]"
-        />
+      {list.length === 0 ? (
+        /* 비어있을 때: 큰 업로드 영역 */
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
+          className="neo-border border-dashed py-6 flex flex-col items-center gap-1.5 text-ink/50 hover:text-ink/80 hover:bg-black/5 disabled:opacity-40 transition-colors"
         >
-          {uploading ? "업로드" : "파일"}
+          <span className="font-pixel text-[26px] leading-none">+</span>
+          <span className="font-sub text-[11px]">
+            {uploading ? "업로드 중..." : "클릭하여 이미지 추가"}
+          </span>
+          <span className="font-body text-[10px] text-ink/40">여러 장 동시 선택 가능</span>
+        </button>
+      ) : (
+        /* 이미지 그리드 */
+        <div className="grid grid-cols-3 gap-1.5">
+          {list.map((url, i) => (
+            <div key={i} className="relative aspect-square">
+              <img
+                src={resolveImageValue(url)}
+                alt={`이미지 ${i + 1}`}
+                className="w-full h-full object-cover neo-border bg-black/10"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="absolute top-1 right-1 w-5 h-5 bg-ink text-cream rounded-full flex items-center justify-center font-pixel text-[10px] leading-none"
+                aria-label={`${i + 1}번 이미지 삭제`}
+              >
+                ×
+              </button>
+              <span className="absolute bottom-1 left-1 bg-black/60 text-white font-pixel text-[8px] px-1 rounded leading-tight">
+                {i + 1}
+              </span>
+            </div>
+          ))}
+          {/* 추가 슬롯 */}
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="aspect-square neo-border border-dashed flex flex-col items-center justify-center gap-1 text-ink/40 hover:text-ink/70 hover:bg-black/5 disabled:opacity-40 transition-colors"
+            aria-label="이미지 추가"
+          >
+            <span className="font-pixel text-[20px] leading-none">+</span>
+            <span className="font-body text-[9px]">{uploading ? "..." : "추가"}</span>
+          </button>
+        </div>
+      )}
+
+      {/* 액션 버튼 */}
+      <div className="flex gap-1.5 flex-wrap">
+        {list.length > 0 && (
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
+          >
+            {uploading ? "업로드 중..." : "파일 추가"}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setUrlMode((v) => !v);
+            setLibraryOpen(false);
+          }}
+          className={cn(
+            "neo-border px-2.5 py-1 font-sub text-[11px] shrink-0",
+            urlMode ? "bg-mint" : "bg-bg hover:bg-secondary/20"
+          )}
+        >
+          URL 입력
         </button>
         <button
           type="button"
-          onClick={() => setLibraryOpen((open) => !open)}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-accent/20"
+          onClick={() => {
+            setLibraryOpen((v) => !v);
+            setUrlMode(false);
+          }}
+          className={cn(
+            "neo-border px-2.5 py-1 font-sub text-[11px] shrink-0",
+            libraryOpen ? "bg-blue" : "bg-bg hover:bg-accent/20"
+          )}
         >
           내 이미지
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={onFile}
-          className="hidden"
-        />
       </div>
+
+      {/* URL 입력 패널 */}
+      {urlMode && (
+        <div className="flex gap-1.5">
+          <input
+            ref={urlInputRef}
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddUrl();
+              }
+            }}
+            placeholder="https://... 이미지 주소 입력"
+            className="neo-input flex-1 text-[12px]"
+          />
+          <button
+            type="button"
+            onClick={handleAddUrl}
+            disabled={!urlInput.trim()}
+            className="neo-border px-3 py-1 font-sub text-[11px] bg-ink text-cream disabled:opacity-40 shrink-0"
+          >
+            추가
+          </button>
+        </div>
+      )}
+
       {libraryOpen && (
         <ImageLibraryGrid
           images={images}
@@ -579,6 +697,15 @@ function ImageListControl({
           onSelect={(asset) => add([toAssetRef(asset.id)])}
         />
       )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={onFile}
+        className="hidden"
+      />
     </div>
   );
 }
