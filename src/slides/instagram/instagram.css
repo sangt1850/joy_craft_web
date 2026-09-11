@@ -1,0 +1,112 @@
+/* Scoped to this slide. No global reset, external font, or icon dependency. */
+.jc-ig-root { color:#171717; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif; font-size:14px; line-height:1.4; isolation:isolate; overflow:hidden; -webkit-tap-highlight-color:transparent; }
+.jc-ig-root *, .jc-ig-root *::before, .jc-ig-root *::after { box-sizing:border-box; }
+.jc-ig-root button, .jc-ig-root input, .jc-ig-root textarea { font:inherit; }
+.jc-ig-root button { color:inherit; cursor:pointer; border:0; background:none; padding:0; touch-action:manipulation; }
+.jc-ig-root button:disabled { cursor:default; opacity:.4; }
+.jc-ig-root button:focus-visible, .jc-ig-root [tabindex]:focus-visible, .jc-ig-root input:focus-visible, .jc-ig-root textarea:focus-visible { outline:2px solid #0095f6; outline-offset:3px; }
+.jc-ig-root svg { display:block; flex-shrink:0; }
+.jc-ig-root p { margin:0; }
+.jc-ig-frame { position:relative; width:100%; height:100%; min-height:0; max-width:470px; margin:auto; overflow:hidden; background:#fff; }
+.jc-ig-frame.jc-ig-wide { border-inline:1px solid #e6e6e6; }
+.jc-ig-feed { position:absolute; inset:0; display:flex; flex-direction:column; animation:jc-ig-enter .24s ease-out; }
+.jc-ig-icon { width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.jc-ig-icon:active { opacity:.58; }
+.jc-ig-header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px 7px 16px; padding-top:max(8px,env(safe-area-inset-top,0px)); min-height:58px; flex-shrink:0; background:#fff; z-index:1; }
+.jc-ig-brand { display:flex; align-items:center; gap:5px; min-width:0; max-width:calc(100% - 86px); }
+.jc-ig-wordmark { font-family:"Instagram Script","Billabong","Snell Roundhand","Segoe Script","Brush Script MT","Z003",cursive; font-size:31px; font-weight:700; letter-spacing:-1.6px; line-height:1.25; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jc-ig-action-group { display:flex; align-items:center; flex-shrink:0; gap:0; }
+.jc-ig-scroll { overflow-y:auto; overflow-x:hidden; flex:1; min-height:0; overscroll-behavior:contain; scrollbar-width:none; }
+.jc-ig-scroll::-webkit-scrollbar, .jc-ig-stories::-webkit-scrollbar { display:none; }
+.jc-ig-stories { display:flex; align-items:flex-start; gap:15px; overflow-x:auto; scrollbar-width:none; padding:12px 14px 14px; border-bottom:1px solid #efefef; }
+.jc-ig-story-item { width:74px; display:flex; flex-shrink:0; flex-direction:column; align-items:center; gap:6px; }
+.jc-ig-ring { width:74px; height:74px; border-radius:50%; padding:2px; position:relative; display:flex; }
+.jc-ig-ring-inner { background:white; padding:3px; border-radius:50%; display:flex; }
+.jc-ig-avatar { border-radius:50%; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-weight:600; font-size:18px; vertical-align:middle; }
+.jc-ig-avatar img, .jc-ig-avatar .jc-ig-placeholder { display:flex; width:100%; height:100%; object-fit:cover; }
+.jc-ig-avatar .jc-ig-placeholder svg { width:60%; height:60%; }
+.jc-ig-story-add { width:23px; height:23px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#0095f6; border:3px solid white; color:white; position:absolute; bottom:0; right:0; }
+.jc-ig-story-name { font-size:11px; line-height:16px; max-width:76px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.jc-ig-post { border-bottom:1px solid #efefef; padding-bottom:7px; }
+.jc-ig-post-header { display:flex; align-items:center; gap:9px; padding:9px 8px 9px 12px; min-height:58px; }
+.jc-ig-mini-ring { padding:2px; border-radius:50%; display:inline-flex; }
+.jc-ig-mini-ring .jc-ig-avatar { outline:2px solid #fff; outline-offset:-2px; }
+.jc-ig-user { min-width:0; flex:1; display:flex; flex-direction:column; gap:1px; }
+.jc-ig-user strong { font-size:12px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jc-ig-user > span { font-size:10.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jc-ig-media { width:100%; aspect-ratio:4/5; position:relative; overflow:hidden; touch-action:pan-y pinch-zoom; user-select:none; }
+.jc-ig-track { display:flex; width:100%; height:100%; will-change:transform; }
+.jc-ig-post-photo { display:block; width:100%; height:100%; object-fit:cover; flex:0 0 100%; min-width:0; }
+.jc-ig-placeholder { display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.6); }
+.jc-ig-count { position:absolute; top:12px; right:12px; border-radius:20px; background:#0009; color:white; padding:4px 9px; font-size:11px; font-variant-numeric:tabular-nums; pointer-events:none; }
+.jc-ig-media-arrow { position:absolute; top:calc(50% - 18px); width:36px; height:36px; display:flex; align-items:center; justify-content:center; }
+.jc-ig-media-arrow svg { background:#ffffffe8; color:#555; width:25px; height:25px; padding:4px; border-radius:50%; box-shadow:0 1px 5px #0002; }
+.jc-ig-media-prev { left:3px; } .jc-ig-media-next { right:3px; }
+.jc-ig-actions { display:flex; justify-content:space-between; align-items:center; padding:3px 6px 0; position:relative; min-height:46px; }
+.jc-ig-dots { position:absolute; left:50%; transform:translateX(-50%); max-width:calc(100% - 270px); overflow:auto; scrollbar-width:none; display:flex; align-items:center; }
+.jc-ig-dots button { padding:10px 3px; flex-shrink:0; }
+.jc-ig-dots span { display:block; width:5px; height:5px; border-radius:50%; }
+.jc-ig-dots button[aria-current="true"] span { width:6px; height:6px; }
+.jc-ig-post-body { padding:0 13px 10px; font-size:12px; }
+.jc-ig-like-count { font-weight:650; margin-bottom:5px !important; }
+.jc-ig-caption { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.55; }
+.jc-ig-caption strong { font-weight:650; }
+.jc-ig-caption-clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.jc-ig-text-button { color:#737373 !important; font-size:12px !important; text-align:left; }
+.jc-ig-comments-link { display:block; margin-top:6px; padding-block:3px !important; }
+.jc-ig-time { display:block; color:#737373; font-size:10px; margin-top:5px; }
+.jc-ig-heart-burst { position:absolute; left:50%; top:50%; color:white; filter:drop-shadow(0 4px 9px #0004); pointer-events:none; animation:jc-ig-heart .85s ease-out forwards; }
+.jc-ig-nav { display:flex; flex-shrink:0; align-items:center; justify-content:space-around; border-top:1px solid #e9e9e9; min-height:54px; padding:3px 5px max(5px,env(safe-area-inset-bottom,0px)); background:#fff; }
+.jc-ig-profile-active { border:1.5px solid #171717; border-radius:50%; padding:2px; }
+.jc-ig-section-title { font-size:19px; margin:20px 16px; }
+.jc-ig-search { display:flex; align-items:center; gap:10px; margin:12px 14px; background:#efefef; border-radius:10px; padding:9px 12px; color:#737373; }
+.jc-ig-search input { width:100%; min-width:0; background:none; border:0; color:#171717; outline:none; }
+.jc-ig-profile { display:flex; align-items:center; gap:20px; padding:24px 20px; border-bottom:1px solid #efefef; }
+.jc-ig-profile p { margin-top:7px; color:#737373; font-size:12px; }
+.jc-ig-empty { padding:35px 16px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#737373; text-align:center; }
+.jc-ig-empty strong { color:#171717; font-size:15px; }
+.jc-ig-empty p { font-size:12px; }
+.jc-ig-feed-end { padding:30px 16px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.jc-ig-feed-end > span { border:1.5px solid #df64a2; color:#c34390; border-radius:50%; padding:7px; }
+.jc-ig-feed-end strong { font-size:13px; font-weight:600; }
+.jc-ig-feed-end button { font-size:12px; color:#0095f6; padding:6px 12px; }
+.jc-ig-launch { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 43%,#fff 0%,#fdf7fa 55%,#f7f2fa 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+.jc-ig-launch-icon { width:108px; height:108px; border-radius:28px !important; color:#fff !important; display:flex; align-items:center; justify-content:center; box-shadow:0 15px 35px #cf2e8429; }
+.jc-ig-launch .jc-ig-wordmark { font-size:34px; max-width:90%; }
+.jc-ig-launch p { color:#8c8388; font-size:11px; text-align:center; padding:0 20px; }
+.jc-ig-story-viewer { position:absolute; inset:0; z-index:40; background:#000; color:white; display:flex; flex-direction:column; padding-top:env(safe-area-inset-top,0px); outline:none; animation:jc-ig-enter .18s ease-out; }
+.jc-ig-story-media { position:relative; flex:1; min-height:0; overflow:hidden; border-radius:0 0 10px 10px; }
+.jc-ig-story-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.jc-ig-story-shade { position:absolute; inset:0; background:linear-gradient(#0006,transparent 23%,transparent 62%,#0005); pointer-events:none; }
+.jc-ig-story-tap { position:absolute; inset:0; touch-action:none; user-select:none; -webkit-user-select:none; }
+.jc-ig-story-top { position:absolute; top:8px; left:9px; right:9px; pointer-events:none; }
+.jc-ig-progress { display:flex; gap:4px; }
+.jc-ig-progress > span { height:2px; flex:1; background:#ffffff65; border-radius:2px; overflow:hidden; }
+.jc-ig-progress i { display:block; width:100%; height:100%; background:#fff; transform-origin:left; }
+.jc-ig-story-header { display:flex; align-items:center; gap:8px; margin-top:7px; }
+.jc-ig-story-header > strong { font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; max-width:40%; }
+.jc-ig-story-header > span:not(.jc-ig-avatar) { font-size:11px; opacity:.65; white-space:nowrap; }
+.jc-ig-story-controls { display:flex; align-items:center; margin-left:auto; pointer-events:auto; }
+.jc-ig-story-controls .jc-ig-icon { width:32px; height:38px; }
+.jc-ig-story-caption { position:absolute; bottom:12%; left:8%; width:84%; font-weight:750 !important; font-size:21px !important; text-shadow:0 2px 14px #0008; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.25; max-height:43%; overflow-y:auto; padding:12px 0 !important; }
+.jc-ig-story-footer { display:flex; flex-shrink:0; align-items:center; gap:4px; padding:12px 10px max(15px,env(safe-area-inset-bottom,0px)) 14px; background:#000; }
+.jc-ig-message { flex:1; min-width:0; text-align:left; border:1px solid #ffffff85 !important; border-radius:24px; padding:11px 14px !important; font-size:12px !important; }
+.jc-ig-sheet-backdrop { position:absolute; inset:0; z-index:60; background:#0008; display:flex; align-items:flex-end; }
+.jc-ig-sheet { color:#171717; background:white; border-radius:18px 18px 0 0; width:100%; max-height:82%; overflow:auto; overscroll-behavior:contain; padding-bottom:max(16px,env(safe-area-inset-bottom,0px)); animation:jc-ig-sheet .22s ease-out; outline:none; }
+.jc-ig-sheet-handle { display:block; width:34px; height:4px; background:#d5d5d5; border-radius:4px; margin:10px auto 3px; }
+.jc-ig-sheet header { display:flex; align-items:center; justify-content:space-between; padding:3px 12px 3px 20px; border-bottom:1px solid #efefef; font-size:14px; }
+.jc-ig-sheet-content { padding:16px 20px; }
+.jc-ig-sheet-caption { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.65; font-size:13px; }
+.jc-ig-menu-row { display:flex; align-items:center; gap:15px; width:100%; text-align:left; padding:14px 0 !important; }
+.jc-ig-local-comment { font-size:13px; padding:10px 0; overflow-wrap:anywhere; }
+.jc-ig-reply-form { display:flex; gap:10px; border-top:1px solid #efefef; margin-top:15px; padding-top:14px; }
+.jc-ig-reply-form input { min-width:0; flex:1; border:0; background:#f6f6f6; border-radius:20px; padding:10px 12px; }
+.jc-ig-reply-form button { color:#0095f6; font-weight:600; padding:8px !important; }
+.jc-ig-sheet textarea { width:100%; resize:vertical; border:1px solid #dbdbdb; border-radius:8px; padding:12px; color:#171717; background:#fff; }
+.jc-ig-primary { display:block; width:100%; border-radius:8px; background:#0095f6 !important; color:white !important; padding:10px !important; margin-top:12px; font-weight:600 !important; }
+.jc-ig-local-note { margin-top:10px !important; font-size:11px; color:#737373; }
+.jc-ig-toast { position:absolute; z-index:80; bottom:75px; left:50%; transform:translateX(-50%); width:max-content; max-width:90%; padding:11px 18px; border-radius:8px; background:#262626ee; color:white; font-size:12px; text-align:center; pointer-events:none; }
+.jc-ig-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.jc-ig-sr:focus-visible { clip-path:none; width:auto; height:auto; bottom:10px; left:10px; background:#000 !important; padding:8px !important; z-index:5; }
+.jc-ig-sr + .jc-ig-sr:focus-visible { left:auto; right:10px; }
+@media (prefers-reduced-motion:reduce) { .jc-ig-feed,.jc-ig-story-viewer,.jc-ig-sheet { animation:none; } .jc-ig-track { transition-duration:.01ms !important; } .jc-ig-heart-burst { animation:none; transform:translate(-50%,-50%); } }

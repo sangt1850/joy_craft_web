@@ -40,3 +40,11 @@ export function resolveSlideSchema(componentRef: string): SlideSchema | undefine
 export function registeredSlideRefs(): string[] {
   return Object.keys(registry);
 }
+
+/** Three.js WebGL Canvas를 사용하는 슬라이드 목록 */
+const THREEJS_REFS = new Set(["gift-unboxing", "matryoshka-dog"]);
+
+/** componentRef가 Three.js(WebGL) 기반 슬라이드인지 여부 */
+export function isThreeDSlide(componentRef: string): boolean {
+  return THREEJS_REFS.has(componentRef);
+}

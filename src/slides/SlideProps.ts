@@ -44,7 +44,9 @@ export interface SchemaFieldDef {
   min?: number;
   max?: number;
   step?: number;
-  options?: { label: string; value: string }[];
+  options?: { label: string; value: string; icon?: string }[];
+  /** select 필드를 드롭다운 대신 세그먼트 버튼으로 표시 */
+  widget?: "segment";
 
   // ── type: "array" 전용 ────────────────────────────────────────────────────
   /** 항목 1개 안의 필드 정의 */

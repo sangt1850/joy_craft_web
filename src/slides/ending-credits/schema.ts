@@ -14,6 +14,7 @@ const DEFAULT_CREDITS = JSON.stringify([
 export const schema: SlideSchema = {
   fields: [
     { key: "movieTitle", label: "영화 제목", type: "text", default: "우리들의 1년" },
+    { key: "subtitle", label: "부제 (상단 작은 글씨)", type: "text", default: "", placeholder: "A STORY BY US" },
     { key: "endMessage", label: "마지막 메시지", type: "textarea", default: "THE END\n고마웠어 ♥" },
     {
       key: "credits",
@@ -22,11 +23,24 @@ export const schema: SlideSchema = {
       itemLabel: "크레딧",
       default: DEFAULT_CREDITS,
       itemFields: [
-        { key: "role", label: "역할", type: "text", default: "역할", required: true },
+        { key: "section", label: "섹션 제목 (선택)", type: "text", default: "" },
+        { key: "role", label: "역할", type: "text", default: "역할" },
         { key: "name", label: "이름", type: "text", default: "이름", required: true },
       ],
     },
-    { key: "enableSound", label: "배경음 재생", type: "boolean", default: true },
+    { key: "enableSound", label: "소리 켜기 (시작 시)", type: "boolean", default: false },
+    {
+      key: "mode",
+      label: "표시 방식",
+      type: "select",
+      default: "text",
+      options: [
+        { label: "텍스트 크레딧", value: "text" },
+        { label: "영상 + 크레딧", value: "video" },
+      ],
+    },
+    { key: "videoUrl", label: "사진 또는 영상 URL (영상 모드)", type: "text", default: "", hint: "YouTube 링크 · MP4/WebM 파일 URL · JPG/PNG/WebP 이미지 URL" },
+    { key: "speed", label: "스크롤 속도 (px/초)", type: "number", default: 28, min: 10, max: 80, step: 1 },
   ],
 };
 

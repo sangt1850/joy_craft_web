@@ -6,13 +6,13 @@ export const schema: SlideSchema = {
       key: "boxColor",
       label: "상자 색상",
       type: "color",
-      default: "#FD5D71",
+      default: "#FF586F",
     },
     {
       key: "ribbonColor",
       label: "끈/리본 색상",
       type: "color",
-      default: "#FFE7F2",
+      default: "#FFD1DB",
     },
     {
       key: "cardImage",

@@ -556,16 +556,17 @@ export default function MatryoshkaDog({
       if (shell && ray.intersectObject(shell, true).length) {
         /* 껍질 벗기기 */
         mode = "peel";
-        const rect = el.getBoundingClientRect();
         const camDist = t.camera.position.length();
         const viewH   = 2 * Math.tan((t.camera.fov * Math.PI) / 360) * camDist;
+        // getBoundingClientRect().height는 transform:scale 후 시각 픽셀이므로
+        // CSS 레이아웃 픽셀(clientHeight)을 사용해 드래그 단위를 올바르게 계산한다.
         t.spring = null;
         peel = {
           shell,
           scale: shell.scale.x,
           startX: ev.clientX,
           startY: ev.clientY,
-          unit: (viewH / rect.height) * 1.05,
+          unit: (viewH / el.clientHeight) * 1.05,
           need: LIFT_NEED * shell.scale.x,
           lift: 0,
         };
