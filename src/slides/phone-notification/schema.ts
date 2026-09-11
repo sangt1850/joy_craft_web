@@ -8,7 +8,7 @@ export const schema: SlideSchema = {
     { key: "backgroundColor", label: "PC 바깥 배경", type: "color", default: "#eeedf2" },
     { key: "clockColor", label: "시계·상태 표시 색상", type: "color", default: "#29263d" },
     { key: "notificationTheme", label: "알림 카드 색상", type: "select", default: "light", options: [{ label: "밝게", value: "light" }, { label: "어둡게", value: "dark" }] },
-    { key: "clockMode", label: "시간 표시 방식", type: "select", default: "fixed", options: [{ label: "직접 설정", value: "fixed" }, { label: "현재 시간", value: "live" }] },
+    { key: "clockMode", label: "시간 표시 방식", type: "select", default: "live", options: [{ label: "직접 설정", value: "fixed" }, { label: "현재 시간", value: "live" }] },
     { key: "time", label: "표시 시간", type: "text", default: "9:41", hint: "직접 설정 모드에서 사용합니다. 예: 9:41, 21:30" },
     { key: "dateText", label: "표시 날짜", type: "text", default: "9월 11일 금요일", hint: "현재 시간 모드에서는 보는 사람의 현지 날짜가 표시됩니다." },
     { key: "carrier", label: "통신사 이름", type: "text", default: "JoyCraft" },

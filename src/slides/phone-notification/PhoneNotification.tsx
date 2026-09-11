@@ -144,7 +144,11 @@ export default function PhoneNotification({ data, onComplete, isPreview }: Slide
                 {samsung && <div style={{ fontSize: veryShort ? 13 : 16, fontWeight: 500, letterSpacing: "-.4px", marginTop: 8, maxWidth: "90%", ...ellipsis }}>{dateText}</div>}
               </header>
               <div ref={listRef} data-jc-notification-list aria-live="polite" aria-relevant="additions" aria-label="도착한 알림" tabIndex={0} style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", scrollbarWidth: "none", padding: `2px ${samsung ? 12 : 13}px 14px`, display: "flex", flexDirection: "column", gap: 9, outlineOffset: -3 }}>
-                {visible.map(({item, index}) => <NotificationCard key={`${timelineKey}:${index}`} index={index} item={item} samsung={samsung} dark={dark} onOpen={openNotification}/>)}
+                {visible.map(({item, index}) => (
+                  <div key={`${timelineKey}:${index}`} data-jc-notification-wrap style={{ overflow: "hidden", animation: "jc-phone-notification-expand .52s cubic-bezier(.16,1,.3,1) both" }}>
+                    <NotificationCard index={index} item={item} samsung={samsung} dark={dark} onOpen={openNotification}/>
+                  </div>
+                ))}
                 {notifications.length === 0 && <button type="button" onClick={openNotification} style={{ alignSelf: "center", marginTop: 20, padding: "13px 25px", borderRadius: 30, border: "1px solid #ffffff88", background: "#ffffffa8", color: "#29263d", fontFamily: FONT, fontSize: 13, cursor: "pointer" }}>다음으로 이동</button>}
               </div>
               <footer style={{ flexShrink: 0, padding: veryShort ? "5px 28px 8px" : "12px 28px 9px", textAlign: "center" }}>
