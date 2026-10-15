@@ -1,6 +1,6 @@
 # JoyCraft 종합 기획서
 
-> 작성일: 2026-08-17 (M0~M3 구현 완료 반영: 2026-08-17)
+> 작성일: 2026-08-17 (슬라이드 목록 현행화: 2026-09-14)
 > 목표 시점: **지인 대상 베타** (`플랫폼 기획 정리.md` 로드맵 1단계)
 > 범위: 프론트(`joy_craft_web`) + 백엔드(`joy_craft_api`) 전체
 >
@@ -15,8 +15,8 @@
 | 단계 | 최종 판정 | 핵심 성과 |
 |---|---|---|
 | M0 보안 지혈 | PASS | 시크릿 환경변수 외부화, `SECRET_ROTATION.md` 체크리스트, 로그 파일 추적 해제 |
-| M1 플레이어 | PASS (M1.5 보수) | `resolveSlide` 연결 — 18종 전부 렌더 실증. free 모드 경쟁 상태·gated 데드락 4종·에러 바운더리 수정 |
-| M2 에디터 | PASS (M2.5 보수) | 하드코딩 데모 제거, 스키마 3중화 해소, 배열 필드 8종 전용 에디터, 저장 실패 시 편집 유실 버그 수정 |
+| M1 플레이어 | PASS (M1.5 보수) | `resolveSlide` 연결 — 현행 슬라이드 렌더, free 모드 경쟁 상태·gated 데드락·에러 바운더리 수정 |
+| M2 에디터 | PASS (M2.5 보수) | 하드코딩 데모 제거, 스키마 3중화 해소, 배열 필드 전용 에디터, 저장 실패 시 편집 유실 버그 수정 |
 | M3 운영 준비 | PASS | `/editor` 인증 적용, CORS 설정(MockMvc로 실제 배선 검증), KST 자정 집계, 검색 기능 복구, 로그아웃 버그 수정 |
 
 **베타 배포 전 남은 것 (중요도순, 코드 작업이 아니라 판단·외부 조치가 필요한 것 위주):**
@@ -33,7 +33,7 @@
 
 ## 요약 (3줄)
 
-1. **부품은 다 있는데 조립이 안 되어 있다.** 백엔드 22개 엔드포인트와 슬라이드 18종이 각각 완성되어 있으나, 둘을 잇는 **에디터와 플레이어가 비어 있다.**
+1. **부품은 다 있는데 조립이 안 되어 있다.** 백엔드 엔드포인트와 현행 슬라이드 컴포넌트가 각각 완성되어 있으나, 당시에는 둘을 잇는 **에디터와 플레이어가 비어 있었다.**
 2. 그 결과 **제품이 한 번도 끝까지 동작한 적이 없다.** CUSTOMER는 슬라이드를 고를 수도, 편집할 수도 없고 수신자는 볼 수 없다.
 3. 베타까지의 최단 경로는 신규 기능이 아니라 **연결**이다. `resolveSlide()` 호출부를 만드는 것 하나가 제품을 처음으로 살아나게 한다.
 
@@ -64,7 +64,7 @@
 
 - **스택**: Java 21 + Spring Boot 4.1.0, Gradle Kotlin DSL, PostgreSQL, Flyway 11.8.0, JJWT 0.12.6, Caffeine
 - **규모**: 소스 62개 파일, 컨트롤러 5개 / 엔드포인트 22개, JPA 엔티티 11개, 리포지토리 11개
-- **마이그레이션**: V1~V7 (약 1,056줄). `V7__seed_builtin_components.sql`(614줄)이 18종을 시드하며, `bundle_object_key`를 `'builtin:pin-lock'` 형태로 넣어둔다 — **이것이 DB와 프론트 레지스트리를 잇는 다리다**
+- **마이그레이션**: 초기 시드 이후 후속 마이그레이션에서 컴포넌트 추가·삭제를 관리한다. `bundle_object_key`의 `'builtin:pin-lock'` 같은 값이 DB와 프론트 레지스트리를 잇는 다리다
 - **5계층 모델 정상 구현**: `component_types` → `component_type_versions` → `component_templates` → `sites`/`site_slides` → `site_publications`
 - **발행 스냅샷이 실제로 작동한다**: `SiteService.publish()`가 `defaultValues + overrides`를 병합한 불변 JSON을 구워 저장하고, `GET /api/play/{slug}`가 이를 서빙하며 `view_count`를 증가시킨다
 
@@ -82,7 +82,7 @@
 - **스택**: Vite 8 + React 19 + TypeScript 6 + Tailwind v4, 파일 119개
 - `src/api/` 5개 모듈이 백엔드 엔드포인트를 거의 전부 덮는다. `mock`/`dummy`/`더미` grep 결과 **0건** — 목 데이터는 완전히 제거되었다
 - Dashboard / MySites / Browse / MasterDashboard는 Zustand 스토어를 통해 실제 API에 붙어 있다
-- 슬라이드 18종이 `src/slides/`에 폴더당 3파일(`Component.tsx` / `schema.ts` / `index.ts`) 규약대로 완성
+- 슬라이드 컴포넌트 15개가 `src/slides/`에 폴더당 3파일(`Component.tsx` / `schema.ts` / `index.ts`) 규약대로 구현되어 있다
 
 **비어 있는 곳은 정확히 두 군데다.** 이것이 이 문서 전체의 결론이다.
 
@@ -103,12 +103,12 @@ export function resolveSlide(componentRef: string): FC | undefined {
 }
 ```
 
-`src/slides/index.ts`가 18개 폴더를 side-effect import 하고, 각 `index.ts`가 `registerSlide("pin-lock", PinLock)`을 호출한다. `App.tsx:2`에서 `import "./slides"`로 앱 시작 시 전부 등록된다. **여기까지는 완벽히 동작한다.**
+`src/slides/index.ts`가 슬라이드 폴더를 side-effect import 하고, 각 `index.ts`가 `registerSlide("pin-lock", PinLock)` 같은 등록을 수행한다. 앱 시작 시 `import "./slides"`로 전부 등록된다.
 
 문제는 그 다음이다 — **`resolveSlide()`의 호출부가 코드베이스 전체에 단 한 곳도 없다** `[확인됨]`. 레지스트리는 매번 채워지기만 하고 아무도 읽지 않는다.
 
 ```
-registerSlide (18회 호출)  →  registry {18개}  →  resolveSlide  →  ❌ 호출부 0건
+registerSlide  →  registry  →  resolveSlide  →  플레이어·에디터
 ```
 
 이 단절의 양쪽 끝이 그대로 두 개의 빈 화면이다.
@@ -123,7 +123,7 @@ registerSlide (18회 호출)  →  registry {18개}  →  resolveSlide  →  ❌
 
 **에디터** — `src/pages/editor/SiteEditorPage.tsx`의 가운데 미리보기는 슬라이드를 렌더링하지 않는다. yes/no 버튼 데모가 통째로 하드코딩되어 있고(211~244행), 우측 편집 패널도 `questionText` / `yesText` / `noText` / `yesColor` / `dotBg` **5개 필드가 하드코딩**되어 있다(255~293행). `slide.schema`는 서버에서 내려오지만 **읽지 않는다.**
 
-즉 **어떤 슬라이드를 선택하든 화면에는 항상 같은 yes/no 데모가 뜬다.** 18종 중 무엇도 편집할 수 없다.
+즉 당시에는 **어떤 슬라이드를 선택하든 화면에 같은 yes/no 데모가 떴고**, 실제 슬라이드를 편집할 수 없었다.
 
 ### 2-2. 구조적 장애물 — 스키마 표현 3중화 `[확인됨]`
 
@@ -131,7 +131,7 @@ registerSlide (18회 호출)  →  registry {18개}  →  resolveSlide  →  ❌
 
 | 위치 | 형태 | 상태 |
 |---|---|---|
-| `src/slides/SlideProps.ts` | `{ key, label, type: "text"\|"textarea"\|"color"\|"number"\|"font"\|"image"\|"select"\|"boolean", default, min?, max?, step?, options? }` | 슬라이드 18종이 실제로 쓰는 형태 |
+| `src/slides/SlideProps.ts` | `{ key, label, type: "text"\|"textarea"\|"color"\|"number"\|"font"\|"image"\|"select"\|"boolean"\|"array", default, min?, max?, step?, options? }` | 현행 슬라이드가 실제로 쓰는 형태 |
 | `src/types/api.ts:60` | `{ key, label, field: { kind: "string"\|"color"\|"number"\|"font"\|"image", min?, max? } }` | **백엔드가 실제로 내려주는 형태** |
 | `src/types/index.ts` | `{ key, label, field: { kind: ... } }` 태그 유니언 | **어디서도 import되지 않는 죽은 코드** |
 
@@ -176,7 +176,7 @@ DB도 백엔드 형태를 따른다. V7 시드 실제 내용:
 | 커스텀 도메인 / 만료·연장 | 동상 | 과금과 묶여 있음 |
 | 노코드 CREATOR 빌더 | 기획서 4단계 | 로드맵상 한참 뒤 |
 
-근거: MASTER가 18종을 직접 만든 현재 상태가 **기획서 1단계 그대로**다. "MASTER가 핵심 컴포넌트 제작 + CUSTOMER 에디터 완성 → 지인 배포 후 반응 확인." 공급측을 열기 전에 **이 사이클을 한 번 완주하는 것**이 목표다.
+근거: MASTER가 핵심 컴포넌트를 직접 만드는 현재 상태가 **기획서 1단계 그대로**다. "MASTER가 핵심 컴포넌트 제작 + CUSTOMER 에디터 완성 → 지인 배포 후 반응 확인." 공급측을 열기 전에 **이 사이클을 한 번 완주하는 것**이 목표다.
 
 ### 3-3. 베타에 반드시 남길 것
 
@@ -188,36 +188,32 @@ CUSTOMER 로그인 → 사이트 생성 → 슬라이드 선택·배치 → 편�
 
 이 한 줄이 끊기지 않고 흐르는 것. 그 외는 전부 부차적이다.
 
-### 3-4. 미해결 결정 3건
+### 3-4. 주요 제품 결정
 
-기존 문서가 미뤄둔 것들을 여기서 다시 꺼낸다.
+기존 논의 사항을 현행 구현 기준으로 정리한다.
 
 **(1) 배열 필드 편집 UI — 가장 시급한 제품 결정** `[확인됨 + 판단]`
 
-18종 중 **8종**이 배열 데이터를 **JSON 문자열 textarea**로 받는다:
+현재 **6개 슬라이드의 9개 필드**가 배열 데이터를 JSON 문자열로 저장하고 범용 배열 에디터로 편집한다:
 
 | 슬라이드 | 필드 | 라벨 |
 |---|---|---|
-| `quiz` | `questions` | 퀴즈 목록 (JSON) |
 | `roulette` | `slices` | 룰렛 항목 (JSON) |
-| `story-book` | `pages` | 페이지 목록 (JSON) |
 | `ending-credits` | `credits` | 크레딧 목록 (JSON) |
-| `balloon-pop` | `balloons` | 풍선 목록 (JSON) |
-| `cassette-player` | `tracks` | 트랙 목록 (JSON) |
-| `flashlight` | `spots` | 숨겨진 아이템 (JSON) |
-| `rolling-paper` | `seedNotes` | 초기 메모 (JSON) |
+| `instagram` | `stories` | 스토리 목록 (JSON) |
+| `instagram` | `posts` | 게시물 목록 (JSON) |
+| `vinyl-player` | `tracks` | 트랙 목록 (JSON) |
+| `phone-notification` | `notifications` | 알림 목록 (JSON) |
+| `loveflix-intro` | `profiles` | 프로필 목록 (JSON) |
+| `loveflix-intro` | `episodes` | 사진 카드 목록 (JSON) |
 
-`SLIDE_COMPONENT_변환_가이드.md` §6-2가 "1차는 방법 A(JSON 직접 편집), 2차에 방법 B(전용 배열 에디터)"로 정해뒀다. 그런데 방법 A는 **"코딩 없이 만든다"는 제품 전제와 정면으로 충돌한다.** 라벨에 "(JSON)"이라고 쓰여 있는 입력창은 일반 사용자에게는 벽이다.
-
-`[판단]` 베타 대상이 지인이라 해도 JSON을 손으로 짜게 할 수는 없다. 다만 8종 전부에 전용 에디터를 만드는 것도 베타에는 과하다. **절충안**: 배열 항목이 대부분 `{텍스트, 색상}` 수준의 단순 구조이므로, **범용 "항목 추가/삭제/순서변경 + 항목별 필드 입력" 컴포넌트 1개**를 만들어 8종이 공유하게 한다. 신규 스키마 타입 `array`를 추가하고 항목 내부 필드를 `itemFields`로 기술하는 방식.
-
-→ **결정 필요**: 이 절충안으로 갈지, 아니면 베타는 JSON 그대로 두고 8종을 "고급" 표시할지.
+배열은 저장 시 JSON 문자열을 유지하되, CUSTOMER 화면에서는 범용 "항목 추가/삭제/순서 변경 + 항목별 필드 입력" 컴포넌트로 편집한다. 각 로컬 스키마의 `type: "array"`, `itemFields`, `itemDefaults`가 편집 UI의 근거다.
 
 **(2) 과금** — `화면설계 & 흐름.md` PART 4가 명시적으로 "고려만"이라고 적어둔 사항. `[판단]` **베타에서는 결정을 보류하는 것이 맞다.** 지인 대상이라 과금이 무의미하고, 무엇에 돈을 낼지는 반응을 본 뒤에 정하는 편이 낫다. 다만 `pricing: free|premium` 컬럼과 PRO 배지 UI는 이미 있으므로 **표시만 유지**하고 실제 제한은 걸지 않는다.
 
 **(3) `platformMode`** `[확인됨]` — 기획서 §4의 핵심 개념이다. "렌더러는 접속 환경을 감지해 platformMode와 안 맞으면 대체 화면을 보여줘야 함." 그런데 이 개념은 **API 구축 계획·슬라이드 변환 가이드·디자인 시스템 어디에도 없다.** DB 컬럼(`component_type_versions.platform_mode`)과 프론트 타입 정의만 존재하고 **동작하는 코드가 0줄**이다.
 
-`[판단]` 현재 18종은 V7 시드에서 전부 `'responsive'`로 들어가 있어 베타에서는 실질적 영향이 없다. **베타 범위 밖으로 명시**하고, CREATOR 개방 시점에 되살리는 것을 권고한다. 다만 **문서에 "미구현"이라고 적어두지 않으면** 나중에 구현된 것으로 착각할 위험이 있다.
+`[판단]` 현행 슬라이드는 전부 `'responsive'`로 운용하므로 베타에서는 실질적 영향이 없다. **베타 범위 밖으로 명시**하고, CREATOR 개방 시점에 되살리는 것을 권고한다.
 
 ---
 
@@ -310,9 +306,8 @@ CUSTOMER 로그인 → 사이트 생성 → 슬라이드 선택·배치 → 편�
 | **P0** | `flyway.clean-disabled: false` — 스키마 전체 삭제 가능 | 동상 |
 | **P0** | 테스트 설정이 운영 DB를 가리킴 | `src/test/resources/application-test.yaml` |
 | **P0** | **프론트 빌드가 이미 깨져 있음** — 타입 에러 45건 (M1 착수 시 발견) | `npm run build` |
-| **P1** | **gated 데드락** — 슬라이드 4종이 `onComplete`를 호출하지 않아 수신자가 갇힘 | `roulette`, `cassette-player`, `dday-counter`, `rolling-paper` |
 | **P1** | `request()`가 204 응답에도 `res.json()` 호출 → 삭제 API가 파싱 에러로 실패 | `src/api/client.ts` |
-| **P1** | `resolveSlide` 호출부 0건 — 슬라이드 18종 고아 상태 | `src/slides/registry.ts` |
+| **P1** | `resolveSlide` 호출부 부재로 슬라이드가 고아 상태였음 | `src/slides/registry.ts` |
 | **P1** | 에디터 미리보기·편집 패널 하드코딩 | `SiteEditorPage.tsx` 211–244, 255–293 |
 | **P1** | 플레이어 스텁 | `PlayerPage.tsx` 전체 |
 | **P1** | 스키마 표현 3중화, 어댑터 없음 | `SlideProps.ts` / `types/api.ts:60` / `types/index.ts` |
@@ -347,47 +342,44 @@ CUSTOMER 로그인 → 사이트 생성 → 슬라이드 선택·배치 → 편�
 
 | # | 질문 | 선택지 | 이 문서의 권고 |
 |---|---|---|---|
-| 1 | 배열 필드 8종의 편집 UI | (A) JSON textarea 유지 (B) 범용 배열 에디터 1개 신설 | **(B)** — (A)는 "코딩 없이" 전제와 충돌 |
+| 1 | 배열 필드 편집 UI | (A) JSON textarea 유지 (B) 범용 배열 에디터 사용 | **(B) 적용 완료** |
 | 2 | 이미지 업로드 | (A) MinIO 업로드 API 구현 (B) 베타는 URL 직접 입력 | **(B)** — 백엔드 asset 도메인 전체 신설은 베타에 과함 |
-| 3 | `platformMode` | (A) 베타에 구현 (B) 범위 밖 명시 | **(B)** — 현재 18종 전부 `responsive`라 실익 없음 |
+| 3 | `platformMode` | (A) 베타에 구현 (B) 범위 밖 명시 | **(B)** — 현행 슬라이드가 모두 `responsive`라 실익 없음 |
 | 4 | 과금 | (A) 베타에 제한 적용 (B) 표시만, 제한 없음 | **(B)** — 원문이 "고려만" |
 | 5 | 테스트 범위 | (A) 없음 (B) 발행·어댑터 2곳만 (C) 전면 도입 | **(B)** |
 | 6 | 시크릿 로테이션 시점 | (A) 즉시 (B) 배포 직전 | **(A)** — 이미 커밋된 상태 |
-| 7 | **gated 데드락 4종** (`roulette`·`cassette-player`·`dday-counter`·`rolling-paper`가 `onComplete` 미호출) | (A) 각 슬라이드에 완료 조건 부여 (B) `escapeAfter` 건너뛰기로만 탈출 (C) 이 4종은 `free` 전용으로 제한 | **(A)** — (B)는 수신자가 N초를 기다려야 하고, (C)는 CUSTOMER가 이유를 알 수 없음 |
+| 7 | 완료 조건이 없는 gated 슬라이드 처리 | (A) 각 슬라이드에 완료 조건 부여 (B) `escapeAfter`로 탈출 | **(A) 적용 완료** |
 | 8 | `escapeAfter` 의미 확정 | M1이 "N초 후 건너뛰기 허용"으로 해석 (문서에 정의 없음) | 이 해석 확정 또는 재정의 |
 | 9 | 저장 실패 시 `flush()`가 조용히 성공 처리 → 페이지 추가/삭제/발행 시 편집분 유실 | (A) `flush` 실패 시 addSlide/removeSlide/publish 중단 (B) 그대로 진행하되 경고 | **(A)** — (B)는 데이터 유실을 감수하는 것 |
-| 10 | 배열 항목 숫자 필드를 비우면 키 삭제 → `flashlight`/`cassette-player`는 NaN으로 깨짐 | (A) 항목 내부는 빈 값 거부(최소값 유지) (B) 항목 기본값으로 복귀 | **(A)** — 항목 안에는 "필드 미설정"이 의미가 없음 |
+| 10 | 배열 항목 숫자 필드를 비웠을 때의 처리 | (A) 빈 값 거부(최소값 유지) (B) 항목 기본값으로 복귀 | **(A)** — 항목 안에는 "필드 미설정"이 의미가 없음 |
 
 ---
 
 ## 7장. 부록
 
-### 7-1. 슬라이드 18종
+### 7-1. 현행 슬라이드 컴포넌트
 
-`src/slides/index.ts`와 `V7__seed_builtin_components.sql` 양쪽에서 대조 확인함 `[확인됨]`.
+`src/slides/index.ts`와 각 로컬 스키마를 기준으로 정리했다. 구현 컴포넌트는 15개다. `moment-photoapp`은 `instagram`, `cinema-intro`는 `loveflix-intro`의 하위호환 별칭이다.
 
 | # | componentRef | 한글명 | 그룹 | 배열 필드 |
 |---|---|---|---|---|
 | 1 | `pin-lock` | 기념일 잠금 | 인터랙션 | — |
-| 2 | `fingerprint` | 지문 인증 | 인터랙션 | — |
-| 3 | `quiz` | 퀴즈 | 인터랙션 | ⚠️ `questions` |
-| 4 | `roulette` | 룰렛 | 인터랙션 | ⚠️ `slices` |
-| 5 | `scratch-lottery` | 스크래치 복권 | 인터랙션 | — |
-| 6 | `flashlight` | 어둠 속 손전등 | 인터랙션 | ⚠️ `spots` |
-| 7 | `gift-box` | 선물상자 열기 | 인터랙션 | — |
-| 8 | `photo-puzzle` | 사진 퍼즐 | 인터랙션 | — |
-| 9 | `heart-gauge` | 하트 연타 | 감정 | — |
-| 10 | `balloon-pop` | 풍선 터뜨리기 | 감정 | ⚠️ `balloons` |
-| 11 | `envelope-letter` | 편지 열기 | 읽기 | — |
-| 12 | `typewriter` | 타자기 편지 | 읽기 | — |
-| 13 | `rolling-paper` | 롤링페이퍼 | 읽기 | ⚠️ `seedNotes` |
-| 14 | `cassette-player` | 카세트 플레이어 | 읽기 | ⚠️ `tracks` |
-| 15 | `story-book` | 페이지 책 | 이야기 | ⚠️ `pages` |
-| 16 | `ending-credits` | 엔딩 크레딧 | 이야기 | ⚠️ `credits` |
-| 17 | `dday-counter` | D-day 카운트다운 | 연출 | — |
-| 18 | `wish-lantern` | 소원 등불 | 연출 | — |
+| 2 | `roulette` | 룰렛 | 인터랙션 | ⚠️ `slices` |
+| 3 | `fleeing-button` | 도망가는 버튼 | 인터랙션 | — |
+| 4 | `instagram` | 인스타그램 | 이야기 | ⚠️ `stories`, `posts` |
+| 5 | `envelope-letter` | 편지 열기 | 읽기 | — |
+| 6 | `ending-credits` | 엔딩 크레딧 | 연출 | ⚠️ `credits` |
+| 7 | `dday-counter` | D-day 카운트다운 | 연출 | — |
+| 8 | `wish-lantern` | 소원 등불 | 연출 | — |
+| 9 | `vinyl-player` | 바이닐 플레이어 | 음악 | ⚠️ `tracks` |
+| 10 | `passport-ticket` | 여권/티켓 | 연출 | — |
+| 11 | `valentine-letter` | 발렌타인 편지 | 감정 | — |
+| 12 | `matryoshka-dog` | 마트료시카 강아지 | 인터랙션 | — |
+| 13 | `gift-unboxing` | 선물상자 언박싱 | 인터랙션 | — |
+| 14 | `phone-notification` | 잠금화면 알림 | 인터랙션 | ⚠️ `notifications` |
+| 15 | `loveflix-intro` | 러브플릭스 인트로 | 연출 | ⚠️ `profiles`, `episodes` |
 
-⚠️ 표시 8종은 3-4(1)의 결정 대상이다.
+⚠️ 표시는 범용 배열 에디터를 사용하는 필드다.
 
 ### 7-2. 백엔드 엔드포인트 22개 `[확인됨]`
 
@@ -434,7 +426,7 @@ CUSTOMER 로그인 → 사이트 생성 → 슬라이드 선택·배치 → 편�
 |---|---|---|
 | `플랫폼 기획 정리.md` | **제품 정본.** 역할·데이터모델·로드맵 | ✅ 유효 |
 | `DESIGN_SYSTEM.md` | 디자인 시스템 상세 | ✅ 유효 |
-| `SLIDE_COMPONENT_변환_가이드.md` | DC→React 변환 규약, 18종 스키마 | ✅ 유효 (§6-2 배열 결정은 재검토 대상) |
+| `SLIDE_COMPONENT_변환_가이드.md` | DC→React 변환 규약, 현행 슬라이드 목록 | ✅ 유효 |
 | `화면설계 & 흐름.md` | CREATOR/CUSTOMER 화면·흐름 | ⚠️ 상당 부분 베타 범위 밖 |
 | `CREATER 상세 페이지 설계.md` | CREATOR 웹 IDE 설계 | ⚠️ 미구현. 2단계 이후 |
 | `API_구축_계획.md` | 백엔드 구축 기록 | ⚠️ **"Phase 3 완료" 표기 주의** — 1장 참조 |

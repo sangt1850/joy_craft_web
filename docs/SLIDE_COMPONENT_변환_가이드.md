@@ -22,6 +22,8 @@
 | `valentine-letter` | 발렌타인 편지 | 감정 | |
 | `matryoshka-dog` | 마트료시카 강아지 | 인터랙션 | ✅ |
 | `gift-unboxing` | 선물상자 언박싱 | 인터랙션 | ✅ |
+| `phone-notification` | 잠금화면 알림 | 인터랙션 | |
+| `loveflix-intro` | 러브플릭스 인트로 | 연출 | |
 
 ---
 
@@ -333,7 +335,7 @@ later(() => complete(), 1500); // 1.5초 뒤 complete 호출
 
 ### 슬라이드는 플랫폼 디자인 시스템을 따르지 않는다
 
-`CLAUDE.md`의 Neo-Brutalism 규칙(NeoButton, NeoCard, CSS 변수 등)은 플랫폼 UI에만 적용된다. 슬라이드 컴포넌트는 독립된 "캔버스"이므로 인라인 style을 그대로 사용하고, 색상은 `data.backgroundColor` 등 props로 직접 받는다.
+`CLAUDE.md`와 `docs/DESIGN_SYSTEM.md`의 플랫폼 UI 규칙은 슬라이드 작품 내부에 적용하지 않는다. 슬라이드 컴포넌트는 독립된 "캔버스"이므로 인라인 style을 그대로 사용하고, 색상은 `data.backgroundColor` 등 props로 직접 받는다. 미리보기 프레임·로딩·오류처럼 플랫폼이 제공하는 외곽 UI만 서비스 디자인 시스템을 따른다.
 
 ```tsx
 // ✅ 맞음

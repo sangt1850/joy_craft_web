@@ -1,391 +1,81 @@
-# JoyCraft 디자인 시스템 가이드
+# JoyCraft 디자인 시스템 v2
 
-> 새 컴포넌트나 페이지를 만들 때 이 문서를 반드시 참고해 일관된 스타일을 유지하세요.
-> 디자인은 특별한 지시사항이 없을 경우 반응형으로 웹/태블릿/모바일 지원 되도록 하세요.
----
+버전 2.0 · 2026-09-14
 
-## 1. 디자인 콘셉트
+이 문서는 플랫폼 UI의 현재 기준이다. 편집기 세부 수치는 `C:/bizbee/joy_craft/JoyCraft-editor-design-guide/JoyCraft-편집-UI-디자인-가이드.md`에서 가져왔다. 원본에 없는 일반 서비스 화면 규격은 JoyCraft 확장 규격으로 구분한다.
 
-**Y2K Neo-Brutalism** — 두꺼운 검정 보더, 강한 박스 섀도우, 밝은 팝 컬러, 픽셀 폰트를 결합한 스타일. 코딩 없이 인터랙티브 선물 사이트를 만드는 플랫폼의 성격에 맞게 재미있고 에너제틱한 느낌을 줍니다.
+## 방향
 
----
+차분하고 가벼운 제작 도구를 목표로 한다. 크림 화이트 바탕, 딥 틸 브랜드, 샌드 베이지·테라코타 포인트, 차콜 텍스트, 1px 경계, 8–16px 라운드를 사용한다. 강한 원색 면, 굵은 검정 테두리, 픽셀 폰트, 오프셋 그림자는 플랫폼 UI에서 사용하지 않는다.
 
-## 2. 색상 시스템
+슬라이드는 독립 작품이므로 이 시스템의 시각 스타일을 적용하지 않는다. 미리보기 프레임과 서비스 상태 UI만 적용 대상이다.
 
-### 기본 팔레트 (Y2K Bright)
+## 토큰
 
-| 토큰 | HEX | 용도 |
-|------|-----|------|
-| `--color-mustard` | `#ffc93c` | CTA 버튼, 강조, 배지, 환영 배너 |
-| `--color-pink` | `#ff57a6` | 로고, FAB, 액센트, 버튼 |
-| `--color-mint` | `#7fe0bb` | 보조 강조, 카드 배경 |
-| `--color-blue` | `#9fd3f5` | 보조 강조, 통계 카드 |
-| `--color-peach` | `#ffb784` | 히어로 배경, 통계 카드 |
-| `--color-cream` | `#fff7e6` | 기본 배경, 사이드바 텍스트 |
-| `--color-ink` | `#111111` | 텍스트, 보더, 섀도우 |
+| 의미 | 기본값 | 용도 |
+|---|---:|---|
+| `--color-bg` | `#F4EFE4` | 크림 화이트 앱 바탕 |
+| `--color-surface` | `#FFFFFF` | 카드, 입력, 모달 |
+| `--color-subtle` | `#F6F3F8` | 보조 표면 |
+| `--color-selected` | `#EDEAF1` | 선택 항목 |
+| `--color-ink` | `#2B2B27` | 차콜 본문·헤드라인 |
+| `--color-heading` | `#4F4559` | 제목 |
+| `--color-muted` | `#8A8291` | 설명, 메타 |
+| `--color-border` | `#E8E5ED` | 셸과 카드 경계 |
+| `--color-border-control` | `#E4DFE9` | 폼 경계 |
+| `--color-primary` | `#1F4B48` | 딥 틸 브랜드·주요 CTA |
+| `--color-secondary` | `#C9A876` | 샌드 베이지 보조 강조 |
+| `--color-accent` | `#B5714A` | 테라코타 웜 포인트 |
+| focus | `#847099` | 키보드 포커스 |
 
-Tailwind 클래스: `bg-mustard`, `text-pink`, `border-mint` 등 모두 사용 가능.
+danger/success/warning/info는 상태 메시지와 의미가 있는 액션에만 사용한다. 카카오처럼 외부 브랜드가 요구하는 고유 색과 사용자 콘텐츠 색은 토큰 팔레트의 예외다.
 
-### 배경색 ↔ 텍스트색 규칙
+## 타이포그래피
 
-| 배경 | 텍스트 |
-|------|--------|
-| Mustard, Blue, Mint, Peach, Cream | `#111` (ink) |
-| Pink, Ink | `#fff` (white) |
+플랫폼 기본 스택은 `-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif`다. 제목은 같은 스택에서 600–650 굵기와 좁은 자간을 사용한다.
 
-NeoButton 컴포넌트는 이 규칙을 자동으로 적용합니다.
+| 일반 화면 | 크기 |
+|---|---:|
+| 랜딩 히어로 | 58px / 모바일 38px |
+| 페이지 제목 | 28px / 모바일 24px |
+| 섹션 제목 | 20px |
+| 카드 제목 | 15–17px |
+| 본문 | 14px |
+| 설명·메타 | 11–13px |
+| 기본 버튼 | 14px |
 
-### 테마 변형
+편집기 compact 규격은 label 10px, 입력 11px, 섹션 제목 12px, 큰 제목 28px이다. 작은 글자가 긴 안내 본문을 맡지 않게 한다.
 
-테마는 `data-theme` attribute로 CSS 변수를 오버라이드합니다.
+## 형태와 간격
 
-```
-default (Y2K Bright) → pastel → dark → mono
-```
+- 선: 기본 1px, 포커스 outline 2px/offset 3px.
+- radius: 입력 8px, 버튼 8–10px, 편집 항목 13px, 앱 카드 13–16px, 다이얼로그 16px.
+- 그림자: 카드와 입력 기본 없음. 선택 세그먼트는 아주 약한 1px 그림자. 다이얼로그·부유 미리보기는 부드러운 확산 그림자.
+- 일반 간격: 4/8/12/16/24/32/48/64px.
+- 일반 카드 padding: 20px. 앱 페이지 여백: 32/24/16px.
 
-각 테마 정의는 `src/index.css`의 `[data-theme="..."]` 셀렉터를 참고하세요.
+편집기 원본 간격은 label 위 13px, label-input gap 7px, input padding 10px, 2열 gap 9px, 항목 padding 12px, 섹션 세로 22px이다.
 
----
+## 기본 컴포넌트
 
-## 3. 타이포그래피
+Button은 primary, secondary, ghost, danger, dashed, icon 변형을 가진다. 높이는 sm 32px, md 40px, lg 48px. disabled와 loading은 중복 제출을 막고 레이아웃 너비를 유지한다.
 
-### 폰트 패밀리
+Card는 surface/subtle/selected 표면을 사용한다. 임의 테두리 두께와 그림자 숫자를 받지 않는다. 클릭 가능한 카드는 hover뿐 아니라 focus-visible 상태를 가진다.
 
-| 변수 | 용도 | Tailwind 클래스 |
-|------|------|----------------|
-| `--font-headline` | 히어로 제목, 로고 | `font-headline` |
-| `--font-sub` | 네비게이션, 버튼, 소제목 | `font-sub` |
-| `--font-body` | 본문, 설명 텍스트 | `font-body` |
-| `--font-pixel` | 배지, 상태 라벨 | `font-pixel` |
+Input/Textarea/Select는 1px control border, 8px radius, 10–12px padding을 공유한다. label과 오류·도움말의 연결을 유지한다. 에디터의 number spinner, select, checkbox는 참고 원본처럼 네이티브 컨트롤을 사용한다.
 
-기본 한글 폰트는 **Gmarket Sans**이며, 영문은 Archivo Black / Space Grotesk / Space Mono로 폴백됩니다.
+SegmentedControl은 `#EDEAF1` 바탕, 4px padding, 3px gap, 11px 외곽 radius를 쓴다. 선택 버튼은 흰 바탕과 650 굵기다. 선택 버튼은 `aria-pressed`; 콘텐츠 탭은 올바른 tab 의미를 사용한다.
 
-### 사이즈 스케일
+Badge는 pill 형태, 1px 경계, 10–12px 글자다. Dialog는 16px radius, 반투명 보라색 backdrop과 부드러운 그림자를 쓴다. 아이콘은 Lucide 선형 아이콘 14/16/18px를 기본으로 한다.
 
-| 용도 | 사이즈 |
-|------|--------|
-| 히어로 H1 | `text-[48px]` |
-| 페이지 제목 | `text-[28px]` ~ `text-[36px]` |
-| 섹션 소제목 | `text-[18px]` ~ `text-[22px]` |
-| 카드 제목 | `text-[14px]` ~ `text-[18px]` |
-| 본문 | `text-[13px]` ~ `text-[16px]` |
-| 배지/라벨 | `text-[8px]` ~ `text-[12px]` + `font-pixel` |
+## 레이아웃
 
----
+고객과 관리자의 일반 사이드바는 240px다. 선택 메뉴는 selected 배경과 heading 글자를 사용한다. 모바일 고객 탐색은 하단 탭, 만들기는 48px 주요 액션이다.
 
-## 4. 보더 & 섀도우 (Neo-Brutalism 핵심)
+에디터는 좌측 페이지 목록, 중앙 미리보기, 우측 속성 폼의 기존 구조를 유지한다. 넓은 화면 속성 패널 318px, 툴바 78px. 760px 이하에서는 페이지/미리보기/편집을 모바일 탭으로 전환한다. 패널과 stage에는 `min-width:0`, `min-height:0`, 내부 스크롤을 적용한다.
 
-### 기본 규칙
+## 상태와 접근성
 
-모든 카드, 버튼, 입력 필드에 **두꺼운 검정 보더 + 오프셋 섀도우**를 적용합니다.
+모든 데이터 화면에서 정상·로딩·빈 결과·오류·재시도를 구분한다. 색만으로 상태를 구분하지 않는다. 아이콘 단독 버튼에는 이름을 제공한다. 모달은 Escape, 초기 포커스, 포커스 복구를 지원해야 한다. 모바일 주요 터치 영역은 44px 이상을 목표로 한다.
 
-```css
-/* 보더 */
-border: 3px solid #111;   /* 기본 */
-border: 4px solid #111;   /* 강조 */
-
-/* 섀도우 */
-box-shadow: 3px 3px 0 #111;  /* 작은 요소 */
-box-shadow: 5px 5px 0 #111;  /* 기본 카드/버튼 */
-box-shadow: 6px 6px 0 #111;  /* 주요 카드 */
-box-shadow: 8px 8px 0 #111;  /* 히어로 요소 */
-```
-
-### Utility 클래스
-
-```
-neo-border       → border: 3px solid var(--color-ink)
-neo-border-4     → border: 4px solid var(--color-ink)
-neo-input        → 입력 필드 (neo-border + 패딩)
-neo-grid-sm      → auto-fill, min 180px
-neo-grid-md      → auto-fill, min 220px
-```
-
-### 인터랙션 효과
-
-버튼 hover: `transform: translateY(-1px)` + 섀도우 +2px
-버튼 active: `transform: translateY(2px)` + 섀도우 -2px
-카드 lift hover: `transform: translateY(-2px)` + 섀도우 +3px
-
----
-
-## 5. 컴포넌트
-
-### NeoButton — `src/components/ui/NeoButton.tsx`
-
-```tsx
-<NeoButton bg="var(--color-mustard)" color="#111" size="lg">
-  무료로 시작하기
-</NeoButton>
-
-<NeoButton bg="#FF57A6" block onClick={handler}>
-  + 새 사이트
-</NeoButton>
-
-<NeoButton href="/login" bg="var(--color-blue)" size="sm">
-  로그인
-</NeoButton>
-```
-
-**주요 Props**
-
-| Prop | 기본값 | 설명 |
-|------|--------|------|
-| `bg` | `#FF57A6` | 배경색 (CSS 변수 또는 HEX) |
-| `color` | 자동 감지 | 텍스트색 |
-| `size` | `"md"` | `"sm"` / `"md"` / `"lg"` |
-| `shadow` | `5` | 섀도우 픽셀 |
-| `radius` | `8` | border-radius |
-| `block` | `false` | 100% 너비 |
-| `href` | — | 링크로 렌더링 |
-
-### NeoCard — `src/components/ui/NeoCard.tsx`
-
-```tsx
-<NeoCard pad={28} shadow={6}>
-  콘텐츠
-</NeoCard>
-
-<NeoCard flex dir="column" gap={8} lift bg="var(--color-blue)" onClick={handler}>
-  클릭 가능한 카드
-</NeoCard>
-
-<NeoCard pad={20} radius={12} clip>
-  rounded 카드
-</NeoCard>
-```
-
-**주요 Props**
-
-| Prop | 기본값 | 설명 |
-|------|--------|------|
-| `bg` | `#FFF7E6` | 배경색 |
-| `pad` | `22` | 패딩(px) |
-| `shadow` | `6` | 섀도우 픽셀 |
-| `border` | `4` | 보더 두께(px) |
-| `radius` | `0` | border-radius (0 = 직각) |
-| `flex` | `false` | flex 레이아웃 |
-| `dir` | `"column"` | flex 방향 |
-| `gap` | `12` | flex gap |
-| `lift` | `false` | hover lift 효과 |
-| `clip` | `false` | overflow: hidden |
-
-### PixelIcon — `src/components/ui/PixelIcon.tsx`
-
-```tsx
-<PixelIcon name="heart" size={40} fill="#fff" />
-<PixelIcon name="home" size={18} fill={isActive ? "#111" : "#FFF7E6"} />
-```
-
-**사용 가능한 아이콘**
-
-```
-heart, flower, star, letter, clock, check, arrow,
-home, doc, grid, gear, logout, share, search,
-back, play, menu, plus, mail
-```
-
----
-
-## 6. 배지
-
-```tsx
-{/* 검정 배경 배지 */}
-<span className="pixel-badge">NEW</span>
-
-{/* 반투명 배지 */}
-<span className="pixel-badge-muted">DRAFT</span>
-
-{/* PRO 배지 (노란 배경 + 보더 + 섀도우) */}
-<span className="pixel-badge-pro">PRO</span>
-```
-
----
-
-## 7. 레이아웃
-
-### 고객 앱 (AppLayout)
-
-- **데스크탑:** 좌측 사이드바 240px (`bg-ink`) + 메인 영역
-- **모바일:** 메인 영역 + 하단 탭바 72px
-- 활성 탭: `bg-mustard text-ink`
-- 비활성 탭: `text-cream`
-
-### 관리자 (MasterLayout)
-
-- 항상 좌측 사이드바 220px + 메인 영역 (데스크탑 전용)
-
-### 공개 페이지
-
-- 풀 너비 섹션 구조
-- 내부 콘텐츠: `max-w-[1100px] mx-auto px-8`
-
----
-
-## 8. 반복되는 레이아웃 패턴
-
-### 통계/요약 카드 그리드
-
-```tsx
-<div className="neo-grid-sm">
-  <NeoCard bg="var(--color-blue)" pad={20} shadow={5}>
-    <span className="font-pixel text-[10px]">총 사이트</span>
-    <span className="font-headline text-[28px]">12</span>
-  </NeoCard>
-  {/* ... */}
-</div>
-```
-
-### 페이지 헤더
-
-```tsx
-<div className="flex items-center justify-between mb-6">
-  <h1 className="font-headline text-[24px]">페이지 제목</h1>
-  <NeoButton bg="var(--color-pink)" size="sm">액션</NeoButton>
-</div>
-```
-
-### 필터 탭
-
-```tsx
-// CVA variants 사용 (MySitesPage.tsx 참고)
-<div className="flex">
-  {tabs.map((tab, i) => (
-    <button
-      key={tab}
-      className={tabVariants({
-        active: activeTab === tab,
-        pos: i === 0 ? "first" : i === tabs.length - 1 ? "last" : "middle",
-      })}
-      onClick={() => setActiveTab(tab)}
-    >
-      {tab}
-    </button>
-  ))}
-</div>
-```
-
-### 검색창
-
-```tsx
-<div className="flex items-center gap-2 neo-border bg-white px-3 py-2">
-  <PixelIcon name="search" size={16} fill="#111" />
-  <input className="flex-1 outline-none font-body text-[13px]" placeholder="검색..." />
-</div>
-```
-
----
-
-## 9. 애니메이션
-
-### CSS 기반
-
-```css
-/* 티커 */
-animation: ticker 20s linear infinite;
-
-/* 로딩 프로그레스 */
-animation: progress 2.4s ease-in-out infinite;
-```
-
-### Transition 표준
-
-```css
-/* 버튼 */
-transition: transform 0.08s, box-shadow 0.08s;
-
-/* 카드 */
-transition: transform 0.12s, box-shadow 0.12s;
-```
-
-framer-motion과 GSAP도 설치되어 있으나, 기본 인터랙션은 CSS transition으로 처리합니다.
-
----
-
-## 10. 유틸리티
-
-### cn() 함수 — `src/utils/cn.ts`
-
-clsx 래퍼입니다. 조건부 클래스 결합 시 항상 사용하세요.
-
-```tsx
-import { cn } from "@/utils/cn";
-
-<div className={cn("base-class", isActive && "active-class", { "optional": condition })} />
-```
-
-### CVA (class-variance-authority)
-
-컴포넌트 variants 정의에 사용합니다.
-
-```tsx
-import { cva } from "class-variance-authority";
-
-const variants = cva("base-classes", {
-  variants: {
-    size: { sm: "...", lg: "..." },
-    active: { true: "...", false: "..." },
-  },
-});
-```
-
----
-
-## 11. 테마 사용
-
-```tsx
-import { useThemeStore } from "@/store/themeStore";
-
-function SettingsPage() {
-  const { theme, setTheme } = useThemeStore();
-
-  return (
-    <select value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
-      {THEMES.map((t) => (
-        <option key={t.id} value={t.id}>{t.label}</option>
-      ))}
-    </select>
-  );
-}
-```
-
----
-
-## 12. Do / Don't
-
-### Do ✅
-
-- `NeoCard`, `NeoButton`, `PixelIcon` 컴포넌트를 우선 사용
-- 모든 카드/버튼에 두꺼운 검정 보더 + 오프셋 섀도우 적용
-- 색상은 반드시 CSS 변수(`var(--color-mustard)`) 또는 팔레트 Tailwind 클래스 사용
-- 폰트는 `font-headline`, `font-sub`, `font-body`, `font-pixel` 중에서 선택
-- 배지는 `pixel-badge` 유틸리티 클래스 사용
-
-### Don't ❌
-
-- 임의의 색상 HEX를 직접 사용 (팔레트 외 색상 사용 금지)
-- border-radius를 크게 주어 카드가 둥글게 되는 것 (Neo-Brutalism 스타일과 어울리지 않음)
-- 그림자 없는 카드/버튼 (플랫한 느낌은 스타일과 맞지 않음)
-- 얇은 보더 (1px, 2px) — 최소 3px 유지
-
----
-
-## 13. 파일 구조 참고
-
-```
-src/
-├── index.css                  ← 전체 디자인 토큰, @utility 정의
-├── components/
-│   ├── layout/
-│   │   ├── AppLayout.tsx      ← 고객 레이아웃
-│   │   └── MasterLayout.tsx   ← 관리자 레이아웃
-│   └── ui/
-│       ├── NeoButton.tsx      ← 버튼 컴포넌트
-│       ├── NeoCard.tsx        ← 카드 컴포넌트
-│       └── PixelIcon.tsx      ← 픽셀 아이콘
-├── pages/
-│   ├── public/LandingPage.tsx ← 디자인 패턴 참고용
-│   ├── customer/DashboardPage.tsx
-│   └── customer/BrowsePage.tsx
-└── store/themeStore.ts        ← 테마 관리
-```
+시각 검증은 1440/1024/768/390/360px, 에디터는 1100px와 760px 경계 전후에서 한다. default/pastel/dark/mono 테마와 슬라이드 CSS 격리도 함께 확인한다.

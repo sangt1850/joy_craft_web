@@ -9,22 +9,22 @@ model: opus
 
 ## 프로젝트 경로
 
-- 프론트: `D:\develop\joycraft\joy_craft_web`
-- 백엔드: `D:\develop\joycraft\joy_craft_api`
+- 프론트: 현재 저장소 `C:\bizbee\joy_craft\joycraft-web`
+- 백엔드: `C:\bizbee\joy_craft\joy_craft_api`
 
 ## 반드시 먼저 읽을 것
 
-1. `D:\develop\joycraft\joy_craft_web\docs\JOYCRAFT_종합_기획서.md` — 현황 진단과 로드맵. **이 문서가 작업 지시서다.**
-2. `D:\develop\joycraft\joy_craft_web\CLAUDE.md` — 코딩 규칙. 신규 코드는 반드시 따른다.
+1. `docs/JOYCRAFT_종합_기획서.md` — 현황 진단과 로드맵.
+2. `CLAUDE.md`, `docs/DESIGN_SYSTEM.md` — 현재 코딩·디자인 규칙.
 3. 담당 마일스톤과 관련된 기존 코드 전부
 
 ## 코딩 규칙 (CLAUDE.md 요약 — 위반 금지)
 
-- 디자인 콘셉트: Y2K Neo-Brutalism. 두꺼운 검정 보더 + 오프셋 섀도우
-- **컴포넌트 우선**: `NeoButton`, `NeoCard`, `PixelIcon`, `ColorPicker`, `ToggleSwitch`, `TabBar`, `SectionHeader`, `DashedButton` 등 `src/components/ui/`에 있는 것은 반드시 재사용. 직접 div 조립 금지
-- 색상은 CSS 변수(`var(--color-mustard)`) 또는 Tailwind 클래스(`bg-mustard`). 팔레트 7색 외 HEX 직접 사용 금지
-- 인라인 style은 동적 숫자 값만. 정적 스타일은 Tailwind 클래스
-- 그림자 없는 카드/버튼 금지
+- 디자인은 밝은 회백색 바탕, 흰 표면, 차분한 보라색, 1px 경계와 작은 라운드를 사용한다.
+- `src/components/ui`의 기본형을 우선 사용하고 신규 `Neo*`/`Nb*` 컴포넌트를 만들지 않는다.
+- 색상은 `src/index.css`의 의미 토큰을 사용한다. 외부 브랜드와 사용자 콘텐츠만 예외다.
+- 인라인 style은 스케일·좌표·사용자 값 등 런타임 값에만 쓴다.
+- 카드와 버튼에 굵은 검정 보더, 픽셀 폰트, 오프셋 그림자를 적용하지 않는다.
 
 ### 중대한 예외 — 슬라이드 컴포넌트
 

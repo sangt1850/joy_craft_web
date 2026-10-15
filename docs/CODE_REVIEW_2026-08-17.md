@@ -3,6 +3,7 @@
 - **점검일**: 2026-08-17
 - **대상**: `joy_craft_web` (Frontend) / `joy_craft_api` (Backend)
 - **범위**: 빌드·테스트·정적분석 실행 + 프론트/백엔드 전 소스 정독 + FE↔BE 계약 대조
+- **현행화**: 2026-09-14 사용 종료된 슬라이드 관련 항목 제거 및 현재 목록 기준으로 수량 정정
 
 ---
 
@@ -20,7 +21,7 @@
 ### FE↔BE 계약 대조
 
 - 프론트가 호출하는 API 경로 **23개 전부** 백엔드 매핑에 존재 ✅
-- 슬라이드 컴포넌트 slug: 백엔드 시드(`V7__seed_builtin_components.sql`) 18종 ↔ 프론트 레지스트리(`registerSlide`) 18종 **완전 일치** ✅
+- 현행 슬라이드 컴포넌트 15개가 프론트 레지스트리에 등록되어 있다. `moment-photoapp`과 `cinema-intro`는 각각 `instagram`과 `loveflix-intro`의 하위호환 별칭이다.
 - `/api/play/{slug}`만 `ApiResponse<T>` 봉투가 없는 예외 — 프론트가 이미 인지하고 `publicApi`로 분리 처리 ✅
 
 ### 환경 이슈 (코드 문제 아님)
@@ -114,19 +115,11 @@
 
 ### 🟢 낮음
 
-#### 11. 슬라이드 18종 중 11종이 타이머를 정리하지 않음
-
-- **위치**: `joy_craft_web` `src/slides/**`
-- **대상**: `balloon-pop`, `envelope-letter`, `fingerprint`, `flashlight`, `gift-box`, `heart-gauge`,
-  `photo-puzzle`, `pin-lock`, `quiz`, `story-book`, `wish-lantern`
-- **내용**: `setTimeout` / `setInterval`을 쓰면서 언마운트 시 `clear*`를 호출하지 않는다.
-- **완화 상태**: `PlayerPage`가 완료 신호에 인덱스를 실어 대조하고 `SlideCanvas`가 `slideKey`로 리마운트해 오작동은 막고 있다. 근본 원인은 남아 있다.
-
 #### 12. 번들 크기 / 폰트 배포
 
 - **위치**: `joy_craft_web`
 - **내용**:
-  - 메인 청크 **561KB**(gzip 175KB) 단일 파일. 18종 슬라이드가 전부 여기 들어간다.
+  - 슬라이드가 정적 등록되어 관련 코드가 공용 청크에 함께 들어간다.
   - `DungGeunMo.ttf` **7.35MB**가 woff2 폴백으로 `dist/`에 함께 배포된다(브라우저는 woff2를 쓰므로 실제 다운로드는 안 되지만 배포물이 커진다).
   - Gmarket Sans는 `cdn.jsdelivr.net` 외부 CDN 의존이다.
 - **영향**: 공개 공유 링크는 모바일에서 처음 열리는 화면이다. 초기 로딩이 곧 서비스 인상이다.
@@ -219,8 +212,8 @@
 
 아래 둘은 이번 범위에서 처리하지 않았다.
 
-1. **슬라이드 18종 개별 지연 로딩** — 지금은 플레이어가 18종을 한 청크(86.7 kB)로 받는다.
-   스냅샷이 실제로 쓰는 슬라이드만 받으려면 `registry.ts`와 18개 `index.ts`를
+1. **슬라이드 개별 지연 로딩** — 지금은 플레이어가 등록된 슬라이드를 공용 청크로 받는다.
+   스냅샷이 실제로 쓰는 슬라이드만 받으려면 `registry.ts`와 각 슬라이드 `index.ts`를
    `React.lazy` 로더 등록 방식으로 바꿔야 한다. 구조 변경이라 별도 작업으로 둔다.
 2. **Gmarket Sans의 jsdelivr CDN 의존** — 자체 호스팅하려면 폰트 바이너리를
    저장소에 추가해야 해서 이번에 손대지 않았다.
@@ -295,9 +288,7 @@
 
 - `setState(prev => { ... 타이머 예약 ... })` 형태였다. `main.tsx`가 StrictMode를 쓰므로
   **개발 모드에서 updater가 두 번 실행되어 타이머가 두 번 잡힌다.**
-- `HeartGauge`, `PinLock`, `Flashlight` 세 곳에서 부작용(진동·소리·타이머)을 updater 밖으로 뺐다.
-  - `Flashlight`는 spot을 여러 개 동시에 찾았을 때 진동을 개수만큼 울리던 것이 1회로 바뀌었다(의도된 정리).
-- `BalloonPop`은 애초에 updater 밖에서 예약하고 있었다 — **수정 불필요.**
+- `PinLock`에서 부작용(진동·소리·타이머)을 updater 밖으로 뺐다.
 - 전 슬라이드를 재검사해 updater 내부 타이머 예약 **0건**을 확인했다.
 
 ### ✅ R5. `TokenHashUtils` 삭제 (수정 완료)
@@ -326,7 +317,7 @@
 - `ControllerLoggingAspect` — URI·상태·소요시간만 남기고 요청 본문을 찍지 않는다. 민감정보 유출 없음.
 - 템플릿 조회 쿼리 — `JOIN FETCH`로 N+1 없음, 파라미터 바인딩으로 인젝션 없음.
 - `editorStore` — 저장 중복/유실 방지 로직이 촘촘하고 테스트도 붙어 있다.
-- FE↔BE 계약 — 경로·슬라이드 slug 18종 모두 여전히 일치.
+- FE↔BE 계약 — 현행 경로와 슬라이드 slug를 대조한다.
 
 ---
 
