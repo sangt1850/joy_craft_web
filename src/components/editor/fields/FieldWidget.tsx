@@ -18,8 +18,8 @@ import {
   type AssetImage,
 } from "../../../api/assets";
 
-const LABEL_CLASS = "font-sub text-[12px] text-ink block mb-1.5";
-const HINT_CLASS = "font-body text-[10px] text-black/50 leading-snug mt-1";
+const LABEL_CLASS = "font-sub text-[12px] font-semibold text-muted block mb-[7px]";
+const HINT_CLASS = "font-body text-[10px] text-muted leading-snug mt-1.5";
 
 /** 색상 필드 프리셋 — 브랜드 팔레트 7색. 현재 값/스키마 기본값은 앞에 자동으로 덧붙는다 */
 // TODO: 색상 프리셋 팔레트 — 향후 ColorPicker 연동 시 복원
@@ -143,7 +143,7 @@ function FieldControl({ field, value, onChange, compact, inArrayItem }: FieldWid
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
           rows={compact ? 2 : 3}
-          className="neo-input resize-y leading-snug"
+          className="jc-input resize-y leading-snug"
         />
       );
 
@@ -159,7 +159,7 @@ function FieldControl({ field, value, onChange, compact, inArrayItem }: FieldWid
             placeholder={field.placeholder}
             onChange={(e) => onChange(e.target.value)}
             rows={compact ? 2 : 3}
-            className="neo-input resize-y leading-snug"
+            className="jc-input resize-y leading-snug"
           />
         );
       }
@@ -168,7 +168,7 @@ function FieldControl({ field, value, onChange, compact, inArrayItem }: FieldWid
           value={text}
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="neo-input"
+          className="jc-input"
         />
       );
     }
@@ -209,8 +209,8 @@ function ColorControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
       <div className="flex items-center gap-2.5">
         <label className="relative w-9 h-9 shrink-0 cursor-pointer">
           <span
-            className="block w-full h-full rounded-full neo-border"
-            style={{ background: effective, boxShadow: "2px 2px 0 #111" }}
+            className="block w-full h-full rounded-full"
+            style={{ background: effective, border: "1.5px solid var(--color-border)", boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}
           />
           <input
             type="color"
@@ -224,7 +224,7 @@ function ColorControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
           value={text}
           onChange={(e) => emit(e.target.value)}
           aria-label={`${field.label} 색상 코드`}
-          className="neo-input font-pixel text-[11px] tracking-wider uppercase"
+          className="jc-input font-body text-[12px] tracking-wider uppercase"
         />
       </div>
     </div>
@@ -288,7 +288,10 @@ function NumberControl({
           onChange={(e) => handle(e.target.value)}
           className="neo-range flex-1"
         />
-        <span className="font-pixel text-[11px] text-ink min-w-[38px] text-right tabular-nums neo-border px-1.5 py-0.5 bg-bg">
+        <span
+          className="font-body text-[12px] text-ink min-w-[38px] text-right tabular-nums px-2 py-0.5 rounded-[6px]"
+          style={{ background: "var(--color-field)", border: "1px solid var(--color-border)" }}
+        >
           {numVal.toFixed(decimals)}
         </span>
       </div>
@@ -306,7 +309,7 @@ function NumberControl({
       placeholder={field.placeholder}
       onChange={(e) => handle(e.target.value)}
       onBlur={handleBlur}
-      className="neo-input"
+      className="jc-input"
     />
   );
 }
@@ -331,7 +334,7 @@ function SelectControl({
       : options;
 
   return (
-    <select value={current} onChange={(e) => onChange(e.target.value)} className="neo-input cursor-pointer">
+    <select value={current} onChange={(e) => onChange(e.target.value)} className="jc-input">
       {current === "" && <option value="">선택하세요</option>}
       {list.map((o) => (
         <option key={o.value} value={o.value}>
@@ -365,11 +368,11 @@ function SegmentControl({
             type="button"
             onClick={() => onChange(o.value)}
             className={cn(
-              "flex-1 min-w-[72px] flex flex-col items-center gap-1.5 py-3 px-2",
-              "neo-border font-sub text-[11px] leading-tight transition-colors",
+              "flex-1 min-w-[72px] flex flex-col items-center gap-1.5 py-[9px] px-3 rounded-lg border-0",
+              "font-sub text-[11px] leading-tight transition-colors",
               active
-                ? "bg-ink text-cream neo-shadow-sm"
-                : "bg-bg text-ink hover:bg-black/5"
+                ? "bg-white text-heading shadow-sm font-semibold"
+                : "bg-selected text-muted hover:text-heading"
             )}
           >
             {o.icon && <span className="text-[22px] leading-none">{o.icon}</span>}
@@ -432,7 +435,10 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
   return (
     <div className="flex flex-col gap-2">
       {/* 미리보기 */}
-      <div className="neo-border overflow-hidden bg-black/5" style={{ height: 100 }}>
+      <div
+        className="overflow-hidden bg-black/5 rounded-[9px]"
+        style={{ height: 100, border: "1px solid var(--color-border)" }}
+      >
         {previewUrl !== "" && !imgError ? (
           <img
             src={previewUrl}
@@ -442,32 +448,32 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="font-pixel text-[10px] text-ink/30">
+            <span className="font-body text-[11px] text-muted">
               {previewUrl === "" ? "이미지 없음" : "불러올 수 없음"}
             </span>
           </div>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
+          className="jc-btn-outline h-8 px-3 text-[12px] disabled:opacity-50"
         >
           {uploading ? "업로드 중" : "파일"}
         </button>
         <button
           type="button"
           onClick={() => setLibraryOpen((open) => !open)}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-accent/20"
+          className="jc-btn-outline h-8 px-3 text-[12px]"
         >
           내 이미지
         </button>
         <button
           type="button"
           onClick={() => handleChange("")}
-          className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-primary/20"
+          className="jc-btn-outline h-8 px-3 text-[12px]"
         >
           비우기
         </button>
@@ -477,7 +483,8 @@ function ImageControl({ field, value, onChange }: Omit<FieldWidgetProps, "compac
         value={stored}
         placeholder={field.placeholder ?? "https://... 이미지 주소를 붙여넣으세요"}
         onChange={(e) => handleChange(e.target.value)}
-        className="neo-input text-[12px]"
+        className="jc-input text-[12px]"
+        style={{ fontSize: 12 }}
       />
       {libraryOpen && (
         <ImageLibraryGrid
@@ -575,13 +582,16 @@ function ImageListControl({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="neo-border border-dashed py-6 flex flex-col items-center gap-1.5 text-ink/50 hover:text-ink/80 hover:bg-black/5 disabled:opacity-40 transition-colors"
+          className="border border-dashed border-border rounded-[10px] py-6 flex flex-col items-center gap-1.5 text-muted hover:text-heading hover:bg-subtle disabled:opacity-40 transition-colors w-full"
         >
-          <span className="font-pixel text-[26px] leading-none">+</span>
-          <span className="font-sub text-[11px]">
-            {uploading ? "업로드 중..." : "클릭하여 이미지 추가"}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 16V4" /><path d="M7 9l5-5 5 5" />
+            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+          </svg>
+          <span className="font-sub text-[12px] font-semibold text-ink">
+            {uploading ? "업로드 중..." : "이미지 끌어놓기 또는 선택"}
           </span>
-          <span className="font-body text-[10px] text-ink/40">여러 장 동시 선택 가능</span>
+          <span className="font-body text-[11px] text-muted">여러 장 동시 선택 가능</span>
         </button>
       ) : (
         /* 이미지 그리드 */
@@ -591,7 +601,8 @@ function ImageListControl({
               <img
                 src={resolveImageValue(url)}
                 alt={`이미지 ${i + 1}`}
-                className="w-full h-full object-cover neo-border bg-black/10"
+                className="w-full h-full object-cover rounded-[6px] bg-black/10"
+                style={{ border: "1px solid var(--color-border)" }}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
                 }}
@@ -614,10 +625,12 @@ function ImageListControl({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="aspect-square neo-border border-dashed flex flex-col items-center justify-center gap-1 text-ink/40 hover:text-ink/70 hover:bg-black/5 disabled:opacity-40 transition-colors"
+            className="aspect-square border border-dashed border-border rounded-[8px] flex flex-col items-center justify-center gap-1 text-muted hover:text-heading hover:bg-subtle disabled:opacity-40 transition-colors"
             aria-label="이미지 추가"
           >
-            <span className="font-pixel text-[20px] leading-none">+</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14" /><path d="M5 12h14" />
+            </svg>
             <span className="font-body text-[9px]">{uploading ? "..." : "추가"}</span>
           </button>
         </div>
@@ -630,7 +643,7 @@ function ImageListControl({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="neo-border px-2.5 py-1 font-sub text-[11px] shrink-0 bg-bg hover:bg-secondary/20 disabled:opacity-50"
+            className="jc-btn-outline h-8 px-3 text-[12px] disabled:opacity-50"
           >
             {uploading ? "업로드 중..." : "파일 추가"}
           </button>
@@ -642,8 +655,8 @@ function ImageListControl({
             setLibraryOpen(false);
           }}
           className={cn(
-            "neo-border px-2.5 py-1 font-sub text-[11px] shrink-0",
-            urlMode ? "bg-mint" : "bg-bg hover:bg-secondary/20"
+            "jc-btn-outline h-8 px-3 text-[12px]",
+            urlMode ? "bg-selected border-primary/40 text-primary" : ""
           )}
         >
           URL 입력
@@ -655,8 +668,8 @@ function ImageListControl({
             setUrlMode(false);
           }}
           className={cn(
-            "neo-border px-2.5 py-1 font-sub text-[11px] shrink-0",
-            libraryOpen ? "bg-blue" : "bg-bg hover:bg-accent/20"
+            "jc-btn-outline h-8 px-3 text-[12px]",
+            libraryOpen ? "bg-selected border-primary/40 text-primary" : ""
           )}
         >
           내 이미지
@@ -677,13 +690,14 @@ function ImageListControl({
               }
             }}
             placeholder="https://... 이미지 주소 입력"
-            className="neo-input flex-1 text-[12px]"
+            className="jc-input flex-1"
+            style={{ fontSize: 12 }}
           />
           <button
             type="button"
             onClick={handleAddUrl}
             disabled={!urlInput.trim()}
-            className="neo-border px-3 py-1 font-sub text-[11px] bg-ink text-cream disabled:opacity-40 shrink-0"
+            className="jc-btn-primary h-9 px-3 disabled:opacity-40"
           >
             추가
           </button>
@@ -720,10 +734,10 @@ function ImageLibraryGrid({
   onSelect: (asset: AssetImage) => void;
 }) {
   if (loading) {
-    return <div className="font-body text-[11px] text-black/50">이미지를 불러오는 중...</div>;
+    return <div className="font-body text-[11px] text-muted">이미지를 불러오는 중...</div>;
   }
   if (images.length === 0) {
-    return <div className="font-body text-[11px] text-black/50">저장된 이미지가 없습니다.</div>;
+    return <div className="font-body text-[11px] text-muted">저장된 이미지가 없습니다.</div>;
   }
   return (
     <div className="grid grid-cols-4 gap-2 max-h-36 overflow-y-auto pr-1">
@@ -733,7 +747,7 @@ function ImageLibraryGrid({
           type="button"
           title={asset.originalFilename ?? asset.id}
           onClick={() => onSelect(asset)}
-          className="neo-border bg-black/5 overflow-hidden aspect-square hover:translate-y-[-1px]"
+          className="border border-border rounded-[8px] bg-black/5 overflow-hidden aspect-square hover:border-primary/50 transition-colors"
         >
           <img src={asset.url} alt="" className="w-full h-full object-cover" />
         </button>
@@ -759,7 +773,7 @@ function TextListControl({ field, value, onChange, compact }: FieldWidgetProps) 
       placeholder={field.placeholder}
       onChange={(e) => onChange(e.target.value === "" ? [] : e.target.value.split("\n"))}
       rows={compact ? 4 : 5}
-      className={cn("neo-input resize-y leading-snug")}
+      className={cn("jc-input resize-y leading-snug")}
     />
   );
 }

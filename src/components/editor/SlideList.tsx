@@ -20,7 +20,6 @@ import { CSS } from "@dnd-kit/utilities";
 import type { SlideResponse } from "../../types/api";
 import { cn } from "../../utils/cn";
 
-const PAGE_COLORS = ["bg-primary", "bg-secondary", "bg-accent", "bg-info"];
 
 interface SlideListProps {
   slides: SlideResponse[];
@@ -54,7 +53,7 @@ export default function SlideList({
 
   if (slides.length === 0) {
     return (
-      <p className="font-body text-[11px] text-black/50 leading-relaxed px-1 py-3">
+      <p className="font-body text-[11px] text-muted leading-relaxed px-2 py-4">
         아직 페이지가 없습니다.
         <br />
         아래에서 추가해 주세요.
@@ -100,9 +99,9 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
       // transform/transition은 dnd-kit이 계산하는 동적 값 — 인라인 style이 유일한 경로다
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex items-center gap-2 px-2 py-[9px] mb-1 rounded-md border-2 group",
+        "flex items-center gap-2 px-2.5 py-[9px] mb-0.5 rounded-[9px] border group",
         isDragging ? "opacity-60 z-10 relative" : "",
-        selected ? "bg-ink border-ink" : "bg-transparent border-transparent hover:bg-black/5"
+        selected ? "bg-selected border-transparent" : "bg-transparent border-transparent hover:bg-subtle"
       )}
     >
       {/* 드래그 + 선택 영역 */}
@@ -116,8 +115,7 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
       >
         <span
           className={cn(
-            "w-[22px] h-[22px] neo-border flex items-center justify-center shrink-0 font-pixel text-[8px] text-ink",
-            PAGE_COLORS[index % PAGE_COLORS.length]
+            "w-[20px] text-center shrink-0 font-body text-[11px] font-semibold text-muted"
           )}
         >
           {index + 1}
@@ -125,7 +123,7 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
         <span
           className={cn(
             "font-sub text-[13px] truncate",
-            selected ? "text-bg" : "text-ink"
+            selected ? "text-heading font-semibold" : "text-ink"
           )}
         >
           {slide.templateName}
@@ -137,12 +135,12 @@ function SortableSlideRow({ slide, index, selected, onSelect, onRemove }: Sortab
         onClick={() => onRemove(slide.id)}
         aria-label={`${slide.templateName} 삭제`}
         title="이 페이지 삭제"
-        className={cn(
-          "shrink-0 bg-transparent border-none cursor-pointer p-1 leading-none opacity-0 group-hover:opacity-100 focus:opacity-100",
-          selected ? "opacity-70" : ""
-        )}
+          className={cn(
+            "shrink-0 bg-transparent border-none cursor-pointer p-1 leading-none opacity-0 group-hover:opacity-100 focus:opacity-100 text-muted hover:text-danger",
+            selected ? "opacity-70" : ""
+          )}
       >
-        <span className={cn("font-pixel text-[11px]", selected ? "text-bg" : "text-ink")}>
+        <span className="font-body text-[11px] text-muted">
           ✕
         </span>
       </button>

@@ -9,6 +9,49 @@ import NeoButton from "../ui/NeoButton";
 import SearchInput from "../ui/SearchInput";
 import TemplateCard from "../ui/TemplateCard";
 import TabBar from "../ui/TabBar";
+import type { ThumbViewport } from "../ui/LiveThumbnail";
+
+// PC / 모바일 뷰 토글 버튼
+function ViewBtn({
+  label,
+  orientation,
+  active,
+  onClick,
+  borderLeft,
+}: {
+  label: string;
+  orientation: "landscape" | "portrait";
+  active: boolean;
+  onClick: () => void;
+  borderLeft?: boolean;
+}) {
+  const color = active ? "var(--color-heading)" : "var(--color-muted)";
+  return (
+    <button
+      onClick={onClick}
+      className="font-sub text-[11px] flex items-center gap-1 px-2.5 py-1.5 transition-colors cursor-pointer"
+      style={{
+        background: active ? "#fff" : "transparent",
+        color,
+        borderLeft: borderLeft ? "1px solid var(--color-border)" : undefined,
+      }}
+    >
+      {orientation === "landscape" ? (
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <rect x="0.5" y="0.5" width="13" height="9" rx="1.5" stroke={color} strokeWidth="1.5" />
+          <rect x="2" y="2" width="10" height="6" rx="0.5" fill={color} opacity="0.3" />
+        </svg>
+      ) : (
+        <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+          <rect x="0.5" y="0.5" width="7" height="13" rx="1.5" stroke={color} strokeWidth="1.5" />
+          <rect x="2.5" y="1.5" width="3" height="0.8" rx="0.4" fill={color} opacity="0.5" />
+          <rect x="1.5" y="3.5" width="5" height="7" rx="0.5" fill={color} opacity="0.3" />
+        </svg>
+      )}
+      {label}
+    </button>
+  );
+}
 
 const BG_COLORS = ["bg-secondary", "bg-primary", "bg-accent", "bg-info", "bg-surface", "bg-bg"];
 
@@ -27,6 +70,7 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
+  const [thumbViewport, setThumbViewport] = useState<ThumbViewport>("mobile");
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +123,7 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/55 flex items-center justify-center p-4"
+      className="jc-editor__modal fixed inset-0 z-[100] bg-ink/35 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
       role="presentation"
     >
@@ -90,13 +134,31 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
         aria-modal="true"
         aria-label="페이지 추가"
       >
-        <NeoCard bg="var(--color-bg)" pad={0} shadow={8} className="flex flex-col max-h-[86dvh]">
+        <NeoCard bg="var(--color-surface)" pad={0} shadow={0} border={1} radius={16} className="flex flex-col max-h-[86dvh] shadow-[0_20px_60px_rgba(57,40,66,.16)]">
           {/* 헤더 */}
-          <div className="flex items-center justify-between gap-3 px-5 py-3 border-b-[3px] border-ink shrink-0">
+          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border shrink-0">
             <h2 className="font-headline text-[18px] m-0">페이지 추가</h2>
-            <NeoButton bg="var(--color-bg)" size="sm" shadow={3} onClick={onClose}>
-              닫기
-            </NeoButton>
+            <div className="flex items-center gap-2">
+              {/* PC / 모바일 뷰 토글 */}
+              <div className="flex rounded-[9px] bg-selected p-0.5 overflow-hidden shrink-0">
+                <ViewBtn
+                  label="PC"
+                  orientation="landscape"
+                  active={thumbViewport === "pc"}
+                  onClick={() => setThumbViewport("pc")}
+                />
+                <ViewBtn
+                  label="모바일"
+                  orientation="portrait"
+                  active={thumbViewport === "mobile"}
+                  onClick={() => setThumbViewport("mobile")}
+                  borderLeft
+                />
+              </div>
+              <NeoButton bg="var(--color-bg)" size="sm" shadow={3} onClick={onClose}>
+                닫기
+              </NeoButton>
+            </div>
           </div>
 
           {/* 검색 + 카테고리 */}
@@ -116,17 +178,17 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
           {/* 목록 */}
           <div className="flex-1 overflow-y-auto px-5 pb-5">
             {loading && (
-              <p className="font-body text-[13px] text-black/50 py-10 text-center">불러오는 중...</p>
+              <p className="font-body text-[13px] text-muted py-10 text-center">불러오는 중...</p>
             )}
 
             {!loading && failed && (
-              <p className="font-body text-[13px] text-black/50 py-10 text-center">
+              <p className="font-body text-[13px] text-muted py-10 text-center">
                 템플릿 목록을 불러오지 못했습니다.
               </p>
             )}
 
             {!loading && !failed && visible.length === 0 && (
-              <p className="font-body text-[13px] text-black/50 py-10 text-center">
+              <p className="font-body text-[13px] text-muted py-10 text-center">
                 조건에 맞는 템플릿이 없습니다.
               </p>
             )}
@@ -143,7 +205,10 @@ export default function TemplatePickerModal({ open, onClose, onSelect }: Templat
                     price={t.pricing === "free" ? "FREE" : "PRO"}
                     bg={BG_COLORS[i % BG_COLORS.length]}
                     thumbHeight={96}
+                    thumbnailUrl={t.thumbnailUrl}
                     onUse={handleUse}
+                    enableLiveThumb
+                    liveThumbViewport={thumbViewport}
                   />
                 ))}
               </div>
