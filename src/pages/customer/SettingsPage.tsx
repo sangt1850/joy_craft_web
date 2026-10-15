@@ -2,41 +2,26 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NeoCard from "../../components/ui/NeoCard";
 import NeoButton from "../../components/ui/NeoButton";
-import PixelIcon from "../../components/ui/PixelIcon";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useAuthStore } from "../../store/authStore";
 import { useThemeStore, THEMES } from "../../store/themeStore";
 import type { Theme } from "../../store/themeStore";
 import { fetchMyStats } from "../../api/sites";
-import { updateProfile, updateNotification, withdrawAccount } from "../../api/auth";
+import { updateProfile, withdrawAccount } from "../../api/auth";
 import type { SiteStatsResponse } from "../../types/api";
 
 type SettingsTab = "account" | "saved";
 
 const THEME_SWATCHES: Record<string, { bg: string; ink: string; dots: string[] }> = {
-  default: { bg: "#fff7e6", ink: "#111111", dots: ["#EFC65D", "#EE5B61", "#67BDB0"] },
-  pastel:  { bg: "#eaf1fe", ink: "#5a3a37", dots: ["#f7dfa0", "#f4a0a4", "#a8d9d4"] },
-  dark:    { bg: "#1a1e2e", ink: "#f0e8e8", dots: ["#c9a030", "#c93d42", "#3d9e93"] },
-  mono:    { bg: "#f5f5f5", ink: "#1a1a1a", dots: ["#d0d0d0", "#888888", "#b0b0b0"] },
+  default: { bg: "#f8f7fa", ink: "#302c3a", dots: ["#41314f", "#796086", "#edeaf1"] },
+  pastel:  { bg: "#faf7fc", ink: "#3b3142", dots: ["#765d82", "#9b7ca7", "#eee5f2"] },
+  dark:    { bg: "#211d25", ink: "#f3eef5", dots: ["#a993b4", "#44394b", "#342e39"] },
+  mono:    { bg: "#f7f7f7", ink: "#292929", dots: ["#353535", "#666666", "#e6e6e6"] },
 };
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: "account", label: "계정 설정" },
-  { id: "saved", label: "담은 컴포넌트" },
-];
-
-/* ---------- notification toggle items ---------- */
-interface NotifItem {
-  key: string;
-  name: string;
-  desc: string;
-  api: boolean; // true = marketingAgreed API 연동
-}
-
-const NOTIF_ITEMS: NotifItem[] = [
-  { key: "marketing", name: "마케팅 수신 동의", desc: "프로모션 및 새 기능 소식", api: true },
-  { key: "weekly", name: "주간 리포트", desc: "방문자 통계를 매주 메일로", api: false },
-  { key: "newcomp", name: "새 컴포넌트 소식", desc: "새 컴포넌트가 올라오면", api: false },
+  { id: "saved",   label: "담은 컴포넌트" },
 ];
 
 
@@ -50,13 +35,8 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [togglingNotif, setTogglingNotif] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
-
-  // local-only notification toggles
-  const [weeklyReport, setWeeklyReport] = useState(false);
-  const [newCompNews, setNewCompNews] = useState(false);
 
   // stats
   const [stats, setStats] = useState<SiteStatsResponse | null>(null);
@@ -92,16 +72,9 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleToggleMarketing(value: boolean) {
-    setTogglingNotif(true);
-    try {
-      const updated = await updateNotification(value);
-      updateUser(updated);
-    } catch {
-      // keep current state on failure
-    } finally {
-      setTogglingNotif(false);
-    }
+  async function handleLogout() {
+    await logout();
+    navigate("/", { replace: true });
   }
 
   async function handleWithdraw() {
@@ -130,60 +103,25 @@ export default function SettingsPage() {
     : "";
   const statVal = (v: number | undefined | null) => (statsLoading ? "\u2014" : (v ?? "\u2014").toString());
 
-  /* ---------- notification toggle state map ---------- */
-  function getNotifChecked(key: string): boolean {
-    if (key === "marketing") return user?.marketingAgreed ?? false;
-    if (key === "weekly") return weeklyReport;
-    if (key === "newcomp") return newCompNews;
-    return false;
-  }
-
-  function handleNotifToggle(key: string) {
-    if (key === "marketing") {
-      handleToggleMarketing(!(user?.marketingAgreed ?? false));
-    } else if (key === "weekly") {
-      setWeeklyReport((v) => !v);
-    } else if (key === "newcomp") {
-      setNewCompNews((v) => !v);
-    }
-  }
-
   /* ---------- render ---------- */
   return (
-    <div className="px-5 py-8 max-w-[1080px] mx-auto">
-      {/* float animation keyframes */}
-      <style>{`
-        @keyframes jc-float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-8px) rotate(5deg); }
-          50% { transform: translateY(-4px) rotate(-3deg); }
-          75% { transform: translateY(-10px) rotate(2deg); }
-        }
-      `}</style>
+    <div className="px-4 py-7 md:px-8 md:py-9 max-w-[1120px] mx-auto">
 
       <SectionHeader title="마이페이지" titleSize={28} as="h1" className="mb-6" />
 
       {/* ===== Profile Hero Card ===== */}
-      <NeoCard bg="var(--color-secondary)" pad={28} shadow={8} border={4} className="relative mb-6">
-        {/* floating heart */}
-        <div
-          className="absolute top-4 right-4 opacity-70"
-          style={{ animation: "jc-float 5s ease-in-out infinite" }}
-        >
-          <PixelIcon name="heart" size={28} fill="#111" />
-        </div>
+      <NeoCard bg="var(--color-surface)" pad={28} shadow={0} border={1} className="relative mb-6">
 
         <div className="flex flex-wrap items-center gap-5">
           {/* avatar */}
           <div
-            className="neo-border-4 flex items-center justify-center font-headline text-white shrink-0"
+            className="flex items-center justify-center font-headline text-white shrink-0"
             style={{
               width: 84,
               height: 84,
               background: "var(--color-primary)",
-              boxShadow: "3px 3px 0 #111",
               fontSize: 36,
-              borderRadius: 0,
+              borderRadius: 18,
             }}
           >
             {initial}
@@ -195,7 +133,7 @@ export default function SettingsPage() {
               {user?.displayName ?? "사용자"}
             </h1>
             {createdDate && (
-              <p className="font-body m-0 mt-1" style={{ fontSize: 13, color: "#555" }}>
+              <p className="font-body m-0 mt-1 text-muted" style={{ fontSize: 13 }}>
                 {createdDate} 가입
               </p>
             )}
@@ -223,15 +161,14 @@ export default function SettingsPage() {
         }}
       >
         {[
-          { label: "만든 사이트", value: statVal(stats?.totalSites), bg: "var(--color-info)" },
-          { label: "공개 사이트", value: statVal(stats?.publishedSites), bg: "var(--color-accent)" },
-          { label: "받은 하트", value: statVal(stats?.totalHearts), bg: "var(--color-primary)" },
+          { label: "만든 사이트", value: statVal(stats?.totalSites) },
+          { label: "공개 사이트", value: statVal(stats?.publishedSites) },
         ].map((s) => (
-          <NeoCard key={s.label} bg={s.bg} pad={18} shadow={5} border={3}>
+          <NeoCard key={s.label} pad={18} shadow={0} border={1}>
             <div className="font-headline m-0" style={{ fontSize: 30 }}>
               {s.value}
             </div>
-            <div className="font-pixel" style={{ fontSize: 11 }}>
+            <div className="font-body text-muted" style={{ fontSize: 11 }}>
               {s.label}
             </div>
           </NeoCard>
@@ -239,7 +176,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ===== Tab Bar ===== */}
-      <div className="flex gap-0 mb-6">
+      <div className="inline-flex gap-[3px] mb-6 rounded-[11px] bg-selected p-1">
         {TABS.map((t) => {
           const isActive = t.id === tab;
           return (
@@ -248,14 +185,13 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setTab(t.id)}
               className={`
-                font-sub cursor-pointer neo-border
+                font-sub cursor-pointer border-0 rounded-lg
                 px-5 py-2.5 text-sm
                 ${isActive
-                  ? "bg-ink text-white"
-                  : "bg-bg text-ink neo-shadow-sm"
+                  ? "bg-white text-heading shadow-sm font-semibold"
+                  : "bg-transparent text-muted"
                 }
               `}
-              style={{ borderRadius: 0 }}
             >
               {t.label}
             </button>
@@ -283,9 +219,6 @@ export default function SettingsPage() {
 
             <div className="mb-3">
               <div className="mb-1.5 flex items-center">
-                <span className="font-pixel bg-ink text-secondary mr-2" style={{ fontSize: 9, padding: "2px 6px" }}>
-                  TEXT
-                </span>
                 <span className="font-sub" style={{ fontSize: 13 }}>닉네임</span>
               </div>
               <input
@@ -319,57 +252,24 @@ export default function SettingsPage() {
             </NeoButton>
           </NeoCard>
 
-          {/* Notifications + Withdraw Card */}
+          {/* Account Actions Card */}
           <NeoCard pad={24} shadow={8} className="flex flex-col">
             <h3 className="font-headline m-0 mb-4" style={{ fontSize: 18 }}>
-              알림
+              계정 관리
             </h3>
-
-            <div className="flex flex-col gap-2.5">
-              {NOTIF_ITEMS.map((item) => {
-                const checked = getNotifChecked(item.key);
-                const disabled = item.api && togglingNotif;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => !disabled && handleNotifToggle(item.key)}
-                    className={`
-                      neo-border neo-shadow-sm flex items-center gap-3 cursor-pointer w-full text-left
-                      ${checked ? "bg-accent" : "bg-bg"}
-                      ${disabled ? "opacity-60 pointer-events-none" : ""}
-                    `}
-                    style={{ borderRadius: 7, padding: "10px 11px" }}
-                    disabled={disabled}
-                  >
-                    {/* knob */}
-                    <div
-                      className={checked ? "neo-border" : ""}
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 4,
-                        background: checked ? "var(--color-ink)" : "#fff",
-                        border: checked ? undefined : "3px solid var(--color-ink)",
-                        flexShrink: 0,
-                      }}
-                    />
-                    {/* label */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-sub" style={{ fontSize: 13 }}>{item.name}</div>
-                      <div className="font-body" style={{ fontSize: 11, color: "#555" }}>{item.desc}</div>
-                    </div>
-                    {/* ON/OFF */}
-                    <span className="font-pixel shrink-0" style={{ fontSize: 11 }}>
-                      {checked ? "ON" : "OFF"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* spacer + divider */}
-            <div className="mt-auto pt-5" style={{ borderTop: "3px solid var(--color-ink)" }}>
+            <p className="font-body text-muted m-0 mb-5" style={{ fontSize: 13 }}>
+              로그아웃하거나 계정을 영구 삭제할 수 있습니다.
+            </p>
+            <div className="mt-auto flex flex-col gap-2">
+              <NeoButton
+                bg="var(--color-bg)"
+                color="var(--color-ink)"
+                size="md"
+                block
+                onClick={handleLogout}
+              >
+                로그아웃
+              </NeoButton>
               <NeoButton
                 bg="var(--color-primary)"
                 color="#fff"
@@ -405,13 +305,13 @@ export default function SettingsPage() {
                   key={t.id}
                   type="button"
                   onClick={() => setTheme(t.id as Theme)}
-                  className={`neo-border text-left cursor-pointer ${isActive ? "neo-shadow-md" : "neo-shadow-sm"}`}
+                  className="text-left cursor-pointer rounded-[12px] border border-border"
                   style={{
                     padding: 12,
                     background: swatches.bg,
-                    borderWidth: isActive ? 4 : 3,
+                    borderColor: isActive ? "var(--color-secondary)" : "var(--color-border)",
                     outline: "none",
-                    borderRadius: 0,
+                    borderRadius: 12,
                   }}
                 >
                   {/* 미니 스와치 */}
@@ -419,17 +319,17 @@ export default function SettingsPage() {
                     {swatches.dots.map((color, i) => (
                       <div
                         key={i}
-                        className="neo-border"
-                        style={{ width: 16, height: 16, background: color, borderWidth: 2 }}
+                        className="rounded-full border border-black/10"
+                        style={{ width: 16, height: 16, background: color }}
                       />
                     ))}
                   </div>
-                  <div className="font-pixel" style={{ fontSize: 10, color: swatches.ink }}>
+                  <div className="font-body font-semibold" style={{ fontSize: 11, color: swatches.ink }}>
                     {t.label}
                   </div>
                   {isActive && (
-                    <div className="font-pixel mt-1" style={{ fontSize: 9, color: swatches.ink, opacity: 0.6 }}>
-                      ▶ 적용중
+                    <div className="font-body mt-1" style={{ fontSize: 9, color: swatches.ink, opacity: 0.6 }}>
+                      적용 중
                     </div>
                   )}
                 </button>
@@ -452,7 +352,7 @@ export default function SettingsPage() {
       {showWithdrawModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.5)" }}
+          style={{ background: "rgba(48,44,58,.38)", backdropFilter: "blur(4px)" }}
           onClick={() => !withdrawing && setShowWithdrawModal(false)}
         >
           <div onClick={(e) => e.stopPropagation()}>
@@ -460,7 +360,7 @@ export default function SettingsPage() {
               <h3 className="font-headline text-center m-0 mb-3" style={{ fontSize: 20 }}>
                 정말 탈퇴하시겠어요?
               </h3>
-              <p className="font-body text-center m-0 mb-6" style={{ fontSize: 13, color: "#555" }}>
+              <p className="font-body text-center m-0 mb-6 text-muted" style={{ fontSize: 13 }}>
                 탈퇴 시 모든 사이트와 데이터가 삭제됩니다.
               </p>
               <div className="flex gap-2.5 justify-center">

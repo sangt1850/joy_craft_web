@@ -85,7 +85,7 @@ export default function KakaoCallbackPage() {
   if (step === "loading") {
     return (
       <div className="flex items-center justify-center h-screen bg-bg">
-        <div className="font-pixel text-[12px] text-ink animate-pulse">카카오 로그인 중...</div>
+        <div className="font-body text-[13px] text-muted animate-pulse">카카오 로그인 중…</div>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function KakaoCallbackPage() {
         <div style={{ width: 360 }}>
           {/* 헤더 */}
           <div className="bg-ink px-6 py-4 flex items-center gap-2">
-            <span className="font-pixel text-[11px] text-bg">JoyCraft에 오신 걸 환영해요!</span>
+            <span className="font-body text-[13px] font-semibold text-heading">JoyCraft에 오신 걸 환영해요!</span>
           </div>
 
           {/* 본문 */}

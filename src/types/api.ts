@@ -30,8 +30,6 @@ export interface SiteListResponse {
 export interface SiteStatsResponse {
   totalSites: number;
   publishedSites: number;
-  totalHearts: number;
-  trialDaysLeft: number;
 }
 
 /**
@@ -140,8 +138,6 @@ export interface PlatformStatsResponse {
   totalSites: number;
   todaySignups: number;
   todaySites: number;
-  proSubscribers: number;
-  monthlyRevenue: string;
 }
 
 export interface KakaoAuthResponse {

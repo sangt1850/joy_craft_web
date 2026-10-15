@@ -6,6 +6,7 @@ interface SiteState {
   sites: SiteListResponse[];
   stats: SiteStatsResponse | null;
   isLoading: boolean;
+  error: boolean;
   loadSites: () => Promise<void>;
   loadStats: () => Promise<void>;
   setSites: (sites: SiteListResponse[]) => void;
@@ -15,14 +16,15 @@ export const useSiteStore = create<SiteState>()((set) => ({
   sites: [],
   stats: null,
   isLoading: false,
+  error: false,
 
   loadSites: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: false });
     try {
       const sites = await fetchMySites();
       set({ sites, isLoading: false });
     } catch {
-      set({ isLoading: false });
+      set({ isLoading: false, error: true });
     }
   },
 
@@ -31,7 +33,7 @@ export const useSiteStore = create<SiteState>()((set) => ({
       const stats = await fetchMyStats();
       set({ stats });
     } catch {
-      // ignore
+      // 통계는 보조 정보이므로 에러 무시
     }
   },
 
