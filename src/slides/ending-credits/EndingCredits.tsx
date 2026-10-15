@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { SlideProps } from '../SlideProps';
 import './EndingCredits.css';
 
@@ -103,6 +103,7 @@ function Movie({ url, sound }: {
     setError(''); setStarted(false);
     if (source.kind !== 'youtube' || !host.current) return;
     let disposed = false;
+    let coverTimer: ReturnType<typeof setTimeout> | undefined;
     const root = host.current;
     const mount = document.createElement('div');
     root.appendChild(mount);
@@ -131,15 +132,14 @@ function Movie({ url, sound }: {
             if (disposed) return;
             if (sound) player.current?.unMute();
             player.current?.playVideo();
+            coverTimer = setTimeout(() => { if (!disposed) setStarted(true); }, 1000);
           },
-          onStateChange: (e) => {
-            if (!disposed && e.data === 1) setStarted(true);
-          },
+          onStateChange: () => { /* handled via onReady timer */ },
           onError: () => { if (!disposed) setError('영상을 불러올 수 없습니다.'); },
         },
       });
     }).catch(() => { if (!disposed) setError('YouTube에 연결하지 못했습니다.'); });
-    return () => { disposed = true; player.current?.destroy(); player.current = null; root.replaceChildren(); };
+    return () => { disposed = true; clearTimeout(coverTimer); player.current?.destroy(); player.current = null; root.replaceChildren(); };
   }, [source, sound]);
 
   useEffect(() => {
@@ -149,11 +149,31 @@ function Movie({ url, sound }: {
     void element.play().catch(() => setError('영상 안의 재생 버튼을 눌러 주세요.'));
   }, [source, sound]);
 
+  // source가 바뀌면 host를 즉시 invisible로 (paint 전에)
+  useLayoutEffect(() => {
+    if (host.current) host.current.style.opacity = '0';
+  }, [source]);
+
+  // started=true가 되면 CSS transition 대신 rAF로 직접 fade-in
+  useEffect(() => {
+    if (!started || !host.current) return;
+    const el = host.current;
+    const DURATION = 1800;
+    const t0 = performance.now();
+    let frame: number;
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / DURATION, 1);
+      el.style.opacity = String(p);
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [started]);
+
   return <div className="ec-media-frame">
     {source.kind === 'youtube' && <>
       <div ref={host} className="ec-youtube" />
-      <div className="ec-youtube-overlay" />
-      <div className={`ec-youtube-cover${started ? ' ec-youtube-cover--hidden' : ''}`} />
+      {started && <div className="ec-youtube-overlay" />}
     </>}
     {source.kind === 'image' && <img src={source.value} alt=""
       className="ec-media-img"
@@ -259,7 +279,7 @@ export default function EndingCredits({ data, onComplete, isPreview }: SlideProp
           <footer className="ec-ending">
             <span className="ec-rule" />
             <p>{data.endMessage}</p>
-            <span className="ec-the-end">THE END</span>
+            {/*<span className="ec-the-end">THE END</span>*/}
           </footer>
         </div>
       </div>

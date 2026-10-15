@@ -33,13 +33,13 @@ export const schema: SlideSchema = {
       key: "mode",
       label: "표시 방식",
       type: "select",
-      default: "text",
+      default: "video",
       options: [
         { label: "텍스트 크레딧", value: "text" },
         { label: "영상 + 크레딧", value: "video" },
       ],
     },
-    { key: "videoUrl", label: "사진 또는 영상 URL (영상 모드)", type: "text", default: "", hint: "YouTube 링크 · MP4/WebM 파일 URL · JPG/PNG/WebP 이미지 URL" },
+    { key: "videoUrl", label: "사진 또는 영상 URL (영상 모드)", type: "text", default: "https://www.youtube.com/watch?v=WbCJQHN4RLY", hint: "YouTube 링크 · MP4/WebM 파일 URL · JPG/PNG/WebP 이미지 URL" },
     { key: "speed", label: "스크롤 속도 (px/초)", type: "number", default: 28, min: 10, max: 80, step: 1 },
   ],
 };
