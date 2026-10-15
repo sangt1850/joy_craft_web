@@ -18,12 +18,12 @@ export default function DashedButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full py-[9px] border-[3px] border-dashed border-black/35 bg-transparent
-        font-sub text-[12px] text-[#555] cursor-pointer rounded-md
+      className={`w-full h-[38px] border border-dashed border-border-control bg-transparent
+        font-sub text-[13px] font-semibold text-muted cursor-pointer rounded-[10px]
         flex items-center justify-center gap-1.5
-        hover:border-black/60 hover:text-ink transition-colors ${className}`}
+        hover:bg-info hover:border-primary hover:text-primary transition-colors ${className}`}
     >
-      <PixelIcon name={icon} size={12} fill="#555" />
+      <PixelIcon name={icon} size={12} fill="currentColor" />
       {children}
     </button>
   );

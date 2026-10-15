@@ -18,7 +18,7 @@ export default function ToggleSwitch({
   return (
     <label
       className={cn(
-        "flex items-center justify-between cursor-pointer font-sub text-[13px] text-ink",
+        "flex items-center justify-between cursor-pointer font-sub text-[10px] text-[#8b7f93]",
         className
       )}
     >
@@ -29,14 +29,14 @@ export default function ToggleSwitch({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(
-          "w-10 h-[22px] border-2 border-ink rounded-[11px] cursor-pointer relative transition-colors",
-          checked ? "bg-ink" : "bg-black/15"
+          "w-10 h-[22px] border border-border-control rounded-[11px] cursor-pointer relative transition-colors",
+          checked ? "bg-secondary" : "bg-selected"
         )}
       >
         <div
           className={cn(
-            "absolute top-0.5 w-[14px] h-[14px] border border-ink rounded-full transition-[left]",
-            checked ? "bg-secondary" : "bg-[#888]"
+            "absolute top-[3px] w-[14px] h-[14px] rounded-full transition-[left]",
+            checked ? "bg-white" : "bg-muted"
           )}
           style={{ left: checked ? 18 : 2 }}
         />

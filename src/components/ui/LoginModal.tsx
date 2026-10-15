@@ -31,20 +31,21 @@ export default function LoginModal({ onClose }: LoginModalProps) {
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{ background: "rgba(17,17,17,0.55)" }}
+      style={{ background: "rgba(48,44,58,0.38)", backdropFilter: "blur(4px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <NeoCard bg="var(--color-bg)" pad={0} shadow={8} border={4}>
+      <NeoCard bg="var(--color-surface)" pad={0} shadow={0} border={1} radius={16} className="shadow-[0_20px_60px_rgba(57,40,66,.16)]">
         <div className="w-[360px] max-w-full">
           {/* 헤더 */}
-          <div className="bg-ink px-6 py-4 flex items-center justify-between">
+          <div className="border-b border-border px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src={logoSvg} width={16} height={14} alt="" />
-              <span className="font-pixel text-[11px] text-bg">JoyCraft 시작하기</span>
+              <span className="font-body text-[13px] font-semibold text-heading">JoyCraft 시작하기</span>
             </div>
             <button
               onClick={onClose}
-              className="font-pixel text-[13px] text-bg leading-none"
+              aria-label="닫기"
+              className="font-body text-[16px] text-muted leading-none rounded-md hover:bg-subtle"
               style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}
             >
               ✕
@@ -54,16 +55,15 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           {/* 본문 */}
           <div className="px-6 py-8 flex flex-col items-center gap-6">
             <div className="text-center">
-              <p className="font-headline text-[20px] text-ink m-0 mb-2">환영합니다! 👋</p>
-              <p className="font-body text-[13px] m-0" style={{ color: "#666" }}>
+              <p className="font-headline text-[20px] text-heading m-0 mb-2">환영합니다</p>
+              <p className="font-body text-[13px] m-0 text-muted">
                 카카오 계정으로 간편하게 시작하세요
               </p>
             </div>
 
             {error && (
               <div
-                className="w-full font-body text-[12px] px-3 py-2 neo-border text-center"
-                style={{ background: "var(--color-surface)", color: "#111" }}
+                className="w-full font-body text-[12px] px-3 py-2 rounded-lg border border-[#e7cbd1] bg-[#fbf2f4] text-center text-danger"
               >
                 {error}
               </div>
@@ -77,8 +77,9 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                 width: "100%",
                 height: 48,
                 background: "#FEE500",
-                border: "3px solid #111",
-                boxShadow: "4px 4px 0 #111",
+                border: "1px solid #E5CD00",
+                borderRadius: 9,
+                boxShadow: "none",
                 cursor: loading ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -99,7 +100,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
               </span>
             </button>
 
-            <p className="font-body text-[11px] text-center m-0" style={{ color: "#999" }}>
+            <p className="font-body text-[11px] text-center m-0 text-muted">
               로그인 시 서비스 이용약관에 동의한 것으로 간주됩니다.
             </p>
           </div>

@@ -16,19 +16,17 @@ export default function StatCard({
   label,
   value,
   icon,
-  bg = "bg-info",
-  iconFill = "#111",
+  iconFill = "var(--color-secondary)",
 }: StatCardProps) {
   return (
     <div
-      className={`neo-border p-5 ${bg}`}
-      style={{ boxShadow: "var(--shadow-md)" }}
+      className="rounded-[13px] border border-border bg-surface p-5"
     >
       <div className="flex items-center justify-between mb-3">
         <PixelIcon name={icon} size={18} fill={iconFill} />
-        <span className="font-pixel text-[18px] text-ink">{value}</span>
+        <span className="font-body text-[24px] font-semibold tracking-[-.04em] text-heading tabular-nums">{value}</span>
       </div>
-      <div className="font-sub text-[13px] text-ink">{label}</div>
+      <div className="font-body text-[12px] text-muted">{label}</div>
     </div>
   );
 }

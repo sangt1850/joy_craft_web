@@ -11,6 +11,8 @@ interface TemplateCardProps {
   bg?: string;            // Tailwind 클래스 (e.g. "bg-surface")
   subLabel?: string;      // 부가 텍스트 (e.g. "3페이지 · 인터랙티브")
   thumbHeight?: number;
+  /** hover 전 정적 첫 프레임 이미지 */
+  thumbnailUrl?: string | null;
   onUse?: (id: string | number) => void;
   onPreview?: (id: string | number) => void;
   showButton?: boolean;
@@ -26,6 +28,7 @@ export default function TemplateCard({
   bg = "bg-bg",
   subLabel,
   thumbHeight = 130,
+  thumbnailUrl,
   onUse,
   onPreview,
   showButton = true,
@@ -36,8 +39,7 @@ export default function TemplateCard({
 
   return (
     <div
-      className={`neo-border overflow-hidden neo-card-lift ${bg}`}
-      style={{ "--neo-shadow": "5px" } as React.CSSProperties}
+      className="overflow-hidden rounded-[14px] border border-border bg-surface transition-shadow hover:shadow-md"
     >
       {/* 썸네일 */}
       {enableLiveThumb ? (
@@ -46,12 +48,13 @@ export default function TemplateCard({
           viewport={liveThumbViewport}
           emoji={emoji}
           bg={bg}
+          thumbnailUrl={thumbnailUrl}
           isPro={isPro}
           onPreview={onPreview ? () => onPreview(id) : undefined}
         />
       ) : (
         <div
-          className="bg-black/[0.08] flex items-center justify-center text-[48px] relative group"
+          className={`flex items-center justify-center text-[48px] relative group ${bg}`}
           style={{ height: thumbHeight }}
         >
           {emoji}
@@ -66,8 +69,8 @@ export default function TemplateCard({
               style={{ background: "rgba(17,17,17,0.55)" }}
             >
               <span
-                className="font-sub text-bg neo-border px-3 py-1.5"
-                style={{ fontSize: 12, background: "#111", boxShadow: "3px 3px 0 #555" }}
+                className="font-sub text-white rounded-lg px-3 py-1.5"
+                style={{ fontSize: 12, background: "var(--color-primary)" }}
               >
                 미리보기
               </span>
@@ -81,7 +84,7 @@ export default function TemplateCard({
         <div className="font-headline text-[14px] leading-tight mb-1">{title}</div>
 
         {subLabel && (
-          <div className="font-body text-[12px] text-[#333] mb-3">{subLabel}</div>
+          <div className="font-body text-[12px] text-muted mb-3">{subLabel}</div>
         )}
 
         {showButton && (
@@ -99,8 +102,8 @@ export default function TemplateCard({
               </NeoButton>
             )}
             <NeoButton
-              bg={isPro ? "var(--color-secondary)" : "#111"}
-              color={isPro ? "#111" : "#FFF7E6"}
+              bg={isPro ? "var(--color-secondary)" : "var(--color-primary)"}
+              color="#fff"
               size="sm"
               shadow={3}
               block

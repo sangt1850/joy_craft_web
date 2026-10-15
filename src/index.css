@@ -4,17 +4,6 @@
    Local Fonts
    ════════════════════════════════════════════════ */
 
-/* 둥근모꼴 — 픽셀 폰트 */
-@font-face {
-  font-family: "DungGeunMo";
-  /* woff2만 쓴다. ttf(7.3MB) 폴백은 실제로 내려받히지 않으면서 배포물만 키운다 —
-     woff2는 2016년 이후 모든 대상 브라우저가 지원한다. */
-  src: url("./assets/fonts/DungGeunMo.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* G마켓 산스 — 한글 폴백 폰트 (Light / Medium / Bold 3종) */
 @font-face {
   font-family: "Gmarket Sans";
@@ -41,24 +30,24 @@
    ════════════════════════════════════════════════ */
 :root {
   /* 메인 */
-  --palette-bg:       #fff7e6;  /* 크림 — 기본 페이지 배경 */
-  --palette-surface:  #FBE3CB;  /* 베이지 — 카드/패널 */
-  --palette-ink:      #111111;  /* 잉크 블랙 — 외곽선/텍스트 */
+  --palette-bg:       #F4EFE4;  /* 크림 화이트 — 기본 페이지 배경 */
+  --palette-surface:  #FFFCF6;  /* 따뜻한 표면 */
+  --palette-ink:      #2B2B27;  /* 차콜 — 본문/헤드라인 */
 
   /* 브랜드 */
-  --palette-primary:   #EE5B61;  /* 레드 — 주요 버튼, FAB */
-  --palette-secondary: #EFC65D;  /* 골드 — CTA, 배지, 별 */
-  --palette-accent:    #67BDB0;  /* 틸 — 보조 강조, 타이틀바 */
+  --palette-primary:   #1F4B48;  /* 딥 틸 — 로고·아이콘·주요 액션 */
+  --palette-secondary: #C9A876;  /* 샌드 베이지 — 보조 포인트 */
+  --palette-accent:    #B5714A;  /* 테라코타 — 배지·따뜻한 포인트 */
 
   /* 상태 */
-  --palette-info:     #829FEF;  /* 블루 — 정보, 통계 */
-  --palette-success:  #92D07A;  /* 그린 — 성공, 완료 */
-  --palette-warning:  #EE7F2D;  /* 오렌지 — 경고 */
-  --palette-danger:   #EE5B61;  /* 레드 — 삭제, 위험 */
+  --palette-info:     #D8E4DF;  /* 틸 안개 — 정보, 통계 */
+  --palette-success:  #6E9275;  /* 세이지 — 성공, 완료 */
+  --palette-warning:  #C9A876;  /* 샌드 — 경고 */
+  --palette-danger:   #A65E48;  /* 테라코타 딥 — 삭제, 위험 */
 
   /* 기타 */
-  --palette-pink:     #FF81B0;  /* 핑크 — 슬라이더 등 */
-  --palette-lavender: #D1E1FB;  /* 라벤더 — 보조 배경 */
+  --palette-pink:     #C88D72;  /* 웜 포인트 */
+  --palette-lavender: #E8DED0;  /* 샌드 안개 — 보조 배경 */
 }
 
 /* ════════════════════════════════════════════════
@@ -82,6 +71,14 @@
   --color-success:   var(--palette-success);   /* 성공, 완료 */
   --color-warning:   var(--palette-warning);   /* 경고 */
   --color-danger:    var(--palette-danger);    /* 삭제, 위험, 취소 */
+
+  /* ── UI 보조 ── */
+  --color-border:    #E3DCCB;  /* 패널·카드 테두리 */
+  --color-subtle:    #EAE3D3;  /* hover 배경, 토글 배경 */
+  --color-field:     #FAF6EC;  /* 입력 필드 배경 */
+  --color-muted:     #8C8577;  /* 보조 텍스트 */
+  --color-heading:   #2B2B27;  /* 강조 텍스트 */
+  --color-selected:  #E7EDEB;  /* 선택 항목 배경 */
 
   /* 폰트 */
   /* 영문 → 각 라틴 폰트, 한글 → G마켓 산스 자동 폴백 */
@@ -114,6 +111,12 @@
   --color-success:   #b8e0a8;
   --color-warning:   #f5c490;
   --color-danger:    #f4a0a4;
+  --color-border:    #d4c8e8;
+  --color-subtle:    #dde8f8;
+  --color-field:     #f0f4ff;
+  --color-muted:     #8878a0;
+  --color-heading:   #5a3a37;
+  --color-selected:  #d8f0e8;
 }
 
 /* Dark — 다크 모드 */
@@ -128,6 +131,12 @@
   --color-success:   #5a9e48;
   --color-warning:   #c96820;
   --color-danger:    #c93d42;
+  --color-border:    #3a3520;
+  --color-subtle:    #2e2920;
+  --color-field:     #222030;
+  --color-muted:     #8a8070;
+  --color-heading:   #f0e8e8;
+  --color-selected:  #1a2a28;
 }
 
 /* Mono — 흑백 */
@@ -142,6 +151,12 @@
   --color-success:   #a0a0a0;
   --color-warning:   #909090;
   --color-danger:    #888888;
+  --color-border:    #cccccc;
+  --color-subtle:    #e0e0e0;
+  --color-field:     #f0f0f0;
+  --color-muted:     #888888;
+  --color-heading:   #1a1a1a;
+  --color-selected:  #d8d8d8;
 }
 
 /* ════════════════════════════════════════════════
@@ -219,6 +234,149 @@
   box-sizing: border-box;
 }
 
+/* ════════════════════════════════════════════════
+   에디터 전용 컴포넌트 클래스
+   ════════════════════════════════════════════════ */
+
+/* 에디터 입력 필드 — 소프트 스타일 (neo-input 대신 에디터 패널 내에서 사용) */
+.jc-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-field);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.12s, background 0.12s;
+}
+.jc-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+.jc-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+textarea.jc-input {
+  height: auto;
+  padding: 9px 11px;
+  resize: vertical;
+  line-height: 1.5;
+}
+select.jc-input {
+  cursor: pointer;
+}
+
+/* 에디터 헤더 아웃라인 버튼 */
+.jc-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--color-ink);
+  transition: background 0.1s, border-color 0.1s;
+}
+.jc-btn-outline:hover:not(:disabled) {
+  background: var(--color-subtle);
+  border-color: var(--color-secondary);
+}
+.jc-btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 에디터 헤더 프라이머리 버튼 */
+.jc-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 15px;
+  border: none;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.jc-btn-primary:hover:not(:disabled) {
+  filter: brightness(0.88);
+}
+.jc-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 에디터 아이콘 버튼 (배열 항목 순서 이동 등) */
+.jc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+.jc-icon-btn:hover:not(:disabled) {
+  background: var(--color-subtle);
+  color: var(--color-heading);
+}
+.jc-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 에디터 삭제 버튼 */
+.jc-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-family: var(--font-sub);
+  font-size: 12.5px;
+  color: var(--color-danger);
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.1s, border-color 0.1s;
+}
+.jc-delete-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
+/* 에디터 미리보기 스테이지 — 점선 그리드 */
+.jc-editor__stage {
+  background-color: var(--color-bg);
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 /* Range 슬라이더 — Neo Brutalism 스타일 (Swishy 패턴) */
 @utility neo-range {
   -webkit-appearance: none;
@@ -278,6 +436,14 @@
   box-shadow: calc(var(--_s) - 2px) calc(var(--_s) - 2px) 0 var(--_c);
 }
 
+/* 썸네일 첫 프레임 정지 — 슬라이드 컨테이너에 붙이면 모든 자식의 CSS 애니메이션을 paused 상태로 고정.
+   !important로 인라인 animation 단축 속성(animation-play-state:running)을 덮는다. */
+.jc-thumb-paused *,
+.jc-thumb-paused *::before,
+.jc-thumb-paused *::after {
+  animation-play-state: paused !important;
+}
+
 /* ════════════════════════════════════════════════
    .neo-card-lift — useState 없는 순수 CSS lift 효과
    ════════════════════════════════════════════════ */
@@ -327,4 +493,185 @@
   60%  { width: 80%; }
   80%  { width: 85%; }
   100% { width: 0%; }
+}
+
+/* JoyCraft UI v2 ----------------------------------------------------------
+   Reference: JoyCraft-editor-design-guide. The old semantic token names stay
+   available during the component migration, but now resolve to the new system. */
+:root {
+  --color-bg: #F4EFE4;
+  --color-surface: #FFFCF6;
+  --color-ink: #2B2B27;
+  --color-heading: #2B2B27;
+  --color-muted: #756F65;
+  --color-subtle: #EEE7DA;
+  --color-selected: #E4D7C0;
+  --color-border: #DED4C4;
+  --color-border-control: #D4C8B6;
+  --color-primary: #1F4B48;
+  --color-secondary: #C9A876;
+  --color-accent: #B5714A;
+  --color-info: #D8E4DF;
+  --color-success: #6E9275;
+  --color-warning: #C9A876;
+  --color-danger: #A65E48;
+  --color-cream: var(--color-bg);
+  --color-mustard: var(--color-selected);
+  --color-pink: var(--color-primary);
+  --color-mint: var(--color-subtle);
+  --color-blue: var(--color-subtle);
+  --color-peach: var(--color-selected);
+  --font-headline: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-sub: var(--font-headline);
+  --font-body: var(--font-headline);
+  --font-pixel: var(--font-headline);
+  --shadow-sm: 0 1px 3px rgb(57 40 66 / 7%);
+  --shadow-md: 0 8px 24px rgb(57 40 66 / 9%);
+  --shadow-lg: 0 20px 48px rgb(57 40 66 / 14%);
+}
+
+[data-theme="pastel"] {
+  --color-bg: #faf7fc;
+  --color-surface: #ffffff;
+  --color-ink: #3b3142;
+  --color-heading: #57465f;
+  --color-muted: #8d8095;
+  --color-subtle: #f7eff8;
+  --color-selected: #eee5f2;
+  --color-border: #eadfec;
+  --color-border-control: #e4d8e7;
+  --color-primary: #765d82;
+  --color-secondary: #9b7ca7;
+}
+
+[data-theme="dark"] {
+  --color-bg: #211d25;
+  --color-surface: #2b2630;
+  --color-ink: #f3eef5;
+  --color-heading: #f8f4fa;
+  --color-muted: #b6abbc;
+  --color-subtle: #342e39;
+  --color-selected: #44394b;
+  --color-border: #443d48;
+  --color-border-control: #554b5b;
+  --color-primary: #a993b4;
+  --color-secondary: #c0a8cb;
+}
+
+[data-theme="mono"] {
+  --color-bg: #f7f7f7;
+  --color-surface: #fff;
+  --color-ink: #292929;
+  --color-heading: #171717;
+  --color-muted: #747474;
+  --color-subtle: #f0f0f0;
+  --color-selected: #e6e6e6;
+  --color-border: #dedede;
+  --color-border-control: #d2d2d2;
+  --color-primary: #353535;
+  --color-secondary: #666;
+}
+
+@theme inline {
+  --color-heading: var(--color-heading);
+  --color-muted: var(--color-muted);
+  --color-subtle: var(--color-subtle);
+  --color-selected: var(--color-selected);
+  --color-border: var(--color-border);
+  --color-border-control: var(--color-border-control);
+}
+
+@layer base {
+  html { background: var(--color-bg); }
+  body {
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background: var(--color-bg);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { color: var(--color-heading); font-weight: 650; }
+  button, input, textarea, select { font: inherit; }
+  button:focus-visible, a:focus-visible, input:focus-visible,
+  textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #847099;
+    outline-offset: 3px;
+  }
+  ::selection { background: var(--color-selected); color: var(--color-ink); }
+}
+
+.jc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border-control);
+  box-shadow: none;
+  font-weight: 600;
+  line-height: 1;
+  transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+.jc-button:not(:disabled):hover { filter: brightness(.97); }
+.jc-button:not(:disabled):active { filter: brightness(.94); }
+.jc-button:disabled { cursor: not-allowed; opacity: .5; }
+.jc-search {
+  min-height: 40px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+.jc-search:focus-within { border-color: #847099; box-shadow: 0 0 0 3px rgb(132 112 153 / 12%); }
+
+.jc-editor__stage {
+  background-color: var(--color-bg);
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Editor accessibility density: every editor control is readable at 14px+. */
+.jc-editor__toolbar,
+.jc-editor__tabs,
+.jc-editor__pages,
+.jc-editor__panel,
+.jc-editor__modal {
+  font-size: 14px;
+}
+.jc-editor__toolbar :where(button, input, select, textarea, span, p, label),
+.jc-editor__tabs :where(button, span),
+.jc-editor__pages :where(button, span, p, div),
+.jc-editor__panel :where(button, input, select, textarea, span, p, label, option),
+.jc-editor__modal :where(button, input, select, textarea, span, p, label, option) {
+  font-size: max(14px, 1em) !important;
+}
+.jc-editor__pages svg, .jc-editor__panel svg, .jc-editor__toolbar svg { font-size: initial !important; }
+
+/* Compatibility utilities used while all pages move to the v2 primitives. */
+.neo-border, .neo-border-4 { border: 1px solid var(--color-border) !important; }
+.neo-shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.neo-shadow-md { box-shadow: var(--shadow-md) !important; }
+.neo-shadow-lg { box-shadow: var(--shadow-lg) !important; }
+.neo-btn { box-shadow: none !important; transform: none !important; }
+.neo-card-lift { box-shadow: var(--shadow-sm) !important; transform: none !important; }
+.neo-card-lift:hover { box-shadow: var(--shadow-md) !important; transform: translateY(-1px) !important; }
+.pixel-badge, .pixel-badge-muted, .pixel-badge-pro {
+  border: 1px solid var(--color-border-control);
+  border-radius: 999px;
+  box-shadow: none;
+  background: var(--color-subtle);
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.pixel-badge-pro { background: var(--color-selected); }
+.neo-input {
+  border: 1px solid var(--color-border-control);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+.neo-input:focus { border-color: #847099; box-shadow: 0 0 0 3px rgb(132 112 153 / 12%); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
