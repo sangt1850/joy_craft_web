@@ -8,15 +8,13 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "../../utils/cn";
-import NeoButton from "../../components/ui/NeoButton";
-import NeoCard from "../../components/ui/NeoCard";
-import PixelIcon from "../../components/ui/PixelIcon";
 import DashedButton from "../../components/ui/DashedButton";
 import SlideCanvas from "../../components/player/SlideCanvas";
 import SlideList from "../../components/editor/SlideList";
 import SlideFieldsPanel from "../../components/editor/SlideFieldsPanel";
 import TemplatePickerModal from "../../components/editor/TemplatePickerModal";
 import { useEditorStore, UnsavedChangesError } from "../../store/editorStore";
+import { useToastStore } from "../../store/toastStore";
 import { createSite } from "../../api/sites";
 import { publishSite } from "../../api/editor";
 import { resolveAssetRefsDeep } from "../../api/assets";
@@ -41,8 +39,12 @@ const STAGE = {
   desktop: { width: 720, height: 460 },
 } as const;
 
-/** 모바일 프리뷰 상단 노치 바 높이(px) — 스케일 계산 시 스테이지 높이에 더해준다 */
+/** 모바일 케이스 패딩(px) — 참고 디자인 기준 */
+const MOBILE_CASE_PAD = 9;
+/** 모바일 프리뷰 상단 노치 바 높이(px) */
 const NOTCH_HEIGHT = 28;
+/** 데스크탑 브라우저 크롬 바 높이(px) */
+const DESKTOP_BAR_HEIGHT = 34;
 
 /**
  * 미리보기 영역이 남는 공간을 꽉 채우면서도 절대 잘리지 않도록,
@@ -73,6 +75,7 @@ function useFitScale(designWidth: number, designHeight: number) {
 export default function SiteEditorPage() {
   const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
 
   const {
     site,
@@ -102,8 +105,13 @@ export default function SiteEditorPage() {
   const [previewNonce, setPreviewNonce] = useState(0);
 
   const stageSize = STAGE[device];
-  const designWidth = stageSize.width;
-  const designHeight = stageSize.height + (device === "mobile" ? NOTCH_HEIGHT : 0);
+  // 모바일: 케이스 패딩(양쪽) + 노치 바 포함, 데스크탑: 브라우저 크롬 바 포함
+  const designWidth = device === "mobile"
+    ? stageSize.width + MOBILE_CASE_PAD * 2
+    : stageSize.width;
+  const designHeight = device === "mobile"
+    ? NOTCH_HEIGHT + stageSize.height + MOBILE_CASE_PAD * 2
+    : DESKTOP_BAR_HEIGHT + stageSize.height;
   const { containerRef: previewAreaRef, scale } = useFitScale(designWidth, designHeight);
 
   useEffect(() => {
@@ -120,6 +128,17 @@ export default function SiteEditorPage() {
 
   // 에디터를 떠날 때 예약된 저장 타이머를 정리한다
   useEffect(() => reset, [reset]);
+
+  // 미저장 상태에서 브라우저 닫기/새로고침 방지
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (useEditorStore.getState().isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
 
   const slides = site?.slides ?? [];
   const selectedSlide = slides.find((s) => s.id === selectedSlideId);
@@ -186,15 +205,15 @@ export default function SiteEditorPage() {
     try {
       const saved = await flush();
       if (!saved) {
-        alert("저장하지 못한 변경이 있어 발행하지 않았습니다.\n잠시 후 다시 시도해 주세요.");
+        addToast("저장하지 못한 변경이 있어 발행하지 않았습니다. 잠시 후 다시 시도해 주세요.", { variant: "error" });
         return;
       }
       const result = await publishSite(current.id);
       const link = window.location.origin + result.url;
       await navigator.clipboard.writeText(link).catch(() => {});
-      alert(`링크가 복사되었습니다!\n${link}`);
+      addToast("링크가 클립보드에 복사되었습니다!", { variant: "success" });
     } catch {
-      alert("게시에 실패했습니다.");
+      addToast("게시에 실패했습니다. 잠시 후 다시 시도해 주세요.", { variant: "error" });
     } finally {
       setIsPublishing(false);
     }
@@ -221,110 +240,143 @@ export default function SiteEditorPage() {
         : "✓ 저장됨";
 
   return (
-    <div className="flex flex-col h-dvh bg-[#F5F0E8] overflow-hidden">
+    <div className="flex flex-col h-dvh bg-bg overflow-hidden text-ink">
       {/* ── 상단 헤더 ── */}
-      <header className="flex items-center justify-between px-4 h-14 bg-bg border-b-[3px] border-ink shrink-0 gap-3">
+      <header className="flex items-center px-3 md:px-[14px] h-[60px] md:h-[56px] bg-surface border-b border-border shrink-0 gap-3">
+        {/* 뒤로 */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (useEditorStore.getState().isDirty && !window.confirm("저장하지 않은 변경이 있습니다. 나갈까요?")) return;
+            navigate(-1);
+          }}
           aria-label="뒤로"
-          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer px-2 py-1 shrink-0"
+          className="grid size-8 place-items-center bg-transparent border-none cursor-pointer rounded-lg text-muted hover:bg-subtle shrink-0"
         >
-          <PixelIcon name="back" size={16} fill="#111" />
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" /><path d="M12 19l-7-7 7-7" />
+          </svg>
         </button>
 
-        {site ? (
-          <input
-            value={site.title}
-            onChange={(e) => updateTitle(e.target.value)}
-            aria-label="사이트 제목"
-            className="neo-input flex-1 min-w-0 font-headline text-base text-center h-9"
-          />
-        ) : (
-          <div className="flex-1 font-headline text-base text-center truncate">
-            {loadError ? "불러오지 못했습니다" : siteId === "new" ? "새 사이트" : "로딩 중..."}
-          </div>
-        )}
-
-        <div
-          className={cn(
-            "font-body text-[11px] shrink-0 hidden sm:block",
-            saveError ? "text-primary" : isDirty || isSaving ? "text-surface" : "text-accent"
+        {/* 제목 + 저장 상태 */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {site ? (
+            <div className="relative flex items-center">
+              <input
+                value={site.title}
+                onChange={(e) => updateTitle(e.target.value)}
+                aria-label="사이트 제목"
+                style={{ width: 210, height: 32, paddingLeft: 10, paddingRight: 30 }}
+                className="border border-border rounded-[8px] bg-field font-sub text-[14px] font-semibold outline-none focus:border-primary focus:bg-surface transition-colors"
+              />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-[10px] pointer-events-none text-muted">
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+              </svg>
+            </div>
+          ) : (
+            <span className="text-[14px] text-muted truncate">
+              {loadError ? "불러오지 못했습니다" : siteId === "new" ? "새 사이트" : "로딩 중..."}
+            </span>
           )}
-        >
-          {saveLabel}
+
+          <span
+            className={cn(
+              "hidden sm:inline-flex items-center gap-1 font-body text-[12px] whitespace-nowrap shrink-0",
+              saveError ? "text-danger" : isDirty || isSaving ? "text-muted" : "text-success"
+            )}
+          >
+            {!saveError && !isDirty && !isSaving && (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
+            {saveLabel}
+          </span>
         </div>
 
         {/* 디바이스 토글 (데스크탑만) */}
-        <div className="hidden md:flex neo-border shrink-0">
-          {(["mobile", "desktop"] as Device[]).map((d) => (
-            <button
-              key={d}
-              onClick={() => setDevice(d)}
-              aria-label={d === "mobile" ? "모바일 미리보기" : "데스크탑 미리보기"}
-              aria-pressed={device === d}
-              className={cn(
-                "px-3 py-[5px] border-none cursor-pointer text-base",
-                device === d ? "bg-ink" : "bg-transparent"
-              )}
-            >
-              {d === "mobile" ? "📱" : "💻"}
-            </button>
-          ))}
+        <div className="hidden md:flex rounded-[10px] bg-subtle p-[3px] gap-[2px] shrink-0">
+          <button
+            onClick={() => setDevice("mobile")}
+            aria-label="모바일 미리보기"
+            aria-pressed={device === "mobile"}
+            className={cn(
+              "inline-flex items-center gap-[6px] h-7 px-[11px] border-none rounded-[7px] font-sub text-[12.5px] font-semibold whitespace-nowrap cursor-pointer transition-colors",
+              device === "mobile" ? "bg-surface text-heading shadow-sm" : "bg-transparent text-muted"
+            )}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="6" y="2" width="12" height="20" rx="3" /><path d="M11 19h2" />
+            </svg>
+            모바일
+          </button>
+          <button
+            onClick={() => setDevice("desktop")}
+            aria-label="데스크탑 미리보기"
+            aria-pressed={device === "desktop"}
+            className={cn(
+              "inline-flex items-center gap-[6px] h-7 px-[11px] border-none rounded-[7px] font-sub text-[12.5px] font-semibold whitespace-nowrap cursor-pointer transition-colors",
+              device === "desktop" ? "bg-surface text-heading shadow-sm" : "bg-transparent text-muted"
+            )}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="13" rx="2" /><path d="M9 21h6" />
+            </svg>
+            데스크탑
+          </button>
         </div>
 
-        <div className="flex gap-2 shrink-0">
+        {/* 액션 버튼 */}
+        <div className="flex items-center gap-2 shrink-0">
           {isDirty && (
-            <NeoButton
-              bg="var(--color-bg)"
-              color="#111"
-              size="sm"
-              shadow={3}
+            <button
+              className="jc-btn-outline"
               onClick={handleDiscard}
               disabled={isSaving || isSavingManual}
             >
               취소
-            </NeoButton>
+            </button>
           )}
-          <NeoButton
-            bg={isDirty ? "var(--color-secondary)" : "var(--color-bg)"}
-            color="#111"
-            size="sm"
-            shadow={3}
-            onClick={handleSave}
-            disabled={!isDirty || isSaving || isSavingManual || !site}
-          >
-            {isSaving || isSavingManual ? "저장 중..." : "저장"}
-          </NeoButton>
-          <NeoButton
-            bg="var(--color-accent)"
-            color="#111"
-            size="sm"
-            shadow={3}
+          {isDirty && (
+            <button
+              className="jc-btn-outline"
+              onClick={handleSave}
+              disabled={isSaving || isSavingManual || !site}
+            >
+              {isSaving || isSavingManual ? "저장 중..." : "저장"}
+            </button>
+          )}
+          <button
+            className="jc-btn-outline hidden md:inline-flex"
             onClick={() => setPreviewNonce((n) => n + 1)}
           >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0" /><path d="M12 8v4l3 3" />
+            </svg>
             다시 보기
-          </NeoButton>
-          <NeoButton
-            bg="var(--color-primary)"
-            size="sm"
-            shadow={3}
+          </button>
+          <button
+            className="jc-btn-primary"
             onClick={handlePublish}
             disabled={isPublishing || !site}
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+              <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19" />
+            </svg>
             {isPublishing ? "..." : "공유"}
-          </NeoButton>
+          </button>
         </div>
       </header>
 
       {/* ── 모바일 세그먼트 탭 ── */}
-      <div className="flex md:hidden border-b-[3px] border-ink bg-bg shrink-0">
+      <div className="flex md:hidden border-b border-border bg-subtle p-[3px] gap-[2px] shrink-0">
         {MOBILE_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setMobileTab(tab.id)}
             className={cn(
-              "flex-1 py-[10px] border-none border-r-2 border-ink font-sub text-[13px] cursor-pointer last:border-r-0",
-              mobileTab === tab.id ? "bg-ink text-bg" : "bg-transparent text-ink"
+              "flex-1 py-[7px] border-none rounded-[7px] font-sub text-[12.5px] font-semibold cursor-pointer transition-colors",
+              mobileTab === tab.id ? "bg-surface text-heading shadow-sm" : "bg-transparent text-muted"
             )}
           >
             {tab.label}
@@ -337,14 +389,15 @@ export default function SiteEditorPage() {
         {/* 좌측: 페이지 목록 */}
         <aside
           className={cn(
-            "w-full md:w-[200px] bg-bg md:border-r-[3px] border-ink flex-col overflow-hidden shrink-0",
+            "w-full md:w-[236px] bg-surface md:border-r border-border flex-col overflow-hidden shrink-0",
             mobileTab === "pages" ? "flex" : "hidden md:flex"
           )}
         >
-          <div className="px-3 pt-3 pb-2 font-sub text-[12px] text-[#888] border-b-[2px] border-black/10">
-            페이지 목록 ({slides.length})
+          <div className="px-[18px] pt-[18px] pb-[10px] flex items-baseline gap-[7px]">
+            <span className="font-sub text-[12px] font-bold tracking-[0.06em] text-muted">페이지</span>
+            <span className="font-body text-[12px] text-muted">{slides.length}</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto px-2.5 py-1">
             <SlideList
               slides={slides}
               selectedId={selectedSlideId}
@@ -356,7 +409,7 @@ export default function SiteEditorPage() {
               onRemove={handleRemoveSlide}
             />
           </div>
-          <div className="px-3 pb-3">
+          <div className="px-2.5 pb-2.5 pt-2 border-t border-border">
             <DashedButton onClick={() => setPickerOpen(true)}>페이지 추가</DashedButton>
           </div>
         </aside>
@@ -364,7 +417,7 @@ export default function SiteEditorPage() {
         {/* 가운데: 미리보기 */}
         <div
           className={cn(
-            "flex-1 min-w-0 p-4 md:p-6 bg-[#E8E0D4] overflow-hidden",
+            "flex-1 min-w-0 p-4 md:p-8 overflow-hidden jc-editor__stage",
             mobileTab === "preview" ? "flex" : "hidden md:flex"
           )}
         >
@@ -389,64 +442,120 @@ export default function SiteEditorPage() {
                   }}
                 >
                   {/*
-                    기기 목업 전체(노치 바 + 스테이지)를 하나의 그림자로 감싼다 —
-                    브루탈리즘 오프셋 섀도우 대신, 실제 기기가 바닥에 놓인 듯한
-                    부드러운 다중 레이어 블러 섀도우(자연광 + 앰비언트 근접광).
+                    기기 목업 — 참고 디자인 기준.
+                    모바일: 다크 케이스 + 상단 필 바, 데스크탑: 브라우저 크롬 스타일.
                   */}
-                  <div
-                    style={{
-                      borderRadius: device === "mobile" ? 14 : 4,
-                      boxShadow:
-                        "0 1px 2px rgba(17,17,17,0.08), 0 8px 16px -4px rgba(17,17,17,0.18), 0 28px 48px -12px rgba(17,17,17,0.38)",
-                    }}
-                  >
-                    {device === "mobile" && (
-                      <div className="bg-ink h-7 rounded-t-xl border-[3px] border-b-0 border-ink flex items-center justify-center">
-                        <div className="w-[60px] h-1.5 bg-white/30 rounded-full" />
-                      </div>
-                    )}
-                    {/*
-                      슬라이드 캔버스 — position:relative + 크기만 제공.
-                      슬라이드는 absolute; inset:0 풀블리드이므로 스타일 주입 금지.
-                      React key가 바뀌면 컴포넌트 전체가 리마운트된다 —
-                      device 전환 시에도 슬라이드가 처음부터 다시 렌더링된다.
-                    */}
+                  {device === "mobile" ? (
                     <div
-                      className={cn(
-                        "neo-border-4 bg-bg relative overflow-hidden",
-                        device === "mobile" ? "rounded-b-xl" : ""
-                      )}
-                      style={{ width: stageSize.width, height: stageSize.height }}
+                      style={{
+                        background: "#2B2B27",
+                        borderRadius: 34,
+                        padding: 9,
+                        boxShadow: "0 24px 60px rgba(43,43,39,0.18)",
+                      }}
                     >
-                      <SlideCanvas
-                        key={`${selectedSlide.id}:${previewNonce}:${device}`}
-                        slideKey={`${selectedSlide.id}:${previewNonce}:${device}`}
-                        componentRef={selectedSlide.componentRef}
-                        values={previewValues}
-                        isPreview
-                        onSkip={() => setPreviewNonce((n) => n + 1)}
-                        skipLabel="다시 보기"
-                      />
+                      {/* 노치 필 바 */}
+                      <div
+                        style={{
+                          height: NOTCH_HEIGHT,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <div style={{ width: 60, height: 6, borderRadius: 99, background: "rgba(244,239,228,0.35)" }} />
+                      </div>
+                      {/* 슬라이드 캔버스 */}
+                      <div
+                        style={{
+                          width: stageSize.width,
+                          height: stageSize.height,
+                          borderRadius: 26,
+                          overflow: "hidden",
+                          position: "relative",
+                          background: "var(--color-surface)",
+                        }}
+                      >
+                        <SlideCanvas
+                          key={`${selectedSlide.id}:${previewNonce}:${device}`}
+                          slideKey={`${selectedSlide.id}:${previewNonce}:${device}`}
+                          componentRef={selectedSlide.componentRef}
+                          values={previewValues}
+                          isPreview
+                          onSkip={() => setPreviewNonce((n) => n + 1)}
+                          skipLabel="다시 보기"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      style={{
+                        borderRadius: 14,
+                        overflow: "hidden",
+                        background: "var(--color-surface)",
+                        border: "1px solid var(--color-border)",
+                        boxShadow: "0 24px 60px rgba(43,43,39,0.12)",
+                      }}
+                    >
+                      {/* 브라우저 타이틀바 */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          height: 34,
+                          padding: "0 12px",
+                          background: "var(--color-subtle)",
+                          borderBottom: "1px solid var(--color-border)",
+                        }}
+                      >
+                        {(["#DAD1BE", "#DAD1BE", "#DAD1BE"] as const).map((c, i) => (
+                          <span key={i} style={{ width: 9, height: 9, borderRadius: 99, background: c, flexShrink: 0 }} />
+                        ))}
+                      </div>
+                      {/* 슬라이드 캔버스 */}
+                      <div
+                        style={{
+                          width: stageSize.width,
+                          height: stageSize.height,
+                          overflow: "hidden",
+                          position: "relative",
+                          background: "var(--color-surface)",
+                        }}
+                      >
+                        <SlideCanvas
+                          key={`${selectedSlide.id}:${previewNonce}:${device}`}
+                          slideKey={`${selectedSlide.id}:${previewNonce}:${device}`}
+                          componentRef={selectedSlide.componentRef}
+                          values={previewValues}
+                          isPreview
+                          onSkip={() => setPreviewNonce((n) => n + 1)}
+                          skipLabel="다시 보기"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
-              <NeoCard bg="var(--color-bg)" pad={24} shadow={6} className="max-w-[360px]">
-                <h2 className="font-headline text-[18px] mb-2">
+              <div
+                className="max-w-[360px] bg-surface rounded-[14px] px-6 py-5"
+                style={{ border: "1px solid var(--color-border)" }}
+              >
+                <h2 className="font-sub text-[16px] font-semibold mb-2 text-heading">
                   {loadError ? "사이트를 불러오지 못했어요" : "페이지를 추가해 보세요"}
                 </h2>
-                <p className="font-body text-[12px] leading-relaxed mb-4">
+                <p className="font-body text-[12px] leading-relaxed mb-4 text-muted">
                   {loadError
                     ? "잠시 후 다시 시도해 주세요."
                     : "왼쪽 목록에서 '페이지 추가'를 눌러 원하는 슬라이드를 고르면 여기에서 바로 편집할 수 있어요."}
                 </p>
                 {!loadError && (
-                  <NeoButton bg="var(--color-primary)" size="sm" onClick={() => setPickerOpen(true)}>
+                  <button className="jc-btn-primary" onClick={() => setPickerOpen(true)}>
                     페이지 추가
-                  </NeoButton>
+                  </button>
                 )}
-              </NeoCard>
+              </div>
             )}
           </div>
         </div>
@@ -454,28 +563,33 @@ export default function SiteEditorPage() {
         {/* 우측: 편집 패널 — 스키마 순회로 자동 생성 */}
         <aside
           className={cn(
-            "w-full md:w-[320px] bg-bg md:border-l-[3px] border-ink flex-col overflow-hidden shrink-0",
+            "w-full md:w-[316px] bg-surface md:border-l border-border flex-col overflow-hidden shrink-0",
             mobileTab === "edit" ? "flex" : "hidden md:flex"
           )}
         >
-          <div className="px-4 pt-3 pb-2 border-b-[2px] border-black/10 flex items-center gap-2">
-            <span className="font-sub text-[12px] text-[#888] truncate flex-1 min-w-0">
-              {selectedSlide ? `편집 · ${selectedSlide.templateName}` : "편집"}
-            </span>
+          <div className="px-4 py-[16px] border-b border-border flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-sub text-[11px] font-bold tracking-[0.06em] text-muted">페이지 설정</div>
+              {selectedSlide && (
+                <div className="mt-[3px] font-sub text-[14.5px] font-bold tracking-[-0.01em] truncate text-heading">
+                  {selectedSlide.templateName}
+                </div>
+              )}
+            </div>
             {selectedSlide && (
               <button
                 onClick={() => {
                   if (!window.confirm("이 페이지의 모든 편집을 기본값으로 되돌릴까요?")) return;
                   resetSlideOverrides(selectedSlide.id);
                 }}
-                className="font-body text-[11px] text-[#888] hover:text-ink border border-black/20 rounded px-2 py-0.5 shrink-0 cursor-pointer bg-transparent hover:bg-black/5"
+                className="font-body text-[12px] text-muted hover:text-heading border border-border rounded-[8px] px-[9px] py-[3px] shrink-0 cursor-pointer bg-surface hover:bg-subtle transition-colors flex-none"
               >
-                기본값으로
+                초기화
               </button>
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             {selectedSlide && schema ? (
               // key: 슬라이드를 바꾸면 위젯 로컬 버퍼(숫자 입력 중간 상태, JSON 편집 토글)를 초기화한다
               <SlideFieldsPanel
@@ -488,25 +602,25 @@ export default function SiteEditorPage() {
                 onChange={setField}
               />
             ) : (
-              <p className="font-body text-[12px] text-[#888] leading-relaxed">
+              <p className="font-body text-[12px] text-muted leading-relaxed">
                 편집할 페이지를 선택해 주세요.
               </p>
             )}
           </div>
 
           {/* 공유 CTA */}
-          <div className="px-4 py-3 border-t-[3px] border-ink bg-secondary shrink-0">
-            <NeoButton
-              bg="#111"
-              color="#FFF7E6"
-              block
-              size="sm"
-              shadow={4}
+          <div className="px-4 py-4 border-t border-border bg-surface shrink-0">
+            <button
+              className="jc-btn-primary w-full justify-center"
               onClick={handlePublish}
               disabled={isPublishing || !site}
             >
-              🔗 링크 만들어 공유
-            </NeoButton>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+                <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19" />
+              </svg>
+              {isPublishing ? "링크 생성 중..." : "링크 만들어 공유"}
+            </button>
           </div>
         </aside>
       </div>
