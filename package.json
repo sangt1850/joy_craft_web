@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:survey-mock": "vite --mode survey-mock",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",
