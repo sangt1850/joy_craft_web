@@ -379,7 +379,7 @@ public class SurveySchemaMigrator implements InitializingBean {
 
 ### 5.4 응답자 식별 (쿠키)
 
-- 쿠키 이름 `sv_rid`, 값 = respondent UUID, `HttpOnly`, `SameSite=Lax`, `Path=/api/survey/{code}`, `Max-Age=7일`, `Secure`는 운영만(`auth.refresh-cookie-secure` 값 재사용).
+- 쿠키 이름 `sv_rid`, 값 = respondent UUID, `HttpOnly`, `SameSite=Lax`, `Path=/api/survey`, `Max-Age=180일`(uid 없는 공개 링크에서 재참여를 막는 유일한 수단), `Secure`는 운영만(`auth.refresh-cookie-secure` 값 재사용).
 - 운영: 웹 `chaenesis.site` ↔ API `api.chaenesis.site`는 same-site이므로 `Lax`로 fetch에 실림. CORS는 기존 설정(`allowCredentials=true`, origin `https://chaenesis.site`)으로 충분.
 - `Domain` 속성 지정 안 함(host-only, `api.chaenesis.site` 한정).
 
@@ -807,7 +807,8 @@ respondent_id, panel_uid, status, group_code, attention_failed,
 started_at, assigned_at, finished_at, total_ms,
 <question.code 전부: 페이지 seq → 문항 seq 순>,
 dwell_ms_<page_key>, active_ms_<page_key>, hidden_<page_key>, blur_<page_key>, enters_<page_key>  (보인 페이지마다),
-stimulus_dwell_ms, stimulus_active_ms, stimulus_hidden   (A/B 중 본 쪽을 하나의 열로 합침)
+stimulus_dwell_ms, stimulus_active_ms, stimulus_hidden   (A/B 중 본 쪽을 하나의 열로 합침),
+ip_dup_count   (맨 끝 열. 같은 설문에서 같은 접속 해시를 가진 응답자 수. 1=단독, 2 이상=같은 접속 환경 중복 의심. 공용 망일 수 있어 자동 제외하지 않음)
 ```
 - 열 이름 = `sv_question.code`(SPSS/AMOS/R 바로 사용). 미응답/미노출은 빈 칸.
 - 시각은 ISO-8601 (KST, `+09:00`).
@@ -952,7 +953,7 @@ stimulus_dwell_ms, stimulus_active_ms, stimulus_hidden   (A/B 중 본 쪽을 하
 | D4 | 보기 쿼터 | ✅ **확정: 자극물 사진 직후 "방금 본 사진을 보고 흥미가 있습니까, 없습니까?" (흥미가 있다/없다 각 250명)** — `awe2026` V5. 문항·보기 문구는 임시 표현 | — |
 | D5 | 자극물 타이머 | VISIBLE_ONLY (레퍼런스 동작, 탭 보일 때만) | WALL_CLOCK (프론트 수정 필요) |
 | D6 | 그룹 할당 | 최소 충원 우선 + 동률 무작위 | 순수 무작위 |
-| D7 | uid 없는 접속 | 허용(테스트·직접 링크) | 거부(패널 전용) |
+| D7 | uid 없는 접속 | ✅ **확정: 허용 — 입소문 공개 링크(/s/awe2026)로 배포.** 응답자는 쿠키(180일)로만 식별되므로 같은 브라우저의 재참여는 막히지만, 시크릿 창·다른 기기·카카오 인앱 브라우저↔기본 브라우저 이동은 새 응답자가 된다. 분석 때 CSV의 `ip_dup_count`(같은 접속 해시 응답 수)와 `attention_failed`·체류 시간으로 걸러낸다. 이를 위해 운영에 `JOYCRAFT_SURVEY_IP_SALT` 설정 필수 | 패널 uid 사용 |
 | D8 | 테스트 DB | ✅ **확정: Docker 없이 기존 DB 사용(sv_ 한정·격리, 14절)** | Testcontainers / 별도 DB |
 | D9 | 운영 도메인 | 기존 `chaenesis.site` 전체를 설문 모드로 | 별도 서브도메인 |
 
