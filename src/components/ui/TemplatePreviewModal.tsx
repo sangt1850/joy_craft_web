@@ -5,10 +5,13 @@
 // PlayerPage(460×900) 해상도를 캔버스 기준으로 잡고, 기기 크롬(노치/홈바)은 그 바깥에
 // 추가한 뒤 전체를 transform:scale()로 축소/확대한다 (에디터와 동일 전략).
 import { useEffect, useLayoutEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import NeoButton from "./NeoButton";
 import StatusBadge from "./StatusBadge";
 import SlideCanvas from "../player/SlideCanvas";
 import { fetchTemplateDetail } from "../../api/templates";
+import { addSlide } from "../../api/editor";
+import { createSite } from "../../api/sites";
 import { resolveSlideSchema } from "../../slides/registry";
 import { fillMissingWithDefaults } from "../../slides/schemaAdapter";
 import type { TemplateListResponse, TemplateDetailResponse } from "../../types/api";
@@ -60,9 +63,11 @@ function useFitScale(designWidth: number, designHeight: number) {
 }
 
 export default function TemplatePreviewModal({ template, onClose }: TemplatePreviewModalProps) {
+  const navigate = useNavigate();
   const [viewport, setViewport] = useState<Viewport>("mobile");
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [slideKey, setSlideKey] = useState(0);
+  const [isAdding, setIsAdding] = useState(false);
 
   // 뷰포트 전환 시 슬라이드를 처음부터 재시작
   const handleViewport = useCallback((v: Viewport) => {
@@ -102,6 +107,19 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
   // 슬라이드 완료 시 처음부터 재시작
   const handleRestart = useCallback(() => setSlideKey((k) => k + 1), []);
 
+  const handleAddToSite = useCallback(async () => {
+    setIsAdding(true);
+    try {
+      const site = await createSite("새 사이트");
+      await addSlide(site.id, String(template.id));
+      navigate(`/editor/${site.id}`);
+      onClose();
+    } catch {
+      alert("사이트에 추가하지 못했습니다. 잠시 후 다시 시도해주세요.");
+      setIsAdding(false);
+    }
+  }, [template.id, navigate, onClose]);
+
   // 에디터와 동일하게 빠진 필드를 로컬 스키마 기본값으로 채운다.
   // DB defaultValues에 없는 필드(backgroundColor 등)가 undefined로 들어가면
   // 슬라이드 CSS가 깨진다 (예: gradient에 undefined가 들어감).
@@ -119,23 +137,22 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "rgba(17,17,17,0.82)" }}
+      style={{ backgroundColor: "rgba(48,44,58,0.55)", backdropFilter: "blur(6px)" }}
       onClick={onClose}
     >
       {/* 모달 패널 */}
       <div
-        className="neo-border bg-bg flex flex-col"
+        className="border border-border rounded-[16px] overflow-hidden bg-surface flex flex-col"
         style={{
           width: "min(calc(100vw - 24px), 1100px)",
           maxHeight: "calc(100dvh - 24px)",
-          boxShadow: "8px 8px 0 #111",
+          boxShadow: "0 24px 70px rgba(57,40,66,.18)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── 상단 바 ── */}
         <div
-          className="flex items-center gap-3 px-5 py-3 neo-border"
-          style={{ borderTop: "none", borderLeft: "none", borderRight: "none" }}
+          className="flex items-center gap-3 px-5 py-3 border-b border-border"
         >
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <StatusBadge variant="default">미리보기</StatusBadge>
@@ -143,23 +160,23 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
             {isPro && <span className="pixel-badge-pro shrink-0">PRO</span>}
           </div>
 
-          <div className="flex neo-border overflow-hidden shrink-0" style={{ boxShadow: "3px 3px 0 #111" }}>
+          <div className="flex rounded-[11px] bg-selected p-1 overflow-hidden shrink-0">
             <ViewportBtn label="가로" orientation="landscape" active={viewport === "pc"} onClick={() => handleViewport("pc")} />
             <ViewportBtn label="세로" orientation="portrait" active={viewport === "mobile"} onClick={() => handleViewport("mobile")} borderLeft />
           </div>
 
-          <NeoButton bg="var(--color-ink)" color="#fff7e6" size="sm" shadow={3} onClick={onClose}>
+          <NeoButton bg="var(--color-primary)" color="#fff" size="sm" shadow={0} onClick={onClose}>
             ✕ 닫기
           </NeoButton>
         </div>
 
         {/* ── 콘텐츠 영역 ── */}
         <div
-          className="flex-1 flex items-center justify-center overflow-hidden bg-[#E8E0D4]"
+          className="flex-1 flex items-center justify-center overflow-hidden bg-bg"
           style={{ padding: "12px 16px" }}
         >
           {state.status === "loading" && (
-            <div className="font-pixel text-[#888] text-[11px]">불러오는 중...</div>
+            <div className="font-body text-muted text-[12px]">불러오는 중...</div>
           )}
 
           {state.status === "error" && (
@@ -226,11 +243,8 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
         </div>
 
         {/* ── 하단 액션 바 ── */}
-        <div
-          className="flex items-center justify-between px-5 py-3 neo-border"
-          style={{ borderBottom: "none", borderLeft: "none", borderRight: "none" }}
-        >
-          <span className="font-body text-[12px] text-[#555]">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+          <span className="font-body text-[12px] text-muted">
             {template.category}
             {template.description ? ` · ${template.description}` : ""}
           </span>
@@ -240,11 +254,13 @@ export default function TemplatePreviewModal({ template, onClose }: TemplatePrev
             </NeoButton>
             <NeoButton
               bg={isPro ? "var(--color-secondary)" : "var(--color-primary)"}
-              color={isPro ? "#111" : "#fff"}
+              color="#fff"
               size="sm"
               shadow={3}
+              onClick={isPro ? undefined : handleAddToSite}
+              disabled={isPro || isAdding}
             >
-              {isPro ? "🔒 PRO 구독하기" : "내 사이트에 담기"}
+              {isPro ? "🔒 PRO 구독하기" : isAdding ? "추가 중..." : "내 사이트에 담기"}
             </NeoButton>
           </div>
         </div>
@@ -267,15 +283,15 @@ function ViewportBtn({
   onClick: () => void;
   borderLeft?: boolean;
 }) {
-  const color = active ? "#fff7e6" : "#111";
+  const color = active ? "var(--color-heading)" : "var(--color-muted)";
   return (
     <button
       onClick={onClick}
       className="font-sub text-[11px] flex items-center gap-1.5 px-3 py-1.5 transition-colors cursor-pointer"
       style={{
-        background: active ? "#111" : "#fff7e6",
+        background: active ? "#fff" : "transparent",
         color,
-        borderLeft: borderLeft ? "3px solid #111" : undefined,
+        borderLeft: borderLeft ? "1px solid var(--color-border)" : undefined,
       }}
     >
       {/* 화면 방향 아이콘 */}

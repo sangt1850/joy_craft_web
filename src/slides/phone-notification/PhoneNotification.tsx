@@ -29,7 +29,7 @@ function NotificationCard({ item, samsung, dark, onOpen, index }: { item: PhoneN
       backdropFilter: "blur(26px) saturate(130%)", WebkitBackdropFilter: "blur(26px) saturate(130%)",
       boxShadow: "0 4px 16px #24203009, inset 0 1px 0 #ffffff18", outline: focused ? `3px solid ${dark ? "#c4bcff" : "#726290"}` : "none", outlineOffset: -3,
       cursor: "pointer", fontFamily: FONT, textAlign: "left", display: "flex", alignItems: "center", gap: 12,
-      animation: "jc-phone-notification-in .52s cubic-bezier(.16,1,.3,1) both" }}>
+      animation: "jc-phone-notification-in .55s cubic-bezier(0.4,0,0.2,1) .12s both" }}>
     {samsung && <AppIcon app={item.app} size={38}/>}
     <span style={{ display: "block", flex: 1, minWidth: 0 }}>
       <span style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 5, lineHeight: "16px" }}>
@@ -145,7 +145,7 @@ export default function PhoneNotification({ data, onComplete, isPreview }: Slide
               </header>
               <div ref={listRef} data-jc-notification-list aria-live="polite" aria-relevant="additions" aria-label="도착한 알림" tabIndex={0} style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", scrollbarWidth: "none", padding: `2px ${samsung ? 12 : 13}px 14px`, display: "flex", flexDirection: "column", gap: 9, outlineOffset: -3 }}>
                 {visible.map(({item, index}) => (
-                  <div key={`${timelineKey}:${index}`} data-jc-notification-wrap style={{ overflow: "hidden", animation: "jc-phone-notification-expand .52s cubic-bezier(.16,1,.3,1) both" }}>
+                  <div key={`${timelineKey}:${index}`} data-jc-notification-wrap style={{ overflow: "hidden", animation: "jc-phone-notification-expand .65s cubic-bezier(0.4,0,0.2,1) both" }}>
                     <NotificationCard index={index} item={item} samsung={samsung} dark={dark} onOpen={openNotification}/>
                   </div>
                 ))}

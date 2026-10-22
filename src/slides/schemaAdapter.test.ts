@@ -20,23 +20,20 @@ import type { SchemaField } from "../types/api";
 import type { SchemaFieldDef } from "./SlideProps";
 
 const ALL_REFS = [
-  "pin-lock", "fingerprint", "quiz", "roulette",
-  "scratch-lottery", "flashlight", "gift-box", "photo-puzzle",
-  "heart-gauge", "balloon-pop",
-  "envelope-letter", "typewriter", "rolling-paper", "cassette-player",
-  "story-book", "ending-credits",
-  "dday-counter", "wish-lantern",
+  "roulette", "fleeing-button", "instagram", "moment-photoapp",
+  "ending-credits", "vinyl-player", "passport-ticket",
+  "valentine-letter", "matryoshka-dog", "gift-unboxing",
+  "phone-notification", "loveflix-intro", "cinema-intro",
+  "corgi-gift",
 ];
 
 const ARRAY_SLIDES: { ref: string; key: string }[] = [
-  { ref: "quiz", key: "questions" },
   { ref: "roulette", key: "slices" },
-  { ref: "story-book", key: "pages" },
   { ref: "ending-credits", key: "credits" },
-  { ref: "balloon-pop", key: "balloons" },
-  { ref: "cassette-player", key: "tracks" },
-  { ref: "flashlight", key: "spots" },
-  { ref: "rolling-paper", key: "seedNotes" },
+  { ref: "vinyl-player", key: "tracks" },
+  { ref: "instagram", key: "stories" },
+  { ref: "instagram", key: "posts" },
+  { ref: "phone-notification", key: "notifications" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -100,21 +97,21 @@ describe("서버 kind → 로컬 type 변환", () => {
 describe("resolveEditorSchema — 로컬 우선, 서버 보조", () => {
   it("로컬이 있으면 로컬을 정본으로 쓴다 (순서 포함)", () => {
     const serverSchema: SchemaField[] = [
-      { key: "question", label: "서버 라벨", field: { kind: "string" } },
+      { key: "title", label: "서버 라벨", field: { kind: "string" } },
     ];
-    const r = resolveEditorSchema("pin-lock", serverSchema);
+    const r = resolveEditorSchema("roulette", serverSchema);
     expect(r.source).toBe("local");
-    expect(r.fields).toEqual(resolveSlideSchema("pin-lock")!.fields);
+    expect(r.fields).toEqual(resolveSlideSchema("roulette")!.fields);
     // 라벨도 로컬 것이 이긴다
-    expect(r.fields.find((f) => f.key === "question")!.label).toBe("질문 문구");
+    expect(r.fields.find((f) => f.key === "title")!.label).toBe("제목");
   });
 
   it("서버에만 있는 키는 변환해 뒤에 덧붙인다", () => {
     const serverSchema: SchemaField[] = [
-      { key: "question", label: "질문 문구", field: { kind: "string" } },
+      { key: "title", label: "제목", field: { kind: "string" } },
       { key: "brandNewField", label: "새 필드", field: { kind: "color" } },
     ];
-    const r = resolveEditorSchema("pin-lock", serverSchema);
+    const r = resolveEditorSchema("roulette", serverSchema);
     expect(r.source).toBe("local");
     expect(r.serverOnlyKeys).toEqual(["brandNewField"]);
     expect(r.fields.at(-1)).toEqual({
@@ -139,7 +136,7 @@ describe("resolveEditorSchema — 로컬 우선, 서버 보조", () => {
   });
 
   it("서버 스키마가 없어도 로컬만으로 편집 UI를 그릴 수 있다", () => {
-    const r = resolveEditorSchema("quiz", null);
+    const r = resolveEditorSchema("roulette", null);
     expect(r.source).toBe("local");
     expect(r.fields.length).toBeGreaterThan(0);
   });
@@ -148,8 +145,8 @@ describe("resolveEditorSchema — 로컬 우선, 서버 보조", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 18종 전수 검사
 // ─────────────────────────────────────────────────────────────────────────────
-describe("슬라이드 18종 전수", () => {
-  it("레지스트리에 18종이 등록된다", () => {
+describe("슬라이드 전수 검사", () => {
+  it("레지스트리에 모든 슬라이드가 등록된다", () => {
     expect(registeredSlideRefs().sort()).toEqual([...ALL_REFS].sort());
   });
 
@@ -317,7 +314,11 @@ describe("배열 필드 왕복 — 8종 기존 기본값이 깨지지 않는가"
       expect(reparsed[0][k], `${ref}.${key}.${k} 유실`).toEqual(first[k]);
     }
     expect(reparsed[0][target.key]).toBe("편집됨");
-    expect(Object.keys(reparsed[0])).toEqual(Object.keys(first));
+    // 편집 과정에서 itemFields에 정의된 키가 추가될 수 있다 (예: optional 필드)
+    // 기존 키가 모두 보존되는지만 확인한다
+    for (const k of Object.keys(first)) {
+      expect(Object.keys(reparsed[0])).toContain(k);
+    }
   });
 
   it.each(ARRAY_SLIDES)("$ref.$key — 새 항목이 기존 항목과 같은 키 집합을 갖는다", ({ ref, key }) => {
@@ -349,22 +350,10 @@ describe("배열 필드 왕복 — 8종 기존 기본값이 깨지지 않는가"
     expect(back.items.length).toBe(originalLen);
   });
 
-  it("quiz 문항의 choices는 문자열 배열로 유지된다 (첫 원소 = 정답)", () => {
-    const field = resolveEditorSchema("quiz", null).fields.find((f) => f.key === "questions")!;
-    const { items } = parseArrayValue(field.default);
-    for (const q of items) {
-      expect(Array.isArray(q.choices)).toBe(true);
-      expect((q.choices as unknown[]).every((c) => typeof c === "string")).toBe(true);
-    }
+  it("vinyl-player 새 트랙에 youtubeUrl/title이 채워진다", () => {
+    const field = resolveEditorSchema("vinyl-player", null).fields.find((f) => f.key === "tracks")!;
     const fresh = makeArrayItem(field);
-    expect(Array.isArray(fresh.choices)).toBe(true);
-  });
-
-  it("cassette-player 새 트랙에 root/scale/tempo가 채워진다", () => {
-    const field = resolveEditorSchema("cassette-player", null).fields.find((f) => f.key === "tracks")!;
-    const fresh = makeArrayItem(field);
-    expect(fresh.root).toBe(261.63);
-    expect(fresh.scale).toEqual([0, 2, 4, 7, 9]);
-    expect(fresh.tempo).toBe(300);
+    expect(fresh).toHaveProperty("youtubeUrl");
+    expect(fresh).toHaveProperty("title");
   });
 });

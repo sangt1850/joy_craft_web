@@ -17,6 +17,8 @@ interface LiveThumbnailProps {
   emoji?: string;
   /** Tailwind 배경 클래스 (idle/loading 상태에 적용) */
   bg?: string;
+  /** 정적 첫 프레임 이미지 URL — idle 상태에 이미지로 표시, null이면 emoji */
+  thumbnailUrl?: string | null;
   onPreview?: () => void;
   isPro?: boolean;
 }
@@ -26,10 +28,11 @@ export default function LiveThumbnail({
   viewport = "mobile",
   emoji = "🎁",
   bg = "bg-surface",
+  thumbnailUrl,
   onPreview,
   isPro,
 }: LiveThumbnailProps) {
-  const { phase, componentRef, slideValues, onMouseEnter, onMouseLeave, ioRef } =
+  const { phase, componentRef, slideValues, slideKey, onMouseEnter, onMouseLeave, ioRef } =
     useLiveThumbnail(templateId);
 
   const [containerWidth, setContainerWidth] = useState(200);
@@ -60,11 +63,20 @@ export default function LiveThumbnail({
     >
       <div className="absolute inset-0">
 
-        {/* idle / error */}
+        {/* idle / error — thumbnailUrl 이미지 우선, 없으면 emoji */}
         {(phase === "idle" || phase === "error") && (
-          <div className={`absolute inset-0 flex items-center justify-center text-[48px] select-none ${bg}`}>
-            {emoji}
-          </div>
+          thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover select-none"
+              draggable={false}
+            />
+          ) : (
+            <div className={`absolute inset-0 flex items-center justify-center text-[48px] select-none ${bg}`}>
+              {emoji}
+            </div>
+          )
         )}
 
         {/* loading */}
@@ -74,9 +86,11 @@ export default function LiveThumbnail({
           </div>
         )}
 
-        {/* active: 슬라이드 전체 */}
+        {/* active: 항상 렌더. paused=true → jc-thumb-paused로 첫 프레임 정지.
+            slideKey 변경 시 React가 remount → JS 애니메이션도 처음부터 리셋 */}
         {isActive && (
           <div
+            key={slideKey}
             style={{
               width: slideW,
               height: slideH,

@@ -11,12 +11,12 @@ import type { ThumbViewport } from "../../components/ui/LiveThumbnail";
 
 // 카테고리 pill — rounded-full 스타일로 TabBar와 별도 유지
 const pillVariants = cva(
-  "font-sub text-[13px] px-4 py-[7px] neo-border rounded-full cursor-pointer transition-colors border-none",
+  "font-sub text-[12px] px-4 py-2 rounded-full cursor-pointer transition-colors border border-border",
   {
     variants: {
       active: {
-        true:  "bg-ink text-bg",
-        false: "bg-bg text-ink hover:bg-black/5",
+        true:  "bg-selected text-heading font-semibold",
+        false: "bg-surface text-muted hover:bg-subtle hover:text-heading",
       },
     },
   }
@@ -38,15 +38,15 @@ function ViewToggleBtn({
   onClick: () => void;
   borderLeft?: boolean;
 }) {
-  const color = active ? "#fff7e6" : "#111";
+  const color = active ? "var(--color-heading)" : "var(--color-muted)";
   return (
     <button
       onClick={onClick}
       className="font-sub text-[12px] flex items-center gap-1.5 px-3.5 py-2 transition-colors cursor-pointer"
       style={{
-        background: active ? "#111" : "#fff7e6",
+        background: active ? "#fff" : "transparent",
         color,
-        borderLeft: borderLeft ? "3px solid #111" : undefined,
+        borderLeft: borderLeft ? "1px solid var(--color-border)" : undefined,
       }}
     >
       {orientation === "landscape" ? (
@@ -87,12 +87,12 @@ export default function BrowsePage() {
   // 클라이언트가 조용히 버려서 "검색 결과가 없습니다"가 뜬다. 이중 필터를 두지 않는다.
 
   return (
-    <div className="px-7 py-8 max-w-[960px] mx-auto">
+    <div className="px-4 py-7 md:px-8 md:py-9 max-w-[1120px] mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-headline text-[28px] m-0">페이지 둘러보기</h1>
 
         {/* PC / 모바일 뷰 토글 */}
-        <div className="flex neo-border overflow-hidden shrink-0" style={{ boxShadow: "3px 3px 0 #111" }}>
+        <div className="flex rounded-[11px] bg-selected p-1 overflow-hidden shrink-0">
           <ViewToggleBtn
             label="PC 보기"
             orientation="landscape"
@@ -125,9 +125,6 @@ export default function BrowsePage() {
             key={cat}
             onClick={() => setCategory(cat)}
             className={cn(pillVariants({ active: category === cat }))}
-            style={{
-              boxShadow: category === cat ? "3px 3px 0 #555" : "2px 2px 0 #111",
-            }}
           >
             {cat}
           </button>
@@ -145,6 +142,7 @@ export default function BrowsePage() {
             emoji="🎨"
             price={t.pricing === "free" ? "FREE" : "PRO"}
             bg={BG_COLORS[i % BG_COLORS.length]}
+            thumbnailUrl={t.thumbnailUrl}
             onPreview={() => setPreviewTemplate(t)}
             enableLiveThumb
             liveThumbViewport={thumbViewport}
@@ -153,7 +151,7 @@ export default function BrowsePage() {
       </div>
 
       {templates.length === 0 && (
-        <div className="text-center py-[60px] font-body text-[14px] text-[#888]">
+        <div className="text-center py-[60px] font-body text-[14px] text-muted">
           검색 결과가 없습니다.
         </div>
       )}

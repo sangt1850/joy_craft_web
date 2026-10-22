@@ -4,9 +4,8 @@ import { cn } from "../../utils/cn";
 // ─── Variants ────────────────────────────────────────────────────────────────
 const buttonVariants = cva(
   [
-    "neo-btn",        // CSS: hover/active shadow 처리 (calc 기반)
-    "neo-border",     // @utility: 3px solid var(--color-ink)
-    "font-sub",       // @theme: Space Grotesk
+    "jc-button",
+    "font-body",
     "text-center",
     "no-underline",
     "select-none",
@@ -14,9 +13,9 @@ const buttonVariants = cva(
   {
     variants: {
       size: {
-        sm: "px-[14px] py-[6px] text-xs",
-        md: "px-[22px] py-[10px] text-sm",
-        lg: "px-8 py-[14px] text-base",
+        sm: "h-8 px-3 text-xs",
+        md: "h-10 px-4 text-sm",
+        lg: "h-12 px-6 text-sm",
       },
       block: {
         true:  "block w-full",
@@ -48,9 +47,9 @@ interface NeoButtonProps extends VariantProps<typeof buttonVariants> {
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function NeoButton({
   children,
-  bg = "#6600ff",
+  bg = "var(--color-primary)",
   color,
-  shadowColor = "#111",
+  shadowColor = "transparent",
   size = "md",
   shadow = 5,
   radius = 8,
@@ -61,8 +60,8 @@ export default function NeoButton({
   type = "button",
   disabled = false,
 }: NeoButtonProps) {
-  // 어두운 배경(핑크/블랙)이면 흰색, 밝은 배경이면 검정
-  const textColor = color ?? (bg === "#6600ff" || bg === "#111111" ? "#fff" : "#111");
+  const darkBackground = bg.includes("primary") || bg === "#6600ff" || bg === "#111111";
+  const textColor = color ?? (darkBackground ? "#fff" : "var(--color-ink)");
 
   // 동적 값만 인라인 style로 주입 — CSS calc()가 --neo-shadow를 참조
   const dynamicStyle = {
@@ -70,7 +69,7 @@ export default function NeoButton({
     "--neo-shadow-color": shadowColor,
     background:           bg,
     color:                textColor,
-    borderRadius:         radius,
+    borderRadius:         Math.min(Math.max(radius, 8), 10),
   } as React.CSSProperties;
 
   const classes = cn(buttonVariants({ size, block, disabled }), className);

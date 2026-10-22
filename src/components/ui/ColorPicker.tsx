@@ -11,7 +11,7 @@ interface ColorPickerProps {
   className?: string;
 }
 
-const LABEL_CLASS = "font-sub text-[12px] text-ink mb-1.5 block";
+const LABEL_CLASS = "font-sub text-[10px] text-[#8b7f93] mb-[7px] block";
 
 export default function ColorPicker({
   label,
@@ -31,14 +31,13 @@ export default function ColorPicker({
             type="button"
             onClick={() => onChange(c)}
             className={cn(
-              "cursor-pointer border-none p-0",
-              value === c ? "neo-border" : "border-[2px] border-black/30"
+              "cursor-pointer p-0 rounded-lg border",
+              value === c ? "border-secondary ring-2 ring-secondary/20" : "border-border"
             )}
             style={{
               background:  c,
               width:       swatchSize,
               height:      swatchSize,
-              boxShadow:   value === c ? "2px 2px 0 #111" : "none",
             }}
             aria-label={c}
             aria-pressed={value === c}

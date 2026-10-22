@@ -19,7 +19,7 @@ export default function SectionHeader({
   return (
     <div className={`flex items-center justify-between ${className}`}>
       <Tag
-        className="font-headline m-0"
+        className="font-headline m-0 text-heading tracking-[-0.025em]"
         style={{ fontSize: titleSize }}
       >
         {title}

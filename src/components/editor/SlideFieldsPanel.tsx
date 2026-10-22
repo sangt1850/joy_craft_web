@@ -3,7 +3,6 @@
 import type { ResolvedEditorSchema } from "../../slides/schemaAdapter";
 import FieldWidget from "./fields/FieldWidget";
 import ArrayFieldEditor from "./fields/ArrayFieldEditor";
-import NeoCard from "../ui/NeoCard";
 
 interface SlideFieldsPanelProps {
   schema: ResolvedEditorSchema;
@@ -22,22 +21,28 @@ export default function SlideFieldsPanel({
 }: SlideFieldsPanelProps) {
   if (schema.fields.length === 0) {
     return (
-      <NeoCard bg="var(--color-surface)" pad={14} shadow={3} border={2}>
-        <p className="font-body text-[12px] leading-relaxed">
+      <div
+        className="rounded-[10px] px-3 py-3"
+        style={{ background: "var(--color-field)", border: "1px solid var(--color-border)" }}
+      >
+        <p className="font-body text-[12px] leading-relaxed text-muted">
           이 슬라이드의 편집 항목을 찾지 못했습니다. 템플릿 정보가 오래되었을 수 있어요.
         </p>
-      </NeoCard>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-[18px]">
+    <div className="flex flex-col gap-[22px] py-3">
       {schema.source === "server" && (
-        <NeoCard bg="var(--color-secondary)" pad={10} shadow={3} border={2}>
-          <p className="font-body text-[11px] leading-snug">
+        <div
+          className="rounded-[10px] px-3 py-2.5"
+          style={{ background: "var(--color-field)", border: "1px solid var(--color-border)" }}
+        >
+          <p className="font-body text-[11px] leading-snug text-muted">
             서버 스키마로 편집 중입니다. 일부 항목은 단순 입력으로만 보일 수 있어요.
           </p>
-        </NeoCard>
+        </div>
       )}
 
       {schema.fields.map((field) =>

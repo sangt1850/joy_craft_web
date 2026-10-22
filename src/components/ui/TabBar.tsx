@@ -4,12 +4,12 @@ import { cva } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 
 const tabVariants = cva(
-  "font-sub text-[13px] px-5 py-2 cursor-pointer outline-none border-0 border-r border-r-[2px] border-r-ink",
+  "font-body text-[12px] px-4 py-[9px] cursor-pointer outline-none border-0 rounded-lg",
   {
     variants: {
       active: {
-        true:  "bg-ink text-white",
-        false: "text-ink hover:bg-ink/[0.06]",
+        true:  "bg-white text-ink shadow-sm font-semibold",
+        false: "text-muted hover:text-ink",
       },
       pos: {
         first:  "",
@@ -43,7 +43,7 @@ export default function TabBar<T extends string>({
   };
 
   return (
-    <div className={`inline-flex neo-border rounded-[7px] overflow-hidden ${className}`}>
+    <div className={`inline-flex rounded-[11px] bg-subtle p-1 gap-[3px] ${className}`}>
       {tabs.map((tab, i) => (
         <button
           key={tab.id}

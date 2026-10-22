@@ -8,6 +8,8 @@ export interface SlideProps<T extends object = Record<string, unknown>> {
   onComplete?: () => void;
   /** 에디터 미리보기 모드 — true면 onComplete 호출 안 함 */
   isPreview?: boolean;
+  /** 썸네일 정지 모드 — true이면 JS 애니메이션 루프를 시작하지 않는다 */
+  paused?: boolean;
 }
 
 /**

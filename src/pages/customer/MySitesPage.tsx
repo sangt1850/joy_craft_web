@@ -7,6 +7,7 @@ import SiteCard from "../../components/ui/SiteCard";
 import TabBar from "../../components/ui/TabBar";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useSiteStore } from "../../store/siteStore";
+import { useToastStore } from "../../store/toastStore";
 import { createSite, deleteSite } from "../../api/sites";
 import { publishSite } from "../../api/editor";
 
@@ -20,8 +21,11 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
 
 export default function MySitesPage() {
   const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
   // 스토어 액션은 create() 시점에 한 번만 만들어지는 안정된 참조라 의존성에 넣어도 재실행되지 않는다
   const sites = useSiteStore((s) => s.sites);
+  const isLoading = useSiteStore((s) => s.isLoading);
+  const error = useSiteStore((s) => s.error);
   const loadSites = useSiteStore((s) => s.loadSites);
   const [filter, setFilter] = useState<FilterTab>("전체");
 
@@ -50,9 +54,9 @@ export default function MySitesPage() {
       const result = await publishSite(String(id));
       const link = window.location.origin + result.url;
       await navigator.clipboard.writeText(link).catch(() => {});
-      alert(`링크가 복사되었습니다!\n${link}`);
+      addToast("링크가 클립보드에 복사되었습니다!", { variant: "success" });
     } catch {
-      alert("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+      addToast("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
     }
   };
 
@@ -61,13 +65,14 @@ export default function MySitesPage() {
     try {
       await deleteSite(String(id));
       loadSites();
+      addToast("사이트가 삭제되었습니다.");
     } catch {
-      alert("삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      addToast("삭제에 실패했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
     }
   };
 
   return (
-    <div className="px-7 py-8 max-w-[900px] mx-auto">
+    <div className="px-4 py-7 md:px-8 md:py-9 max-w-[1120px] mx-auto">
 
       {/* 헤더 */}
       <SectionHeader
@@ -94,34 +99,50 @@ export default function MySitesPage() {
       />
 
       {/* 사이트 그리드 */}
-      <div className="neo-grid-md">
-        {filtered.map((s) => (
-          <SiteCard
-            key={s.id}
-            id={s.id}
-            title={s.title}
-            pages={s.slideCount}
-            status={s.status === "PUBLISHED" ? "공개" : "초안"}
-            bg={s.bgColor}
-            thumbHeight={140}
-            onEdit={(id) => navigate(`/editor/${id}`)}
-            onShare={handleShare}
-            onDelete={handleDelete}
-          />
-        ))}
+      {isLoading ? (
+        <div className="text-center py-12 font-body text-[14px] text-muted">
+          불러오는 중...
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="font-body text-[14px] m-0 mb-3 text-muted">
+            사이트 목록을 불러오지 못했습니다.
+          </p>
+          <NeoButton bg="var(--color-secondary)" color="var(--color-ink)" size="sm" onClick={loadSites}>
+            다시 시도
+          </NeoButton>
+        </div>
+      ) : (
+        <div className="neo-grid-md">
+          {filtered.map((s) => (
+            <SiteCard
+              key={s.id}
+              id={s.id}
+              title={s.title}
+              pages={s.slideCount}
+              status={s.status === "PUBLISHED" ? "공개" : "초안"}
+              bg={s.bgColor}
+              enableLiveThumb
+              liveThumbViewport="mobile"
+              onEdit={(id) => navigate(`/editor/${id}`)}
+              onShare={handleShare}
+              onDelete={handleDelete}
+            />
+          ))}
 
-        {/* 새 사이트 만들기 카드 */}
-        <button
-          onClick={handleNewSite}
-          className="neo-border cursor-pointer min-h-[260px] flex flex-col items-center justify-center gap-3 hover:bg-black/5 transition-colors neo-shadow-md"
-          style={{ background: "transparent", outline: "none" }}
-        >
-          <div className="w-12 h-12 bg-primary neo-border flex items-center justify-center neo-shadow-sm">
-            <PixelIcon name="plus" size={20} fill="#fff" />
-          </div>
-          <span className="font-sub text-[14px] text-ink">새 사이트 만들기</span>
-        </button>
-      </div>
+          {/* 새 사이트 만들기 카드 */}
+          <button
+            onClick={handleNewSite}
+            className="rounded-[14px] border border-dashed border-[#cfc3da] cursor-pointer min-h-[260px] flex flex-col items-center justify-center gap-3 bg-transparent hover:bg-subtle transition-colors"
+            style={{ background: "transparent", outline: "none" }}
+          >
+            <div className="w-12 h-12 rounded-[13px] bg-primary flex items-center justify-center">
+              <PixelIcon name="plus" size={20} fill="#fff" />
+            </div>
+            <span className="font-sub text-[14px] text-ink">새 사이트 만들기</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // 레이아웃 — 모든 화면의 뼈대라 지연 로딩하지 않는다
 import AppLayout from "./components/layout/AppLayout";
-import MasterLayout from "./components/layout/MasterLayout";
 import AuthGuard from "./components/auth/AuthGuard";
+import ToastContainer from "./components/ui/ToastContainer";
 
 // 페이지는 전부 라우트 단위로 쪼갠다.
 // 공개 공유 링크(/play/:slug)는 모바일에서 처음 열리는 화면이라 초기 전송량이 곧 첫인상이고,
@@ -23,11 +23,13 @@ const SiteEditorPage = lazy(() => import("./pages/editor/SiteEditorPage"));
 
 const MasterDashboardPage = lazy(() => import("./pages/master/MasterDashboardPage"));
 
+const TemplateEditPage = lazy(() => import("./pages/creator/TemplateEditPage"));
+
 /** 청크를 받아오는 동안 잠깐 보이는 화면 */
 function RouteFallback() {
   return (
     <div className="flex items-center justify-center h-screen bg-bg">
-      <div className="font-pixel text-[12px] text-ink animate-pulse">LOADING...</div>
+      <div className="font-body text-[13px] text-muted animate-pulse">페이지를 준비하고 있어요…</div>
     </div>
   );
 }
@@ -42,24 +44,13 @@ function CustomerApp() {
           <Route path="sites" element={<MySitesPage />} />
           <Route path="browse" element={<BrowsePage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="master" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
+          <Route path="master/users" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
+          <Route path="master/sites" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
+          <Route path="master/templates" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
+          <Route path="master/settings" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
         </Routes>
       </AppLayout>
-    </AuthGuard>
-  );
-}
-
-function MasterApp() {
-  return (
-    <AuthGuard requiredRole="MASTER">
-      <MasterLayout>
-        <Routes>
-          <Route index element={<MasterDashboardPage />} />
-          <Route path="users" element={<MasterDashboardPage />} />
-          <Route path="sites" element={<MasterDashboardPage />} />
-          <Route path="templates" element={<MasterDashboardPage />} />
-          <Route path="settings" element={<MasterDashboardPage />} />
-        </Routes>
-      </MasterLayout>
     </AuthGuard>
   );
 }
@@ -68,6 +59,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Suspense fallback={<RouteFallback />}>
+        <ToastContainer />
         <Routes>
           {/* 공개 페이지 */}
           <Route path="/" element={<LandingPage />} />
@@ -84,8 +76,23 @@ export default function App() {
             }
           />
 
-          {/* 관리자용 앱 — 와일드카드보다 먼저 매칭 */}
-          <Route path="/master/*" element={<MasterApp />} />
+          {/* 크리에이터 슬라이드 기본값 편집기 (풀스크린, CREATOR 전용) */}
+          <Route
+            path="/creator/templates"
+            element={
+              <AuthGuard requiredRole="CREATOR">
+                <TemplateEditPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/creator/templates/:templateId"
+            element={
+              <AuthGuard requiredRole="CREATOR">
+                <TemplateEditPage />
+              </AuthGuard>
+            }
+          />
 
           {/* 고객용 앱 (fallback) */}
           <Route path="/*" element={<CustomerApp />} />

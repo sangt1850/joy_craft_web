@@ -1,0 +1,1229 @@
+.jc-cinema {
+    color: #fff;
+    font-family: 'Noto Sans KR', Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    overflow: hidden;
+    isolation: isolate;
+    touch-action: manipulation;
+    container-type: size
+}
+
+.jc-cinema * {
+    box-sizing: border-box
+}
+
+.jc-cinema button {
+    font: inherit;
+    border: 0;
+    cursor: pointer;
+    color: inherit;
+    touch-action: manipulation
+}
+
+.jc-cinema button:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 5px
+}
+
+.jc-cinema img {
+    display: block;
+    object-fit: cover;
+    width: 100%;
+    height: 100%
+}
+
+.jc-cinema-enter {
+    animation: jc-cinema-enter .65s both
+}
+
+.jc-cinema-placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #49454e, #161419);
+    color: #ddd
+}
+
+.jc-cinema-placeholder > span {
+    font-size: 32px
+}
+
+.jc-cinema-profiles {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 28px;
+    overflow: auto;
+    gap: 28px
+}
+
+.jc-cinema-profiles h1 {
+    font-weight: 400;
+    font-size: clamp(18px, 2.25cqw, 38px);
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-profile-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(14px, 2cqw, 30px);
+    max-width: 900px
+}
+
+.jc-cinema-profile {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    width: clamp(70px, 10cqw, 155px);
+    color: #999 !important
+}
+
+.jc-cinema-profile > img, .jc-cinema-profile > .jc-cinema-placeholder {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    transition: transform .2s, outline-color .2s;
+    outline: 3px solid transparent
+}
+
+.jc-cinema-profile:hover > img {
+    outline-color: white;
+    transform: scale(1.035)
+}
+
+.jc-cinema-profile > span {
+    font-size: clamp(12px, 1cqw, 16px);
+    overflow-wrap: anywhere;
+    max-width: 100%
+}
+
+.jc-cinema-home {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    scrollbar-width: thin
+}
+
+.jc-cinema-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1
+}
+
+.jc-cinema-backdrop > img, .jc-cinema-backdrop > .jc-cinema-placeholder {
+    object-position: 70% center
+}
+
+.jc-cinema-backdrop > div:last-child {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0, 0, 0, .72), transparent 76%), linear-gradient(0deg, var(--jc-bg) 0%, transparent 65%, rgba(0, 0, 0, .4))
+}
+
+.jc-cinema-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px var(--jc-pad);
+    flex-shrink: 0
+}
+
+.jc-cinema-brand {
+    color: var(--jc-accent);
+    font-family: Impact, 'Arial Narrow', sans-serif;
+    font-weight: 900;
+    font-size: clamp(23px, 3cqw, 42px);
+    letter-spacing: -1px;
+    max-width: 75%;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    padding: 0
+}
+
+.jc-cinema-account > img, .jc-cinema-account > .jc-cinema-placeholder {
+    width: 34px;
+    height: 34px;
+    border-radius: 3px
+}
+
+.jc-cinema-copy {
+    padding: 12px var(--jc-pad) 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: min-content
+}
+
+.jc-cinema-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: clamp(13px, 1.6cqw, 20px)
+}
+
+.jc-cinema-eyebrow b {
+    color: var(--jc-accent);
+    font: 900 38px Impact, sans-serif
+}
+
+.jc-cinema-copy h1 {
+    font-size: var(--jc-title);
+    line-height: 1.2;
+    letter-spacing: -.055em;
+    font-weight: 500;
+    font-family: 'Nanum Pen Script', 'Segoe Print', 'Malgun Gothic', cursive;
+    margin: 12px 0 22px;
+    max-width: 800px;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-ranking {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 100%
+}
+
+.jc-cinema-ranking > span {
+    display: grid;
+    place-content: center;
+    flex-shrink: 0;
+    background: var(--jc-accent);
+    font: bold 10px/1 Arial;
+    width: 28px;
+    height: 32px;
+    text-align: center;
+    border-radius: 2px
+}
+
+.jc-cinema-ranking strong {
+    font-size: clamp(14px, 1.85cqw, 26px);
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-copy p, .jc-cinema-detail-copy p {
+    white-space: pre-line;
+    line-height: 1.65;
+    font-size: clamp(12px, 1.25cqw, 18px);
+    max-width: 680px;
+    margin: 16px 0 24px;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.jc-cinema-play, .jc-cinema-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 28px;
+    border-radius: 4px;
+    font-size: clamp(14px, 1.7cqw, 22px) !important;
+    min-height: 44px
+}
+
+.jc-cinema-play {
+    background: white;
+    color: #090909 !important
+}
+
+.jc-cinema-play:hover {
+    background: #ddd
+}
+
+.jc-cinema-info {
+    background: #454545a8
+}
+
+.jc-cinema-info:hover {
+    background: #626262
+}
+
+.jc-cinema-info > span {
+    font-size: 26px;
+    line-height: 1
+}
+
+.jc-cinema-series {
+    padding: 4px var(--jc-pad) 26px;
+    flex-shrink: 0
+}
+
+.jc-cinema-series h2 {
+    font-size: clamp(14px, 1.7cqw, 23px);
+    font-weight: 500;
+    margin: 0 0 18px;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-episodes {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    padding: 5px 4px 5px
+}
+
+.jc-cinema-episode {
+    display: flex;
+    position: relative;
+    align-items: center;
+    flex: 1 0 22%;
+    height: var(--jc-card-h);
+    min-width: 0;
+    background: transparent;
+    padding: 0;
+    scroll-snap-align: start
+}
+
+.jc-cinema-episode > span {
+    font: bold calc(var(--jc-card-h) * 1.32)/.8 Arial;
+    color: #030303;
+    letter-spacing: -.12em;
+    -webkit-text-stroke: 2px #8c8c8c;
+    transform: translateX(-4px);
+    position: relative;
+    z-index: 0
+}
+
+.jc-cinema-episode > img, .jc-cinema-episode > .jc-cinema-placeholder {
+    position: relative;
+    width: 64%;
+    height: 100%;
+    min-width: 0;
+    object-fit: cover;
+    border-radius: 6px;
+    transition: transform .2s
+}
+
+.jc-cinema-episode:hover > img {
+    transform: scale(1.025)
+}
+
+.jc-cinema-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3%;
+    z-index: 10
+}
+
+.jc-cinema-dialog {
+    width: min(100%, 1100px);
+    height: 100%;
+    max-height: 850px;
+    position: relative;
+    overflow: auto;
+    isolation: isolate;
+    border-radius: 14px;
+    background: #141414;
+    box-shadow: 0 20px 80px #0009;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin
+}
+
+.jc-cinema-detail-photo {
+    position: absolute;
+    inset: 0;
+    z-index: -1
+}
+
+.jc-cinema-detail-photo:after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, #141414 2%, #141414a8 30%, transparent 85%)
+}
+
+.jc-cinema-detail-photo img {
+    object-position: center 35%
+}
+
+.jc-cinema-close {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    background: #151515;
+    font: 30px Arial !important;
+    z-index: 2
+}
+
+.jc-cinema-detail-copy {
+    padding: clamp(20px, 4cqw, 56px);
+    padding-top: 180px;
+    margin-top: auto
+}
+
+.jc-cinema-detail-copy h2 {
+    font-size: clamp(28px, 4cqw, 58px);
+    font-weight: 500;
+    margin: 0 0 20px;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-detail-copy > .jc-cinema-ranking {
+    margin-top: 20px
+}
+
+.jc-cinema-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    color: #aaa;
+    font-size: 12px;
+    line-height: 1.6
+}
+
+.jc-cinema-meta b {
+    color: #eee;
+    font-weight: 400
+}
+
+.jc-cinema-mobile .jc-cinema-header {
+    padding-top: 18px;
+    padding-bottom: 8px
+}
+
+.jc-cinema-mobile .jc-cinema-copy {
+    justify-content: flex-end;
+    padding-top: 100px;
+    padding-bottom: 18px
+}
+
+.jc-cinema-mobile .jc-cinema-backdrop > img {
+    object-position: 62% top
+}
+
+.jc-cinema-mobile .jc-cinema-backdrop > div:last-child {
+    background: linear-gradient(0deg, var(--jc-bg) 3%, #000b 40%, #0001 80%, #0008)
+}
+
+.jc-cinema-mobile .jc-cinema-copy h1 {
+    margin: 8px 0 14px
+}
+
+.jc-cinema-mobile .jc-cinema-copy p {
+    margin: 12px 0 18px;
+    line-height: 1.55
+}
+
+.jc-cinema-mobile .jc-cinema-eyebrow b {
+    font-size: 28px
+}
+
+.jc-cinema-mobile .jc-cinema-play, .jc-cinema-mobile .jc-cinema-info {
+    padding: 8px 16px;
+    gap: 8px;
+    font-size: 13px !important
+}
+
+.jc-cinema-mobile .jc-cinema-episode {
+    flex: 0 0 45%
+}
+
+.jc-cinema-mobile .jc-cinema-series {
+    padding-bottom: 18px
+}
+
+.jc-cinema-mobile .jc-cinema-series h2 {
+    margin-bottom: 8px
+}
+
+.jc-cinema-mobile .jc-cinema-overlay {
+    padding: 16px
+}
+
+.jc-cinema-mobile .jc-cinema-dialog {
+    max-height: 650px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-copy {
+    padding: 22px;
+    padding-top: 200px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-copy h2 {
+    font-size: 32px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-copy p {
+    font-size: 13px
+}
+
+@container (max-height:600px) {
+    .jc-cinema-header {
+        padding-top: 10px;
+        padding-bottom: 8px
+    }
+
+    .jc-cinema-copy h1 {
+        margin: 6px 0 10px
+    }
+
+    .jc-cinema-copy p {
+        margin: 8px 0 12px
+    }
+
+    .jc-cinema-mobile .jc-cinema-copy {
+        padding-top: 24px
+    }
+
+    .jc-cinema-series {
+        padding-bottom: 12px
+    }
+
+    .jc-cinema-series h2 {
+        margin-bottom: 8px
+    }
+
+    .jc-cinema-eyebrow b {
+        font-size: 25px
+    }
+}
+
+/* Let the outlined rank overlap the artwork instead of shrinking the artwork. */
+.jc-cinema-episode > span {
+    position: absolute;
+    left: 0;
+    bottom: 4px
+}
+
+.jc-cinema-episode > img, .jc-cinema-episode > .jc-cinema-placeholder {
+    position: absolute;
+    right: 0;
+    width: 65%;
+    flex-shrink: 0
+}
+
+.jc-cinema-wide .jc-cinema-backdrop > img {
+    width: 84%;
+    margin-left: 16%;
+    object-position: 48% center
+}
+
+.jc-cinema-mobile .jc-cinema-backdrop > img {
+    height: 70%;
+    object-position: 35% center
+}
+
+.jc-cinema-detail-copy h2 {
+    font-family: "Nanum Pen Script", cursive
+}
+
+.jc-cinema-wide .jc-cinema-backdrop > img {
+    mask-image: linear-gradient(90deg, transparent, #000 22%)
+}
+
+.jc-cinema-wide .jc-cinema-copy h1 {
+    font-size: calc(var(--jc-title) * 1.15);
+    line-height: 1;
+    margin: 8px 0 16px
+}
+
+.jc-cinema-wide .jc-cinema-series {
+    padding-bottom: 18px
+}
+
+/* Profile selection and detail layout from the supplied reference. */
+.jc-cinema-profiles {
+    background: #141414;
+    gap: 5cqh;
+    padding-bottom: 10cqh
+}
+
+.jc-cinema-profile-header {
+    position: absolute;
+    top: 24px;
+    left: var(--jc-pad)
+}
+
+.jc-cinema-profiles h1 {
+    font-size: clamp(22px, 3.5cqw, 64px);
+    margin-bottom: 2cqh
+}
+
+.jc-cinema-profile-grid {
+    gap: 2.1cqw
+}
+
+.jc-cinema-profile {
+    width: clamp(86px, 10cqw, 192px)
+}
+
+.jc-cinema-profile > span {
+    font-size: clamp(14px, 1.5cqw, 24px)
+}
+
+.jc-cinema-add-avatar {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    place-content: center;
+    font: 700 clamp(64px, 9cqw, 160px)/1 Arial;
+    color: #141414;
+    background: radial-gradient(circle, #858585 45%, transparent 46%)
+}
+
+.jc-cinema-profile:hover {
+    color: white !important
+}
+
+.jc-cinema-manage {
+    background: transparent !important;
+    border: 1px solid #777 !important;
+    color: #999 !important;
+    padding: 10px 28px;
+    margin-top: 6cqh;
+    letter-spacing: 2px;
+    font-size: clamp(14px, 1.5cqw, 24px) !important
+}
+
+.jc-cinema-manage:hover {
+    color: white !important;
+    border-color: white !important
+}
+
+.jc-cinema-brand {
+    letter-spacing: -.055em
+}
+
+.jc-cinema-wide .jc-cinema-header {
+    padding-top: 3cqh;
+    padding-bottom: 2cqh
+}
+
+.jc-cinema-wide .jc-cinema-copy {
+    justify-content: center;
+    padding-top: 0;
+    padding-bottom: 2cqh
+}
+
+.jc-cinema-wide .jc-cinema-copy p {
+    font-size: clamp(12px, 1.18cqw, 18px);
+    max-width: 42%;
+    margin: 12px 0 20px
+}
+
+.jc-cinema-wide .jc-cinema-dialog {
+    width: 80%;
+    max-width: 1300px;
+    height: 96%;
+    border-radius: 10px
+}
+
+.jc-cinema-detail-copy {
+    position: relative
+}
+
+.jc-cinema-wide .jc-cinema-detail-copy p {
+    max-width: 66%
+}
+
+.jc-cinema-wide .jc-cinema-meta {
+    position: absolute;
+    right: 5%;
+    bottom: 12%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-width: 25%
+}
+
+.jc-cinema-round {
+    border: 1px solid #aaa !important;
+    background: #2228;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    align-self: center;
+    font-size: 25px !important
+}
+
+.jc-cinema-round[aria-pressed=true] {
+    color: #fff;
+    background: #e50914
+}
+
+.jc-cinema-mobile .jc-cinema-profiles {
+    gap: 30px;
+    padding: 70px 20px
+}
+
+.jc-cinema-mobile .jc-cinema-profile-grid {
+    gap: 16px
+}
+
+.jc-cinema-mobile .jc-cinema-profiles h1 {
+    font-size: 25px;
+    max-width: 320px
+}
+
+.jc-cinema-mobile .jc-cinema-manage {
+    margin-top: 20px
+}
+
+.jc-cinema-mobile .jc-cinema-dialog {
+    height: 90%;
+    max-height: 800px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-photo img {
+    object-position: 50% top
+}
+
+.jc-cinema-dialog .jc-cinema-actions {
+    align-items: center
+}
+
+/* Shared wordmark keeps its own geometry and does not depend on installed fonts. */
+.jc-wordmark {
+    display: block;
+    width: auto;
+    height: clamp(24px, 2.6cqw, 40px);
+    max-width: 45%;
+    object-fit: contain;
+    object-position: left center;
+    flex-shrink: 1
+}
+
+.jc-cinema-account {
+    height: 36px;
+    flex: 0 0 auto;
+    gap: 12px;
+    align-items: center
+}
+
+.jc-cinema-account > img,
+.jc-cinema-account > .jc-cinema-placeholder {
+    flex: 0 0 36px;
+    width: 36px !important;
+    height: 36px !important;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 3px
+}
+
+.jc-account-arrow {
+    flex: none;
+    display: block;
+    color: #ddd
+}
+
+.jc-cinema-profile-header {
+    width: 90%;
+    display: flex
+}
+
+.jc-cinema-profile > img {
+    flex: none;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+    object-fit: cover
+}
+
+.jc-cinema-profile > .jc-cinema-placeholder {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 !important
+}
+
+/* Rank and portrait share the same measured height; neither uses a font baseline. */
+.jc-cinema-episodes {
+    gap: clamp(16px, 2cqw, 32px);
+    padding: 8px 4px 12px;
+    align-items: center
+}
+
+.jc-cinema-episode {
+    flex: 0 0 calc(var(--jc-card-h) * 1.22);
+    height: var(--jc-card-h);
+    display: block;
+    overflow: visible
+}
+
+.jc-rank-number {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 55%;
+    overflow: visible
+}
+
+.jc-cinema-episode > img, .jc-cinema-episode > .jc-cinema-placeholder {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    width: 59%;
+    height: 100%;
+    border-radius: 5px;
+    object-fit: cover
+}
+
+.jc-cinema-mobile .jc-cinema-episode {
+    flex: 0 0 calc(var(--jc-card-h) * 1.22)
+}
+
+/* A real hero followed by an independent information panel. */
+.jc-cinema-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: #000b;
+    overscroll-behavior: contain
+}
+
+.jc-cinema-dialog, .jc-cinema-wide .jc-cinema-dialog, .jc-cinema-mobile .jc-cinema-dialog {
+    display: block;
+    flex: none;
+    width: min(960px, 90%);
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    border-radius: 10px;
+    background: #181818;
+    margin: 0 auto 32px
+}
+
+.jc-cinema-detail-hero {
+    position: relative;
+    aspect-ratio: 16/9;
+    isolation: isolate;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden
+}
+
+.jc-cinema-detail-photo {
+    position: absolute;
+    inset: 0;
+    z-index: -1
+}
+
+.jc-cinema-detail-photo img {
+    object-position: 50% 35%
+}
+
+.jc-cinema-detail-photo:after {
+    background: linear-gradient(0deg, #181818 0%, #18181866 24%, transparent 65%)
+}
+
+.jc-cinema-detail-copy, .jc-cinema-mobile .jc-cinema-detail-copy {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 9%;
+    padding: 0 5.5%;
+    margin: 0
+}
+
+.jc-cinema-detail-copy h2, .jc-cinema-mobile .jc-cinema-detail-copy h2 {
+    font-family: 'Nanum Pen Script', cursive;
+    font-size: clamp(34px, 5cqw, 76px);
+    max-width: 80%;
+    line-height: 1.1;
+    margin: 0 0 24px
+}
+
+.jc-cinema-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: #181818e8
+}
+
+.jc-cinema-detail-body {
+    display: grid;
+    grid-template-columns:1.8fr 1fr;
+    gap: 32px;
+    padding: 10px 5.5% 48px
+}
+
+.jc-cinema-detail-description p {
+    font-size: 16px;
+    white-space: pre-line;
+    line-height: 1.8;
+    margin: 22px 0 0
+}
+
+.jc-cinema-detail-body .jc-cinema-ranking strong {
+    font-size: 16px
+}
+
+.jc-cinema-detail-body .jc-cinema-ranking {
+    gap: 10px
+}
+
+.jc-cinema-meta, .jc-cinema-wide .jc-cinema-meta {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: none;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #888
+}
+
+.jc-cinema-mobile .jc-cinema-overlay {
+    padding: 18px 10px
+}
+
+.jc-cinema-mobile .jc-cinema-dialog {
+    width: 100%;
+    margin-bottom: 18px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-hero {
+    aspect-ratio: 4/3
+}
+
+.jc-cinema-mobile .jc-cinema-detail-body {
+    grid-template-columns:1fr;
+    gap: 18px;
+    padding: 14px 6% 28px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-copy h2 {
+    font-size: 38px;
+    margin-bottom: 16px
+}
+
+.jc-cinema-mobile .jc-cinema-detail-description p {
+    font-size: 14px
+}
+
+.jc-cinema-mobile .jc-cinema-meta {
+    gap: 8px;
+    font-size: 13px
+}
+
+.jc-cinema-mobile .jc-cinema-close {
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px
+}
+
+.jc-cinema .jc-cinema-two-digit {
+    flex-basis: calc(var(--jc-card-h) * 1.75)
+}
+
+.jc-cinema-two-digit .jc-rank-number {
+    width: 70%
+}
+
+.jc-cinema-two-digit > img, .jc-cinema-two-digit > .jc-cinema-placeholder {
+    width: 41%
+}
+
+/* Ordinary typography after the introductory animation. */
+.jc-cinema-brand {
+    font-family: 'Noto Sans KR', Arial, sans-serif;
+    font-weight: 900;
+    font-size: clamp(24px, 2.6cqw, 40px);
+    line-height: 1.2;
+    letter-spacing: .01em;
+    max-width: 75%;
+    overflow-wrap: anywhere
+}
+
+.jc-cinema-eyebrow b, .jc-cinema-mobile .jc-cinema-eyebrow b {
+    font-family: 'Noto Sans KR', Arial, sans-serif;
+    letter-spacing: normal;
+    line-height: 1.2
+}
+
+/* Every scene fits the available slide; cards move by pages, never a scroll track. */
+.jc-cinema-home {
+    display: grid;
+    grid-template-rows:10% 59% 31%;
+    overflow: hidden;
+    min-height: 0
+}
+
+.jc-cinema-header, .jc-cinema-wide .jc-cinema-header {
+    padding: 0 var(--jc-pad);
+    min-height: 0
+}
+
+.jc-cinema-copy, .jc-cinema-wide .jc-cinema-copy, .jc-cinema-mobile .jc-cinema-copy {
+    min-height: 0;
+    justify-content: center;
+    padding: 0 var(--jc-pad);
+    gap: 1cqh
+}
+
+.jc-cinema-copy h1, .jc-cinema-wide .jc-cinema-copy h1 {
+    font-size: clamp(25px, 7cqh, 65px);
+    margin: 0;
+    line-height: 1.05
+}
+
+.jc-cinema-copy p, .jc-cinema-wide .jc-cinema-copy p, .jc-cinema-mobile .jc-cinema-copy p {
+    font-size: clamp(11px, 1.8cqh, 16px);
+    line-height: 1.45;
+    margin: 1cqh 0;
+    max-width: 70%
+}
+
+.jc-cinema-series, .jc-cinema-wide .jc-cinema-series, .jc-cinema-mobile .jc-cinema-series {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0 var(--jc-pad) 4cqh
+}
+
+.jc-series-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 28px;
+    flex: none;
+    margin-bottom: 1cqh
+}
+
+.jc-cinema-series h2, .jc-cinema-mobile .jc-cinema-series h2 {
+    font-size: clamp(12px, 2.2cqh, 20px);
+    margin: 0;
+    line-height: 1.3
+}
+
+.jc-series-pager {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    font-size: 12px
+}
+
+.jc-series-pager button {
+    background: #3339;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 24px
+}
+
+.jc-series-pager button:disabled {
+    opacity: .3;
+    cursor: default
+}
+
+.jc-cinema-episodes {
+    flex: 1;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 3px;
+    gap: 2cqw
+}
+
+.jc-cinema-episodes::-webkit-scrollbar {
+    display: none
+}
+
+.jc-cinema-episode {
+    scroll-snap-align: start
+}
+
+.jc-cinema .jc-cinema-episode, .jc-cinema .jc-cinema-two-digit {
+    flex: 0 0 calc(22cqh * 1.22);
+    height: 100%;
+    min-width: 0
+}
+
+.jc-cinema-mobile .jc-cinema-copy p {
+    max-width: 100%
+}
+
+.jc-cinema-mobile .jc-cinema-copy {
+    justify-content: flex-end;
+    padding-bottom: 3cqh
+}
+
+.jc-cinema-profiles, .jc-cinema-mobile .jc-cinema-profiles {
+    overflow: hidden;
+    padding: 8cqh 5%;
+    gap: 4cqh
+}
+
+.jc-cinema-profiles h1, .jc-cinema-mobile .jc-cinema-profiles h1 {
+    font-size: clamp(18px, 5cqh, 54px);
+    margin: 0
+}
+
+.jc-cinema-profile {
+    width: min(16cqh, 18cqw)
+}
+
+.jc-cinema-manage, .jc-cinema-mobile .jc-cinema-manage {
+    margin-top: 3cqh;
+    padding: 1cqh 20px
+}
+
+.jc-cinema-overlay, .jc-cinema-mobile .jc-cinema-overlay {
+    overflow: hidden;
+    align-items: center;
+    padding: 3cqh 3cqw
+}
+
+.jc-cinema-dialog, .jc-cinema-wide .jc-cinema-dialog, .jc-cinema-mobile .jc-cinema-dialog {
+    display: grid;
+    grid-template-columns:minmax(0, 1fr);
+    grid-template-rows:minmax(0, 62fr) minmax(0, 38fr);
+    justify-content: stretch;
+    justify-items: stretch;
+    align-content: stretch;
+    height: 100%;
+    max-height: 820px;
+    width: min(960px, 100%);
+    margin: 0;
+    overflow: hidden
+}
+
+.jc-cinema-detail-hero, .jc-cinema-mobile .jc-cinema-detail-hero {
+    aspect-ratio: auto;
+    min-height: 0
+}
+
+.jc-cinema-detail-body, .jc-cinema-mobile .jc-cinema-detail-body {
+    min-height: 0;
+    padding: 1.5cqh 5.5% 2cqh;
+    gap: 2cqh
+}
+
+.jc-cinema-detail-copy h2, .jc-cinema-mobile .jc-cinema-detail-copy h2 {
+    font-size: clamp(28px, 6cqh, 70px);
+    margin-bottom: 2cqh
+}
+
+.jc-cinema-detail-description p, .jc-cinema-mobile .jc-cinema-detail-description p {
+    font-size: clamp(11px, 1.8cqh, 16px);
+    line-height: 1.5;
+    margin: 1.5cqh 0 0
+}
+
+.jc-cinema-detail-body .jc-cinema-ranking strong {
+    font-size: clamp(12px, 2cqh, 16px)
+}
+
+.jc-cinema-mobile .jc-cinema-detail-body {
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto;
+    align-content: start;
+    gap: 1.5cqh
+}
+
+.jc-cinema-mobile .jc-cinema-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: clamp(11px, 1.7cqh, 13px)
+}
+
+@container (max-height:480px) {
+    .jc-cinema-copy p {
+        font-size: 11px !important;
+        margin: 0 !important
+    }
+
+    .jc-cinema-copy {
+        gap: 0
+    }
+
+    .jc-cinema-play, .jc-cinema-info {
+        min-height: 28px;
+        padding: 4px 14px;
+        font-size: 12px !important
+    }
+
+    .jc-cinema-ranking > span {
+        width: 20px;
+        height: 24px
+    }
+
+    .jc-cinema-ranking strong {
+        font-size: 12px
+    }
+
+    .jc-cinema-eyebrow {
+        display: none
+    }
+
+    .jc-cinema-detail-body {
+        grid-template-columns:1.8fr 1fr !important
+    }
+
+    .jc-cinema-detail-copy h2 {
+        font-size: 28px !important
+    }
+
+    .jc-cinema-round {
+        width: 30px;
+        height: 30px
+    }
+
+    .jc-cinema-detail-description p {
+        font-size: 11px !important
+    }
+}
+
+.jc-cinema-dialog > .jc-cinema-detail-hero, .jc-cinema-dialog > .jc-cinema-detail-body {
+    grid-column: 1;
+    min-width: 0;
+    width: 100%;
+    justify-self: stretch
+}
+
+.jc-cinema-detail-body {
+    grid-template-columns:minmax(0, 1.8fr) minmax(0, 1fr)
+}
+
+.jc-cinema-detail-description, .jc-cinema-meta {
+    min-width: 0;
+    overflow-wrap: anywhere
+}

@@ -257,19 +257,22 @@ export default function PlayerPage() {
 function EndScreen({ title, onRestart }: { title: string; onRestart: () => void }) {
   return (
     <div className="bg-bg absolute inset-0 flex flex-col items-center justify-center p-6">
-      <NeoCard bg="var(--color-secondary)" pad={24} shadow={6}>
+      <NeoCard bg="var(--color-secondary)" pad={28} shadow={6} className="w-full max-w-[360px]">
         <div className="text-center">
-          <div className="font-pixel text-[10px] mb-3">THE END</div>
+          <div className="font-body text-[10px] uppercase tracking-[.16em] text-muted mb-3">The end</div>
           <h1 className="font-headline text-[24px] mb-2">{title}</h1>
-          <p className="font-body text-[13px] leading-relaxed mb-5">끝까지 봐주셔서 고마워요 🎁</p>
-          <div className="flex justify-center gap-2">
-            <NeoButton bg="var(--color-primary)" size="sm" onClick={onRestart}>
+          <p className="font-body text-[13px] leading-relaxed mb-6">끝까지 봐주셔서 고마워요 🎁</p>
+          <div className="flex flex-col gap-2.5">
+            <NeoButton bg="var(--color-primary)" color="#fff" size="sm" block onClick={onRestart}>
               처음부터 다시 보기
             </NeoButton>
-            <NeoButton bg="var(--color-bg)" size="sm" href="/">
-              JoyCraft
+            <NeoButton bg="var(--color-surface)" size="sm" block href="/">
+              나도 만들어보기 →
             </NeoButton>
           </div>
+          <p className="font-body text-[11px] text-muted mt-4">
+            JoyCraft로 나만의 인터랙티브 선물을 만들어보세요
+          </p>
         </div>
       </NeoCard>
     </div>

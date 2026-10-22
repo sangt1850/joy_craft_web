@@ -1,310 +1,73 @@
-# JoyCraft — Claude 개발 가이드
+# JoyCraft 개발 가이드
 
-> 이 파일은 Claude가 코드를 작성할 때 항상 참고하는 프로젝트 규칙입니다.
-> 신규 코드는 반드시 이 규칙을 따라야 합니다.
-
----
-
-## 0. 프로젝트 경로
-
-| 역할 | 경로 |
-|------|------|
-| **Frontend (Web)** | `C:/bizbee/joy_craft\joy_craft_web` |
-| **Backend (API)** | `C:/bizbee/joy_craft\joy_craft_api` |
-
-파일을 읽거나 수정할 때 위 경로를 기준으로 탐색한다. API 관련 작업은 `joy_craft_api`, UI/페이지 작업은 `joycraft-web` 디렉토리를 사용한다.
-
----
-
-## 1. 핵심 원칙
-
-- **디자인 콘셉트**: Y2K Neo-Brutalism — 두꺼운 검정 보더, 오프셋 섀도우, 밝은 팝 컬러, 픽셀 폰트
-- **컴포넌트 우선**: 아래 컴포넌트 목록에 있는 것은 반드시 가져다 쓰고, 직접 div를 조립하지 않는다
-- **CSS 변수 우선**: 색상은 `var(--color-mustard)` 또는 Tailwind 클래스(`bg-mustard`)로 — HEX 직접 사용 금지 (팔레트 7색 외)
-- **인라인 style 최소화**: 동적 숫자 값(px, %)만 인라인 style 사용. 정적 스타일은 Tailwind 클래스
-
----
+이 저장소에서 작업할 때 사용하는 현재 규칙이다. 디자인 구현 전 `docs/DESIGN_SYSTEM.md`와 관련 컴포넌트를 함께 확인한다.
 
 > **예외 — `src/survey/`**: 설문 실험 화면은 연구 교란을 피하려고 중립 디자인(`src/survey/survey.css`, `docs/survey/design-reference/`)을 쓴다. 이 폴더에서는 아래 Neo 컴포넌트·팔레트·섀도우 규칙을 적용하지 않는다. (`docs/survey-platform-dev-prompt.md` 참고)
 
 ## 2. 컴포넌트 목록
+## 프로젝트
 
-### 기본 UI (`src/components/ui/`)
+- Web: 현재 저장소 `C:/bizbee/joy_craft/joycraft-web`
+- API: 인접 저장소 `C:/bizbee/joy_craft/joy_craft_api`
+- 편집 UI 원본: `C:/bizbee/joy_craft/JoyCraft-editor-design-guide`
 
-| 컴포넌트 | 파일 | 언제 쓰나 |
-|---------|------|----------|
-| `NeoButton` | `NeoButton.tsx` | 모든 버튼. href 있으면 `<a>` 렌더링 |
-| `NeoCard` | `NeoCard.tsx` | 모든 카드/패널 컨테이너 |
-| `PixelIcon` | `PixelIcon.tsx` | 모든 아이콘 |
-| `StatusBadge` | `StatusBadge.tsx` | 공개/초안/PRO 상태 배지 |
-| `StatCard` | `StatCard.tsx` | 숫자 통계 카드 (아이콘 + 수치 + 라벨) |
-| `SiteCard` | `SiteCard.tsx` | 사이트 목록 카드 (썸네일 + 편집/공유 버튼) |
-| `TemplateCard` | `TemplateCard.tsx` | 템플릿/갤러리 카드 (PRO 배지 포함) |
-| `SearchInput` | `SearchInput.tsx` | 픽셀 아이콘 붙은 검색창 |
-| `TabBar` | `TabBar.tsx` | 세그먼트 탭 필터 (전체/공개/초안 등) |
-| `SectionHeader` | `SectionHeader.tsx` | 섹션 제목 + 우측 액션 버튼 |
-| `ToggleSwitch` | `ToggleSwitch.tsx` | ON/OFF 토글 스위치 |
-| `ColorPicker` | `ColorPicker.tsx` | 색상 스와치 선택기 |
-| `DashedButton` | `DashedButton.tsx` | 점선 테두리 추가 버튼 |
-| `UserRow` | `UserRow.tsx` | 사용자 목록 행 (아바타 + 이름 + 배지 + 메타) |
+경로 문자열을 코드나 자동화 지침에 중복해서 넣지 말고 저장소 기준 상대 경로를 사용한다.
 
-### 레이아웃 (`src/components/layout/`)
+## 디자인 원칙
 
-| 컴포넌트 | 파일 | 용도 |
-|---------|------|------|
-| `AppLayout` | `AppLayout.tsx` | 고객 앱 (사이드바 240px + 하단 탭바) |
-| `MasterLayout` | `MasterLayout.tsx` | 관리자 (사이드바 220px) |
+JoyCraft 서비스 UI는 밝은 회백색 바탕, 흰 표면, 차분한 보라색, 얇은 경계, 작은 라운드를 사용한다. 정보 위계를 먼저 만들고 장식은 줄인다.
 
----
+- 색상은 `src/index.css`의 의미 토큰을 사용한다. 페이지에 임의 HEX를 추가하지 않는다. 소셜 브랜드색, 사용자 콘텐츠, 작품 미리보기는 예외다.
+- 플랫폼 UI 폰트는 시스템 산세리프 스택을 사용한다. 픽셀 폰트를 기본 UI에 사용하지 않는다.
+- 기본 경계는 1px이다. 포커스는 2px `#847099`, offset 3px이다.
+- 카드·입력은 그림자를 기본값으로 사용하지 않는다. 다이얼로그와 부유 요소에만 부드러운 그림자를 쓴다.
+- 버튼은 공통 컴포넌트/`jc-button` 규격을 사용한다. 검정 오프셋 그림자와 눌림 이동 효과를 추가하지 않는다.
+- 입력·텍스트·버튼의 상태에는 기본, hover, focus-visible, disabled, loading, error를 필요한 만큼 제공한다.
+- 아이콘 단독 버튼에는 접근 가능한 이름을 제공한다.
 
-## 3. 색상 팔레트
+## 크기와 밀도
 
-팔레트 외 HEX 직접 사용 금지. 항상 아래 토큰 또는 Tailwind 클래스 사용.
+일반 서비스 화면은 편안한 밀도를 쓴다: 본문 14px, 입력 14px, 기본 버튼 높이 40px, 카드 padding 20px. 모바일 입력은 필요하면 16px로 높인다.
 
-| 토큰 | HEX | Tailwind | 용도 |
-|------|-----|----------|------|
-| `--color-mustard` | `#ffc93c` | `bg-mustard` | CTA, 배지, 강조 |
-| `--color-pink` | `#ff57a6` | `bg-pink` | 로고, FAB, 주요 버튼 |
-| `--color-mint` | `#7fe0bb` | `bg-mint` | 보조 강조 |
-| `--color-blue` | `#9fd3f5` | `bg-blue` | 보조 강조, 통계 카드 |
-| `--color-peach` | `#ffb784` | `bg-peach` | 히어로, 통계 카드 |
-| `--color-cream` | `#fff7e6` | `bg-cream` | 기본 배경 |
-| `--color-ink` | `#111111` | `bg-ink` | 텍스트, 보더, 섀도우 |
+에디터 컨트롤은 참고 원본의 compact 밀도를 쓴다: label 10px, 입력값 11px, 입력 padding 10px/radius 8px, 반복 항목 padding 12px/radius 13px, 섹션 세로 padding 22px. 일반 페이지 숫자를 에디터에 그대로 적용하지 않는다.
 
-**배경 → 텍스트 자동 규칙**
-- Pink / Ink 배경 → 흰색(`#fff`) 텍스트
-- 나머지 → 검정(`#111`) 텍스트
+## 공통 컴포넌트
 
----
+기존 `src/components/ui`의 Button/Card/SearchInput/TabBar/StatusBadge와 도메인 카드부터 재사용한다. 현재 이름이 `NeoButton`, `NeoCard`인 파일은 이관 호환을 위해 유지되지만 외형은 v2 시스템이다. 신규 코드에 `Neo` 또는 `Nb` 접두 컴포넌트를 추가하지 않는다.
 
-## 4. 타이포그래피
+기존 `components/nb`는 레거시 호환 영역이다. 새 사용처를 만들지 않고, 화면 이관 시 `components/ui` 기본형으로 바꾼다. 임의 `bg`, `color`, `shadow` 숫자를 새로운 API로 확산하지 않는다.
 
-| Tailwind 클래스 | 용도 |
-|----------------|------|
-| `font-headline` | 히어로 H1, 카드 제목 |
-| `font-sub` | 버튼, 네비게이션, 소제목 |
-| `font-body` | 본문, 설명 텍스트 |
-| `font-pixel` | 배지, 픽셀 라벨, 수치 |
+## 레이아웃과 반응형
 
----
+- 일반 고객/관리자 사이드바: 240px.
+- 에디터 속성 패널: 넓은 화면 318px, 1100px 이하 285px를 기준으로 조정.
+- 에디터 모바일 경계: 760px. 모바일 패널 최대 `min(340px, 100%)`.
+- 에디터 툴바: 데스크톱 78px, 모바일 60px.
+- 앱 셸은 `100dvh`, 내용 영역은 `min-width:0`/`min-height:0`, 패널은 내부 스크롤을 사용한다.
+- 일반 페이지 좌우 여백은 데스크톱 32px, 태블릿 24px, 모바일 16px를 기본으로 한다.
 
-## 5. 보더 & 섀도우 규칙
+## 슬라이드 콘텐츠 경계
 
-모든 카드/버튼에 두꺼운 보더 + 오프셋 섀도우 필수.
+`src/slides/**`는 사용자가 감상하는 독립 작품이다. 플랫폼 UI 토큰으로 작품 내부의 배경·폰트·버튼을 덮어쓰지 않는다. `SlideCanvas`를 감싸는 미리보기 프레임, 로딩, 오류, 종료 화면만 서비스 디자인 시스템을 사용한다.
 
-```
-보더:   neo-border (3px) / neo-border-4 (4px)
-섀도우: neo-shadow-sm (3px) / neo-shadow-md (5px) / neo-shadow-lg (8px)
-        또는 --shadow-sm / --shadow-md / --shadow-lg CSS 변수
+전역 `button`, `input`, `h1` 규칙이 슬라이드에 시각 스타일을 주입하지 않게 한다. 편집 컨트롤 reset은 네임스페이스 또는 명시적인 클래스 아래에 둔다.
+
+## 코드 규칙
+
+- 기존 API, store, UI, slide registry를 먼저 조사한다.
+- 정적 스타일은 Tailwind 클래스 또는 CSS 토큰을 사용한다. 스케일, 좌표, 사용자 지정색 같은 런타임 값만 인라인 스타일을 허용한다.
+- 실제 button/link 의미, label 연결, aria-pressed/tab 의미를 유지한다.
+- 로딩을 성공처럼 표현하거나 API 결과를 추정하지 않는다.
+- 기존 작업 파일과 `.claude/worktrees`를 수정하지 않는다.
+
+## 검증
+
+```bash
+npm run build
+npm run lint
+npm run test
 ```
 
-Hover 효과: `neo-card-lift` 클래스 (CSS만, useState 불필요)
+UI 변경은 1440/1024/768/390/360px에서 확인한다. 에디터는 1100px와 760px 전후를 추가로 검사한다. 키보드 포커스, 긴 한글, 빈 상태, 오류 상태, 모바일 스크롤, 각 테마, 슬라이드 CSS 격리를 확인한다.
 
----
-
-## 6. 유틸리티 클래스
-
-```
-pixel-badge         검정 배경 + 노란 텍스트 배지
-pixel-badge-muted   반투명 배경 배지
-pixel-badge-pro     노란 배경 + 보더 PRO 배지
-neo-grid-sm         auto-fill, min 180px 그리드
-neo-grid-md         auto-fill, min 220px 그리드
-neo-input           표준 입력 필드 스타일
-neo-card-lift       hover lift 효과 (CSS only)
-neo-shadow-sm/md/lg 섀도우 유틸리티
-```
-
----
-
-## 7. 컴포넌트 사용 예시
-
-### 카드 + 버튼
-
-```tsx
-import NeoCard from "@/components/ui/NeoCard";
-import NeoButton from "@/components/ui/NeoButton";
-
-<NeoCard bg="var(--color-blue)" pad={20} shadow={5}>
-  <h2 className="font-headline text-[20px]">제목</h2>
-  <NeoButton bg="var(--color-mustard)" color="#111" size="sm">
-    확인
-  </NeoButton>
-</NeoCard>
-```
-
-### 통계 카드 그리드
-
-```tsx
-import StatCard from "@/components/ui/StatCard";
-
-<div className="neo-grid-sm">
-  <StatCard label="총 사이트" value="12" icon="doc" bg="bg-blue" />
-  <StatCard label="공개 사이트" value="8" icon="share" bg="bg-mint" />
-</div>
-```
-
-### 사이트 목록
-
-```tsx
-import SiteCard from "@/components/ui/SiteCard";
-
-<div className="neo-grid-md">
-  {sites.map((s) => (
-    <SiteCard
-      key={s.id}
-      {...s}
-      onEdit={(id) => navigate(`/editor/${id}`)}
-    />
-  ))}
-</div>
-```
-
-### 탭 필터
-
-```tsx
-import TabBar from "@/components/ui/TabBar";
-
-const TABS = [
-  { id: "all",     label: "전체" },
-  { id: "public",  label: "공개" },
-  { id: "draft",   label: "초안" },
-];
-
-<TabBar tabs={TABS} active={filter} onChange={setFilter} className="mb-5" />
-```
-
-### 섹션 헤더
-
-```tsx
-import SectionHeader from "@/components/ui/SectionHeader";
-import NeoButton from "@/components/ui/NeoButton";
-import PixelIcon from "@/components/ui/PixelIcon";
-
-<SectionHeader
-  title="내 사이트"
-  titleSize={28}
-  as="h1"
-  className="mb-6"
-  action={
-    <NeoButton bg="var(--color-pink)" size="sm" onClick={() => navigate("/editor/new")}>
-      <span className="flex items-center gap-1.5">
-        <PixelIcon name="plus" size={12} fill="#fff" />
-        새 사이트
-      </span>
-    </NeoButton>
-  }
-/>
-```
-
-### 검색 + 탭 조합
-
-```tsx
-import SearchInput from "@/components/ui/SearchInput";
-
-<SearchInput
-  value={search}
-  onChange={setSearch}
-  placeholder="템플릿 검색..."
-  maxWidth={420}
-  className="mb-5"
-/>
-```
-
-### 에디터 폼 요소
-
-```tsx
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
-import ColorPicker from "@/components/ui/ColorPicker";
-import DashedButton from "@/components/ui/DashedButton";
-
-<ToggleSwitch label="도트 배경" checked={dotBg} onChange={setDotBg} />
-
-<ColorPicker
-  label="버튼 색상"
-  colors={["#FF57A6", "#ffc93c", "#7fe0bb", "#9fd3f5"]}
-  value={selectedColor}
-  onChange={setSelectedColor}
-/>
-
-<DashedButton icon="plus" onClick={addPage}>페이지 추가</DashedButton>
-```
-
-### StatusBadge 단독 사용
-
-```tsx
-import StatusBadge, { inferVariant } from "@/components/ui/StatusBadge";
-
-// 자동 variant 감지
-<StatusBadge variant={inferVariant(status)}>{status}</StatusBadge>
-
-// 직접 지정
-<StatusBadge variant="pro">PRO</StatusBadge>
-<StatusBadge variant="default">공개</StatusBadge>
-<StatusBadge variant="muted">초안</StatusBadge>
-```
-
----
-
-## 8. 금지 사항
-
-- `style={{ boxShadow: "5px 5px 0 #111" }}` — `neo-shadow-md` 클래스 또는 `--shadow-md` 변수 사용
-- `<span className="pixel-badge">` — `StatusBadge` 컴포넌트 사용
-- `<div className="neo-border p-5 bg-blue" style={{ boxShadow: ... }}>` + 수치/아이콘 — `StatCard` 사용
-- `<div className="neo-border overflow-hidden ...">` + 썸네일 + 버튼 패턴 — `SiteCard` / `TemplateCard` 사용
-- 팔레트 외 HEX 색상 직접 사용 (e.g. `#ff0000`)
-- `border-radius` 크게 사용 (카드 기본값 = 0, 버튼 = 8px)
-- 그림자 없는 카드/버튼
-
----
-
-## 9. 파일 구조
-
-```
-src/
-├── components/
-│   ├── layout/
-│   │   ├── AppLayout.tsx       고객 레이아웃
-│   │   └── MasterLayout.tsx    관리자 레이아웃
-│   └── ui/
-│       ├── NeoButton.tsx
-│       ├── NeoCard.tsx
-│       ├── PixelIcon.tsx
-│       ├── StatusBadge.tsx
-│       ├── StatCard.tsx
-│       ├── SiteCard.tsx
-│       ├── TemplateCard.tsx
-│       ├── SearchInput.tsx
-│       ├── TabBar.tsx
-│       ├── SectionHeader.tsx
-│       ├── ToggleSwitch.tsx
-│       ├── ColorPicker.tsx
-│       ├── DashedButton.tsx
-│       └── UserRow.tsx
-├── pages/
-│   ├── public/         LandingPage, PlayerPage
-│   ├── customer/       Dashboard, MySites, Browse, Settings
-│   ├── master/         MasterDashboard
-│   └── editor/         SiteEditor
-├── store/
-│   └── themeStore.ts   Zustand 테마 (default/pastel/dark/mono)
-├── utils/
-│   └── cn.ts           clsx 래퍼
-└── index.css           디자인 토큰, @utility 정의
-```
-
----
-
-## 10. 상세 디자인 가이드
-
-전체 색상/타이포/애니메이션 상세 → `docs/DESIGN_SYSTEM.md`
-
-## graphify
-
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+구현 계획과 전체 완료 체크리스트는 `docs/DESIGN_REFACTOR_PLAN.md`를 따른다.

@@ -27,6 +27,8 @@ interface SlideCanvasProps {
   values: Record<string, unknown>;
   /** 에디터 미리보기 모드 — 슬라이드가 자동 전환을 하지 않는다 */
   isPreview?: boolean;
+  /** 썸네일 정지 모드 — true이면 슬라이드 JS 애니메이션이 시작하지 않는다 */
+  paused?: boolean;
   /** 완료 콜백. 리렌더마다 새 함수를 넘기면 슬라이드 내부 effect가 다시 돌 수 있으니 안정적으로 유지할 것 */
   onComplete?: () => void;
   /** 렌더 실패/미지원일 때 빠져나가는 경로 */
@@ -40,6 +42,7 @@ export default function SlideCanvas({
   componentRef,
   values,
   isPreview,
+  paused,
   onComplete,
   onSkip,
   skipLabel = "다음으로",
@@ -50,6 +53,7 @@ export default function SlideCanvas({
         componentRef={componentRef}
         values={values}
         isPreview={isPreview}
+        paused={paused}
         onComplete={onComplete}
         onSkip={onSkip}
         skipLabel={skipLabel}
@@ -60,7 +64,7 @@ export default function SlideCanvas({
 
 type SlideBodyProps = Omit<SlideCanvasProps, "slideKey">;
 
-function SlideBody({ componentRef, values, isPreview, onComplete, onSkip, skipLabel }: SlideBodyProps) {
+function SlideBody({ componentRef, values, isPreview, paused, onComplete, onSkip, skipLabel }: SlideBodyProps) {
   const SlideComponent = resolveSlide(componentRef);
 
   if (!SlideComponent) {
@@ -80,5 +84,5 @@ function SlideBody({ componentRef, values, isPreview, onComplete, onSkip, skipLa
     );
   }
 
-  return <SlideComponent data={values} onComplete={onComplete} isPreview={isPreview} />;
+  return <SlideComponent data={values} onComplete={onComplete} isPreview={isPreview} paused={paused} />;
 }

@@ -15,14 +15,12 @@ import {
   moveArrayItem,
   summarizeItem,
 } from "../../../slides/arrayFieldValue";
+import type { ArrayItem } from "../../../slides/arrayFieldValue";
 import FieldWidget from "./FieldWidget";
-import NeoCard from "../../ui/NeoCard";
-import NeoButton from "../../ui/NeoButton";
 import DashedButton from "../../ui/DashedButton";
-import StatusBadge from "../../ui/StatusBadge";
 
 const LABEL_CLASS = "font-sub text-[12px] text-ink block";
-const HINT_CLASS = "font-body text-[10px] text-black/50 leading-snug";
+const HINT_CLASS = "font-body text-[10px] text-muted leading-snug";
 
 interface ArrayFieldEditorProps {
   field: SchemaFieldDef;
@@ -44,6 +42,16 @@ export default function ArrayFieldEditor({
 }: ArrayFieldEditorProps) {
   const [textMode, setTextMode] = useState(false);
   const [localText, setLocalText] = useState('');
+  // 아코디언: 기본적으로 첫 번째 항목만 열린 상태
+  const [openItems, setOpenItems] = useState<Set<number>>(() => new Set([0]));
+
+  const toggleItem = (idx: number) =>
+    setOpenItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
 
   const parsed = parseArrayValue(value);
   const itemFields = field.itemFields ?? [];
@@ -85,6 +93,12 @@ export default function ArrayFieldEditor({
   }
 
   const commit = (items: Record<string, unknown>[]) => onChange(serializeArrayValue(items));
+
+  const handleAddItem = () => {
+    const newIdx = parsed.items.length;
+    commit([...parsed.items, makeArrayItem(field)]);
+    setOpenItems((prev) => new Set([...prev, newIdx]));
+  };
 
   // 항상 최신 parsed.items 를 참조하기 위한 ref (oEmbed 비동기 콜백에서 사용)
   const parsedRef = useRef(parsed);
@@ -134,7 +148,7 @@ export default function ArrayFieldEditor({
           <button
             type="button"
             onClick={() => textMode ? setTextMode(false) : handleEnterTextMode()}
-            className="font-body text-[11px] text-ink border border-black/40 rounded px-2 py-0.5 shrink-0 cursor-pointer bg-white hover:bg-black/10"
+            className="font-body text-[12px] text-muted border border-border rounded-[8px] px-2 py-[3px] shrink-0 cursor-pointer bg-surface hover:bg-subtle hover:text-heading transition-colors"
           >
             {textMode ? '목록으로' : '텍스트로'}
           </button>
@@ -152,7 +166,7 @@ export default function ArrayFieldEditor({
             rows={10}
             spellCheck={false}
             placeholder={"주연|너 그리고 나\n감독|운명\n각본|매일의 대화"}
-            className="neo-input font-body text-[12px] resize-y leading-relaxed"
+            className="jc-input font-body text-[12px] resize-y leading-relaxed"
           />
         </div>
       ) : useRaw ? (
@@ -165,66 +179,98 @@ export default function ArrayFieldEditor({
         />
       ) : (
         <>
-          {parsed.items.map((item, idx) => (
-            <NeoCard key={idx} bg="var(--color-bg)" pad={10} shadow={3} border={2}>
-              <div className="flex items-center gap-1.5 mb-2">
-                <StatusBadge variant="default">
-                  {itemLabel} {idx + 1}
-                </StatusBadge>
-                <span className="font-body text-[10px] text-black/50 truncate flex-1">
-                  {summarizeItem(item, itemFields)}
-                </span>
-              </div>
+          {parsed.items.map((item, idx) => {
+            const isOpen = openItems.has(idx);
+            return (
+              <div
+                key={idx}
+                className="border border-border rounded-[12px] overflow-hidden"
+                style={{ marginTop: idx === 0 ? 0 : 8 }}
+              >
+                {/* 아코디언 헤더 */}
+                <button
+                  type="button"
+                  onClick={() => toggleItem(idx)}
+                  className="flex items-center gap-2 w-full px-3 py-[11px] bg-field text-left cursor-pointer border-none"
+                >
+                  <svg
+                    width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    className="shrink-0 text-muted transition-transform"
+                    style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                  <span className="flex-1 min-w-0 font-sub text-[13px] font-semibold truncate text-ink">
+                    {itemLabel} {idx + 1}
+                  </span>
+                  <span className="font-body text-[11.5px] text-muted whitespace-nowrap">
+                    {summarizeItem(item, itemFields)}
+                  </span>
+                </button>
 
-              <div className="flex flex-col gap-2.5">
-                {itemFields.map((f) => (
-                  <FieldWidget
-                    key={f.key}
-                    field={f}
-                    value={item[f.key]}
-                    compact
-                    inArrayItem
-                    onChange={(v) => handleItemFieldChange(idx, f.key, v)}
-                  />
-                ))}
-              </div>
+                {/* 아코디언 내용 */}
+                {isOpen && (
+                  <div className="flex flex-col gap-[14px] px-3 pb-3 pt-3 border-t border-border">
+                    {itemFields.map((f) => (
+                      <FieldWidget
+                        key={f.key}
+                        field={f}
+                        value={item[f.key]}
+                        compact
+                        inArrayItem
+                        onChange={(v) => handleItemFieldChange(idx, f.key, v)}
+                      />
+                    ))}
 
-              <div className="flex gap-1.5 mt-2.5">
-                <NeoButton
-                  bg="var(--color-bg)"
-                  size="sm"
-                  shadow={2}
-                  disabled={idx === 0}
-                  onClick={() => commit(moveArrayItem(parsed.items, idx, idx - 1))}
-                >
-                  ↑
-                </NeoButton>
-                <NeoButton
-                  bg="var(--color-bg)"
-                  size="sm"
-                  shadow={2}
-                  disabled={idx === parsed.items.length - 1}
-                  onClick={() => commit(moveArrayItem(parsed.items, idx, idx + 1))}
-                >
-                  ↓
-                </NeoButton>
-                <NeoButton
-                  bg="var(--color-surface)"
-                  size="sm"
-                  shadow={2}
-                  onClick={() => commit(parsed.items.filter((_, i) => i !== idx))}
-                >
-                  삭제
-                </NeoButton>
+                    {/* 항목 액션 */}
+                    <div className="flex items-center gap-1.5 pt-2 mt-1 border-t border-border">
+                      <button
+                        type="button"
+                        title="위로"
+                        aria-label={`${itemLabel} ${idx + 1} 위로`}
+                        disabled={idx === 0}
+                        onClick={() => commit(moveArrayItem(parsed.items, idx, idx - 1))}
+                        className="jc-icon-btn"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        title="아래로"
+                        aria-label={`${itemLabel} ${idx + 1} 아래로`}
+                        disabled={idx === parsed.items.length - 1}
+                        onClick={() => commit(moveArrayItem(parsed.items, idx, idx + 1))}
+                        className="jc-icon-btn"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 5v14" /><path d="M19 12l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => commit(parsed.items.filter((_, i) => i !== idx))}
+                        className="jc-delete-btn"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 7h16" /><path d="M9 7V5h6v2" /><path d="M6 7l1 13h10l1-13" />
+                        </svg>
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </NeoCard>
-          ))}
+            );
+          })}
 
           {parsed.items.length === 0 && (
             <p className={HINT_CLASS}>아직 {itemLabel}이(가) 없습니다.</p>
           )}
 
-          <DashedButton onClick={() => commit([...parsed.items, makeArrayItem(field)])}>
+          <DashedButton onClick={handleAddItem}>
             {itemLabel} 추가
           </DashedButton>
         </>
@@ -265,23 +311,26 @@ function RawEditor({
   return (
     <div className="flex flex-col gap-2">
       {broken && (
-        <NeoCard bg="var(--color-surface)" pad={10} shadow={3} border={2}>
-          <p className="font-body text-[11px] leading-snug">
+        <div
+          className="rounded-[9px] px-3 py-2.5"
+          style={{ background: "var(--color-field)", border: "1px solid var(--color-border)" }}
+        >
+          <p className="font-body text-[11px] leading-snug text-muted">
             목록 형식이 아니어서 목록 편집기를 열 수 없습니다. 아래에서 직접 고치거나 기본값으로
             되돌려 주세요.
           </p>
-        </NeoCard>
+        </div>
       )}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={8}
         spellCheck={false}
-        className="neo-input font-pixel text-[10px] resize-y leading-snug"
+        className="jc-input font-body text-[11px] resize-y leading-snug"
       />
-      <NeoButton bg="var(--color-secondary)" size="sm" shadow={3} block onClick={onReset}>
+      <button type="button" className="jc-btn-outline w-full justify-center" onClick={onReset}>
         기본값으로 되돌리기
-      </NeoButton>
+      </button>
     </div>
   );
 }

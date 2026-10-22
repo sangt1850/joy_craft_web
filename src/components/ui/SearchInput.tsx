@@ -1,4 +1,4 @@
-// SearchInput — 픽셀 서치 아이콘이 붙은 Neo 스타일 검색 입력창
+// SearchInput — 서비스 전역 검색 입력창
 import PixelIcon from "./PixelIcon";
 
 interface SearchInputProps {
@@ -18,16 +18,16 @@ export default function SearchInput({
 }: SearchInputProps) {
   return (
     <div
-      className={`flex items-center neo-border bg-white px-[14px] py-[9px] gap-2.5 ${className}`}
+      className={`jc-search flex items-center bg-white px-3 py-2 gap-2.5 ${className}`}
       style={maxWidth ? { maxWidth } : undefined}
     >
-      <PixelIcon name="search" size={16} fill="#888" />
+      <PixelIcon name="search" size={16} fill="var(--color-muted)" />
       <input
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border-none outline-none bg-transparent font-body text-[14px] text-ink flex-1"
+        className="border-none outline-none bg-transparent font-body text-[14px] text-ink flex-1 min-w-0"
       />
     </div>
   );
