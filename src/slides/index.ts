@@ -33,3 +33,6 @@ import "./gift-unboxing";
 
 // J그룹 — 연출 (폰 알림)
 import "./phone-notification";
+
+// K그룹 — 연출 (넷플릭스풍 인트로)
+import "./loveflix-intro";
