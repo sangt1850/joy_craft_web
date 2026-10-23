@@ -7,6 +7,7 @@ import UserRow from "../../components/ui/UserRow";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { fetchPlatformStats, fetchRecentUsers } from "../../api/admin";
 import type { PlatformStatsResponse, UserResponse } from "../../types/api";
+import { todayISO } from "../../utils/date";
 
 export default function MasterDashboardPage() {
   const [stats, setStats] = useState<PlatformStatsResponse | null>(null);
@@ -38,7 +39,7 @@ export default function MasterDashboardPage() {
       ]
     : [];
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   return (
     <div className="px-4 py-7 md:px-8 md:py-9 max-w-[1120px] mx-auto">
@@ -51,7 +52,7 @@ export default function MasterDashboardPage() {
 
       {loading ? (
         <div className="text-center py-12 font-body text-[14px] text-muted">
-          불러오는 중...
+          불러오는 중…
         </div>
       ) : error ? (
         <NeoCard pad={32} shadow={0} className="text-center">
