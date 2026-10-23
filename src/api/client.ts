@@ -9,6 +9,17 @@ export interface ApiError {
   [key: string]: unknown;
 }
 
+/**
+ * 세션 만료 시 호출되는 핸들러.
+ * 에디터처럼 미저장 데이터가 있는 화면에서 하드 리다이렉트 대신
+ * 경고 모달을 먼저 보여주기 위해 사용한다.
+ */
+type AuthExpiredHandler = () => void;
+let authExpiredHandler: AuthExpiredHandler | null = null;
+export function setAuthExpiredHandler(handler: AuthExpiredHandler | null) {
+  authExpiredHandler = handler;
+}
+
 export function isApiError(e: unknown): e is ApiError {
   return typeof e === "object" && e !== null && typeof (e as ApiError).status === "number";
 }
@@ -54,7 +65,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   // 공개 요청은 세션과 무관하므로 401이어도 로그인 상태를 건드리지 않는다
   if (res.status === 401 && !skipAuth && !skipAuthRedirect) {
     localStorage.removeItem("accessToken");
-    window.location.href = "/";
+    if (authExpiredHandler) {
+      authExpiredHandler();
+    } else {
+      window.location.href = "/";
+    }
     throw new Error("Unauthorized");
   }
 

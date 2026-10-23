@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 
 interface AuthGuardProps {
@@ -14,6 +14,7 @@ export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const fetchMe = useAuthStore((s) => s.fetchMe);
+  const location = useLocation();
 
   useEffect(() => {
     fetchMe();
@@ -22,7 +23,7 @@ export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-bg">
-        <div className="font-pixel text-[12px] text-ink animate-pulse">LOADING...</div>
+        <div className="font-body text-[13px] text-muted animate-pulse">페이지를 준비하고 있어요…</div>
       </div>
     );
   }
@@ -30,7 +31,7 @@ export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   // 렌더 중 navigate()를 호출하면 React가 "다른 컴포넌트를 렌더링하는 중 상태를 갱신"한다고
   // 경고한다. 리다이렉트는 엘리먼트 반환으로 처리한다.
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace state={{ from: location.pathname }} />;
   }
 
   if (requiredRole && user?.role !== requiredRole) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { ArrowRight, Check, Gift, LayoutTemplate, Link2, MousePointer2, Sparkles } from "lucide-react";
 import LoginModal from "../../components/ui/LoginModal";
 import RegisterModal from "../../components/ui/RegisterModal";
@@ -22,14 +22,14 @@ const FAQ = [
 ];
 
 export default function LandingPage() {
-  const navigate = useNavigate();
+  const location = useLocation();
   const isLoading = useAuthStore((s) => s.isLoading);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const fetchMe = useAuthStore((s) => s.fetchMe);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   useEffect(() => { fetchMe(); }, [fetchMe]);
-  const success = () => { setLoginOpen(false); setRegisterOpen(false); navigate("/dashboard"); };
+  const from = (location.state as { from?: string } | null)?.from;
   if (isLoading) return <div className="grid h-dvh place-items-center bg-bg text-sm text-muted">JoyCraft를 준비하고 있어요…</div>;
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return <div className="min-h-dvh bg-bg text-ink">
@@ -72,8 +72,8 @@ export default function LandingPage() {
 
       <section className="px-5 pb-20 md:px-8 md:pb-28"><div className="mx-auto flex max-w-[1080px] flex-col items-center rounded-[24px] bg-primary px-6 py-14 text-center text-white md:py-16"><Gift size={28} className="mb-4 opacity-80" /><h2 className="m-0 text-[29px] tracking-[-.04em] text-white md:text-[38px]">오늘, 마음을 직접 만들어 보세요</h2><p className="mb-7 mt-3 text-sm text-white/70">지금 바로 무료로 시작할 수 있어요.</p><button onClick={() => setRegisterOpen(true)} className="jc-button h-12 rounded-[10px] border-white/10 bg-white px-6 text-sm text-heading">무료로 시작하기 <ArrowRight size={16} /></button></div></section>
     </main>
-    <footer className="border-t border-border bg-surface"><div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-5 py-8 text-xs text-muted md:flex-row md:items-center md:justify-between md:px-8"><strong className="text-sm text-heading">JoyCraft</strong><span>© 2026 JoyCraft. All rights reserved.</span><div className="flex gap-5"><a href="#" className="text-inherit no-underline">이용약관</a><a href="#" className="text-inherit no-underline">개인정보처리방침</a></div></div></footer>
-    {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} onSuccess={success} onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />}
-    {registerOpen && <RegisterModal onClose={() => setRegisterOpen(false)} onSuccess={success} onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />}
+    <footer className="border-t border-border bg-surface"><div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-5 py-8 text-xs text-muted md:flex-row md:items-center md:justify-between md:px-8"><strong className="text-sm text-heading">JoyCraft</strong><span>© 2026 JoyCraft. All rights reserved.</span><div className="flex gap-5"><span className="text-muted/50 cursor-default">이용약관 (준비 중)</span><span className="text-muted/50 cursor-default">개인정보처리방침 (준비 중)</span></div></div></footer>
+    {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} redirectPath={from} />}
+    {registerOpen && <RegisterModal onClose={() => setRegisterOpen(false)} onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} redirectPath={from} />}
   </div>;
 }

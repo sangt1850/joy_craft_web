@@ -5,11 +5,12 @@ import { fetchKakaoUrl, KAKAO_STATE_KEY } from "../../api/auth";
 
 interface LoginModalProps {
   onClose: () => void;
-  onSuccess: () => void;
   onSwitchToRegister?: () => void;
+  variant?: "login" | "register";
+  redirectPath?: string;
 }
 
-export default function LoginModal({ onClose }: LoginModalProps) {
+export default function LoginModal({ onClose, variant = "login", redirectPath }: LoginModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,6 +22,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
       // 콜백에서 대조할 수 있게 보관한다. sessionStorage라 이 탭에서만 읽히고,
       // 공격자가 만든 콜백 링크를 다른 탭/브라우저에서 열면 대조에 실패한다.
       sessionStorage.setItem(KAKAO_STATE_KEY, state);
+      // 로그인 후 원래 페이지로 돌아갈 수 있도록 현재 경로 저장
+      if (redirectPath) sessionStorage.setItem("auth_redirect", redirectPath);
       window.location.href = url;
     } catch {
       setError("카카오 로그인 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -40,7 +43,9 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           <div className="border-b border-border px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src={logoSvg} width={16} height={14} alt="" />
-              <span className="font-body text-[13px] font-semibold text-heading">JoyCraft 시작하기</span>
+              <span className="font-body text-[13px] font-semibold text-heading">
+                {variant === "register" ? "JoyCraft 시작하기" : "JoyCraft 로그인"}
+              </span>
             </div>
             <button
               onClick={onClose}
@@ -55,9 +60,13 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           {/* 본문 */}
           <div className="px-6 py-8 flex flex-col items-center gap-6">
             <div className="text-center">
-              <p className="font-headline text-[20px] text-heading m-0 mb-2">환영합니다</p>
+              <p className="font-headline text-[20px] text-heading m-0 mb-2">
+                {variant === "register" ? "반가워요!" : "다시 오셨군요!"}
+              </p>
               <p className="font-body text-[13px] m-0 text-muted">
-                카카오 계정으로 간편하게 시작하세요
+                {variant === "register"
+                  ? "카카오 계정 하나로 바로 시작할 수 있어요"
+                  : "카카오 계정으로 간편하게 로그인하세요"}
               </p>
             </div>
 

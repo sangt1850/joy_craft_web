@@ -20,6 +20,8 @@ export default function KakaoCallbackPage() {
 
   // StrictMode에서 useEffect가 두 번 실행되는 것을 방지
   const calledRef = useRef(false);
+  // 로그인 전 페이지로 복귀하기 위한 경로
+  const redirectRef = useRef("/dashboard");
 
   useEffect(() => {
     if (calledRef.current) return;
@@ -46,13 +48,16 @@ export default function KakaoCallbackPage() {
       return;
     }
 
+    redirectRef.current = sessionStorage.getItem("auth_redirect") || "/dashboard";
+    sessionStorage.removeItem("auth_redirect");
+
     kakaoCallback(code, returnedState)
       .then(async (res) => {
         if (res.accessToken) {
           // 기존 유저 — 바로 로그인
           localStorage.setItem("accessToken", res.accessToken);
           await loadMe();
-          navigate("/dashboard", { replace: true });
+          navigate(redirectRef.current, { replace: true });
         } else if (res.newUser && res.registerToken) {
           // 신규 유저 — 닉네임 입력 단계
           setRegisterToken(res.registerToken);
@@ -73,7 +78,7 @@ export default function KakaoCallbackPage() {
       if (res.accessToken) {
         localStorage.setItem("accessToken", res.accessToken);
         await loadMe();
-        navigate("/dashboard", { replace: true });
+        navigate(redirectRef.current, { replace: true });
       }
     } catch {
       setError("회원가입에 실패했습니다. 다시 시도해주세요.");
