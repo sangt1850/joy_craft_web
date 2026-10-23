@@ -1,7 +1,11 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { SurveyPage } from './views/SurveyPage';
 import './survey.css';
+
+const SurveyAdminPage = lazy(() =>
+  import('./views/admin/SurveyAdminPage').then((m) => ({ default: m.SurveyAdminPage })),
+);
 
 function NotFound() {
   return (
@@ -21,6 +25,14 @@ export default function SurveyApp() {
     <BrowserRouter>
       <Routes>
         <Route path="/s/:code" element={<SurveyPage />} />
+        <Route
+          path="/s/:code/admin"
+          element={
+            <Suspense fallback={<div className="center-msg"><div className="spinner" /></div>}>
+              <SurveyAdminPage />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
