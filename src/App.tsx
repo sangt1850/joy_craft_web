@@ -24,6 +24,7 @@ const SiteEditorPage = lazy(() => import("./pages/editor/SiteEditorPage"));
 const MasterDashboardPage = lazy(() => import("./pages/master/MasterDashboardPage"));
 
 const TemplateEditPage = lazy(() => import("./pages/creator/TemplateEditPage"));
+const NotFoundPage = lazy(() => import("./pages/public/NotFoundPage"));
 
 /** 청크를 받아오는 동안 잠깐 보이는 화면 */
 function RouteFallback() {
@@ -49,6 +50,7 @@ function CustomerApp() {
           <Route path="master/sites" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
           <Route path="master/templates" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
           <Route path="master/settings" element={<AuthGuard requiredRole="MASTER"><MasterDashboardPage /></AuthGuard>} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AppLayout>
     </AuthGuard>

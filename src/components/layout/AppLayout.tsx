@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, Home, Files, LayoutGrid, Settings, Plus, Search, Layers, ShieldCheck, LayoutDashboard, Users, Shapes } from "lucide-react";
+import { Menu, Home, Files, LayoutGrid, Settings, Plus, Layers, LayoutDashboard, Users, Shapes } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useAuthStore } from "../../store/authStore";
 
@@ -33,7 +33,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="flex items-center gap-4">
         <button type="button" aria-label={sidebarOpen ? "사이드바 접기" : "사이드바 열기"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((v) => !v)} className="grid size-9 place-items-center rounded-lg border-0 bg-transparent text-muted hover:bg-subtle hover:text-heading"><Menu size={19} /></button>
         <button type="button" onClick={() => navigate("/dashboard")} className="border-0 bg-transparent p-0"><Brand /></button>
-        <div className="ml-3 flex h-9 w-[260px] items-center gap-2 rounded-lg border border-border bg-bg px-3 text-muted"><Search size={15} aria-hidden /><span className="text-xs">사이트와 템플릿 검색</span></div>
       </div>
       <div className="flex items-center gap-3">
         <button type="button" onClick={() => navigate("/editor/new")} className="jc-button h-9 rounded-lg bg-primary px-4 text-xs text-white"><Plus size={15} /> 새 사이트</button>
@@ -69,12 +68,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </div>
     <nav className="fixed inset-x-0 bottom-0 z-[100] flex h-[68px] border-t border-border bg-surface/95 px-1 backdrop-blur md:hidden">
       {navItems.map(({ to, icon: Icon, label }) => <NavLink key={to} to={to} className="flex-1 no-underline">{({ isActive }) => <div className={cn("flex h-full flex-col items-center justify-center gap-1 text-[10px]", isActive ? "text-heading font-semibold" : "text-muted")}><Icon size={19} strokeWidth={isActive ? 2.2 : 1.7} /><span>{label}</span></div>}</NavLink>)}
-      {isCreator && (
-        <NavLink to="/creator/templates" className="flex-1 no-underline">{({ isActive }) => <div className={cn("flex h-full flex-col items-center justify-center gap-1 text-[10px]", isActive ? "text-heading font-semibold" : "text-muted")}><Layers size={19} strokeWidth={isActive ? 2.2 : 1.7} /><span>슬라이드</span></div>}</NavLink>
-      )}
-      {isMaster && (
-        <NavLink to="/master" className="flex-1 no-underline">{({ isActive }) => <div className={cn("flex h-full flex-col items-center justify-center gap-1 text-[10px]", isActive ? "text-heading font-semibold" : "text-muted")}><ShieldCheck size={19} strokeWidth={isActive ? 2.2 : 1.7} /><span>Admin</span></div>}</NavLink>
-      )}
       <button type="button" aria-label="새 사이트 만들기" onClick={() => navigate("/editor/new")} className="m-2 grid size-[48px] shrink-0 place-items-center rounded-[14px] border-0 bg-primary text-white"><Plus size={21} /></button>
     </nav>
   </div>;
