@@ -7,9 +7,9 @@
 ## 2. 컴포넌트 목록
 ## 프로젝트
 
-- Web: 현재 저장소 `C:/bizbee/joy_craft/joycraft-web`
-- API: 인접 저장소 `C:/bizbee/joy_craft/joy_craft_api`
-- 편집 UI 원본: `C:/bizbee/joy_craft/JoyCraft-editor-design-guide`
+- Web: 현재 저장소 `D:/develop/joycraft-web`
+- API: 인접 저장소 `D:/develop/joy_craft_api`
+- 편집 UI 원본: `D:/develop//JoyCraft-editor-design-guide`
 
 경로 문자열을 코드나 자동화 지침에 중복해서 넣지 말고 저장소 기준 상대 경로를 사용한다.
 
