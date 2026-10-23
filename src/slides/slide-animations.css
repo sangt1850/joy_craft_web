@@ -49,3 +49,38 @@
     opacity: 1 !important;
   }
 }
+
+@keyframes jc-loveflix-logo-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(.72) scaleY(1.08);
+    filter: blur(8px);
+    letter-spacing: 18px;
+  }
+  30% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  72% {
+    transform: scale(1.03) scaleY(1.08);
+    letter-spacing: -3px;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) scaleY(1.08);
+    letter-spacing: -4px;
+  }
+}
+
+@keyframes jc-loveflix-modal-in {
+  from { opacity: 0; transform: translateY(20px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.jc-loveflix-logo {
+  animation: jc-loveflix-logo-reveal 1.65s cubic-bezier(.2,.7,.2,1) both;
+}
+
+.jc-loveflix-modal {
+  animation: jc-loveflix-modal-in .22s ease-out both;
+}

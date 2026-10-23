@@ -31,3 +31,6 @@ import "./cinema-intro";
 
 // L그룹 — 인터랙션 (코기 선물 배달)
 import "./corgi-gift";
+
+// K그룹 — 연출 (넷플릭스풍 인트로)
+import "./loveflix-intro";

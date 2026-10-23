@@ -2,6 +2,9 @@
 
 이 저장소에서 작업할 때 사용하는 현재 규칙이다. 디자인 구현 전 `docs/DESIGN_SYSTEM.md`와 관련 컴포넌트를 함께 확인한다.
 
+> **예외 — `src/survey/`**: 설문 실험 화면은 연구 교란을 피하려고 중립 디자인(`src/survey/survey.css`, `docs/survey/design-reference/`)을 쓴다. 이 폴더에서는 아래 Neo 컴포넌트·팔레트·섀도우 규칙을 적용하지 않는다. (`docs/survey-platform-dev-prompt.md` 참고)
+
+## 2. 컴포넌트 목록
 ## 프로젝트
 
 - Web: 현재 저장소 `C:/bizbee/joy_craft/joycraft-web`
