@@ -18,6 +18,7 @@ import { useToastStore } from "../../store/toastStore";
 import { createSite } from "../../api/sites";
 import { publishSite } from "../../api/editor";
 import { resolveAssetRefsDeep } from "../../api/assets";
+import { setAuthExpiredHandler } from "../../api/client";
 import {
   resolveEditorSchema,
   mergeSlideValues,
@@ -101,6 +102,7 @@ export default function SiteEditorPage() {
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   // 미리보기 강제 리마운트용 — 애니메이션이 한 번만 도는 슬라이드를 다시 보기 위해
   const [previewNonce, setPreviewNonce] = useState(0);
 
@@ -138,6 +140,12 @@ export default function SiteEditorPage() {
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
+  // 에디터에서 세션 만료 시 하드 리다이렉트 대신 경고 모달 표시
+  useEffect(() => {
+    setAuthExpiredHandler(() => setSessionExpired(true));
+    return () => setAuthExpiredHandler(null);
   }, []);
 
   const slides = site?.slides ?? [];
@@ -643,6 +651,32 @@ export default function SiteEditorPage() {
           setMobileTab("preview");
         }}
       />
+
+      {/* 세션 만료 경고 모달 */}
+      {sessionExpired && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{ background: "rgba(48,44,58,.5)", backdropFilter: "blur(4px)" }}
+        >
+          <div className="w-[360px] max-w-[calc(100vw-32px)] rounded-2xl border border-border bg-surface p-7 shadow-lg">
+            <h3 className="m-0 mb-2 text-[18px] font-semibold text-heading">세션이 만료되었어요</h3>
+            <p className="m-0 mb-6 text-[13px] leading-relaxed text-muted">
+              로그인 세션이 끊어져 변경사항을 저장하지 못했습니다.
+              다시 로그인하면 이 페이지로 돌아올 수 있어요.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.setItem("auth_redirect", window.location.pathname);
+                window.location.href = "/";
+              }}
+              className="jc-button h-10 w-full rounded-lg bg-primary text-[13px] text-white"
+            >
+              로그인 페이지로 이동
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
