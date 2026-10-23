@@ -41,7 +41,7 @@ const likert = (id: number, qNo: string, code: string, text: string): QuestionDt
 });
 
 // 스크리닝: 1995~2006년생만 통과
-const years = Array.from({ length: 2012 - 1980 + 1 }, (_, i) => 2012 - i);
+const years = Array.from({ length: 2026 - 1900 + 1 }, (_, i) => 2026 - i);
 const yearOptions = years.map((y) => opt(y, `${y}년`));
 const yesNo = () => [opt(1, '예'), opt(2, '아니오')];
 const q2 = yesNo();
@@ -108,7 +108,7 @@ const PAGES: PageDto[] = [
     pageKey: 'stimulus_a',
     pageType: 'STIMULUS',
     title: '관광 홍보물 보기',
-    instruction: '아래 홍보물을 천천히 살펴봐 주세요. 이어지는 문항은 이 홍보물을 바탕으로 답하게 됩니다.',
+    instruction: '아래 이미지를 천천히 살펴봐 주세요. 이어지는 문항은 이 이미지를 바탕으로 답하게 됩니다.',
     minSeconds: STIMULUS_SECONDS,
     progressIndex: 3,
     totalPages: TOTAL,
@@ -169,7 +169,6 @@ const PAGES: PageDto[] = [
   },
 ];
 
-// ---- 상태 (새로고침해도 이어지도록 sessionStorage) ----
 interface MockState {
   seq: number;
   status: RespondentStatus;
@@ -177,23 +176,7 @@ interface MockState {
   attentionFailed: boolean;
   phone: string | null;
 }
-const KEY = 'survey-mock-state';
-const load = (): MockState | null => {
-  try {
-    const raw = sessionStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as MockState) : null;
-  } catch {
-    return null;
-  }
-};
-const save = (s: MockState) => {
-  try {
-    sessionStorage.setItem(KEY, JSON.stringify(s));
-  } catch {
-    /* 무시 */
-  }
-};
-let state: MockState = load() ?? { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
+let state: MockState = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
 
 const delay = <T,>(v: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(v), ms));
 const currentResponse = (): CurrentResponse =>
@@ -202,23 +185,14 @@ const currentResponse = (): CurrentResponse =>
     : { status: state.status };
 
 export const mockApi: SurveyApi = {
-  async checkPhone(_code, body) {
+  async checkPhone() {
     // ?phone_check=IN_PROGRESS 등으로 시나리오 강제 가능
     const scenario = new URLSearchParams(location.search).get('phone_check');
     const checkStatus = (scenario as PhoneCheckStatus | null) ?? 'NEW';
-    // NEW 시나리오면 phone 기록
-    if (checkStatus === 'NEW' || checkStatus === 'IN_PROGRESS') {
-      state.phone = body.phone;
-      save(state);
-    }
     return delay({ checkStatus }, 300);
   },
   async start() {
-    // ?reset 으로 접속하면 처음부터
-    if (new URLSearchParams(location.search).has('reset')) {
-      state = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
-      save(state);
-    }
+    state = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
     return delay(currentResponse());
   },
   async current() {
@@ -226,16 +200,12 @@ export const mockApi: SurveyApi = {
   },
   async enter(_code, seq) {
     if (!state.enteredAt[seq]) state.enteredAt[seq] = Date.now();
-    save(state);
     const now = new Date().toISOString();
     return delay({ enteredAt: new Date(state.enteredAt[seq]).toISOString(), serverNow: now }, 50);
   },
-  async submitPhone() {
-    // 목 환경에서는 400ms 지연 후 성공 반환
-    return delay(undefined as unknown as void, 400);
-  },
   async submit(_code, seq, body) {
     await delay(null, 300);
+    if (state.status === 'COMPLETE' && seq === state.seq) return currentResponse();
     if (state.status !== 'IN_PROGRESS' || seq !== state.seq) throw new ApiError('INVALID_PAGE');
     const page = PAGES.find((p) => p.seq === seq)!;
 
@@ -252,7 +222,6 @@ export const mockApi: SurveyApi = {
       if (o && !o.available) throw new ApiError('QUOTA_FULL');
       if (a && terminating.has(a.optionId)) {
         state.status = 'SCREENOUT';
-        save(state);
         return currentResponse();
       }
       if (q.code === 'ATT' && o && o.value !== 1) state.attentionFailed = true;
@@ -260,8 +229,8 @@ export const mockApi: SurveyApi = {
 
     const next = PAGES.find((p) => p.seq > seq);
     if (next) state.seq = next.seq;
-    else state.status = state.attentionFailed ? 'ATTENTION_FAIL' : 'COMPLETE';
-    save(state);
+    else state.status = 'COMPLETE'; // 주의 점검 실패도 완료로 보관한다 (서버와 동일)
+    if (state.status === 'COMPLETE') state.phone = body.phone ?? null;
     return currentResponse();
   },
 };

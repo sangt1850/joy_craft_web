@@ -86,6 +86,7 @@ export interface DwellMetrics {
 
 export interface SubmitRequest extends DwellMetrics {
   answers: AnswerInput[];
+  phone?: string | null;
 }
 
 export type ApiErrorCode =
@@ -99,6 +100,8 @@ export type ApiErrorCode =
   | 'NOT_ENTERED'
   | 'INVALID_OPTION'
   | 'RATE_LIMITED'
+  | 'PHONE_ALREADY_USED'
+  | 'INVALID_REQUEST'
   | 'NETWORK';
 
 export class ApiError extends Error {
@@ -125,10 +128,9 @@ export interface PhoneCheckResponse {
 }
 
 export interface SurveyApi {
-  start(code: string, uid: string | null): Promise<CurrentResponse>;
+  start(code: string): Promise<CurrentResponse>;
   current(code: string): Promise<CurrentResponse>;
   enter(code: string, seq: number): Promise<EnterResponse>;
   submit(code: string, seq: number, body: SubmitRequest): Promise<CurrentResponse>;
-  submitPhone(code: string, body: PhoneSubmitRequest): Promise<void>;
   checkPhone(code: string, body: PhoneSubmitRequest): Promise<PhoneCheckResponse>;
 }

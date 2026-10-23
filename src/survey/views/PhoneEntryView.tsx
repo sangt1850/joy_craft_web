@@ -16,10 +16,10 @@ function isValidPhone(digits: string): boolean {
 
 interface PhoneEntryViewProps {
   surveyCode: string;
-  onProceed: (phone: string) => void;
+  onProceed: (phone: string | null) => void;
 }
 
-type Phase = 'input' | 'checking' | 'resume-confirm' | 'blocked';
+type Phase = 'input' | 'checking' | 'blocked';
 
 export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
   const [phase, setPhase] = useState<Phase>('input');
@@ -53,7 +53,7 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
       if (status === 'NEW') {
         onProceed(digits);
       } else if (status === 'IN_PROGRESS') {
-        setPhase('resume-confirm');
+        onProceed(digits);
       } else if (status === 'COMPLETE') {
         setBlockReason('COMPLETE');
         setPhase('blocked');
@@ -66,39 +66,6 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
       setError('확인 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
-
-  // ── 재개 확인 ─────────────────────────────────────────────────────────────
-  if (phase === 'resume-confirm') {
-    return (
-      <Screen>
-        <div className="accent-strip" />
-        <Body>
-          <Card className="end__card">
-            <h1 className="end__title">이전 참여 이력</h1>
-            <p className="end__body">
-              이전에 참여를 시작하신 이력이 있습니다.{'\n'}이어서 진행하시겠습니까?
-            </p>
-          </Card>
-        </Body>
-        <footer className="bottom-bar">
-          <button type="button" className="btn-primary" onClick={() => onProceed(digits)}>
-            이어서 하기
-          </button>
-          <button
-            type="button"
-            className="gift-skip-btn"
-            onClick={() => {
-              setPhone('');
-              setAgreed(false);
-              setPhase('input');
-            }}
-          >
-            아니요
-          </button>
-        </footer>
-      </Screen>
-    );
-  }
 
   // ── 차단 화면 ─────────────────────────────────────────────────────────────
   if (phase === 'blocked') {
@@ -130,7 +97,7 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
           <h1 className="hero-title">커피 기프트콘 증정</h1>
           <p className="muted">
             설문에 참여해 주시면 커피 기프트콘을 보내드려요.
-            전화번호를 먼저 확인하고 설문을 시작합니다.
+            번호 입력은 선택이며, 번호 없이도 설문에 참여할 수 있어요.
           </p>
         </Card>
 
@@ -146,8 +113,8 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
               <dd>경품(커피 기프트콘) 발송에만 사용</dd>
             </div>
             <div>
-              <dt>보유 및 파기</dt>
-              <dd>이벤트 종료일(2025년 12월 31일)까지 보유 후 즉시 파기</dd>
+              <dt>저장 시점</dt>
+              <dd>설문을 정상 완료한 경우에만 응답과 함께 저장</dd>
             </div>
           </dl>
           <p className="muted-xs">
@@ -199,9 +166,12 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
           data-enabled={String(canProceed)}
           aria-disabled={!canProceed || checking}
           onClick={handleNext}
-          disabled={checking}
+          disabled={!canProceed}
         >
           {checking ? '확인 중…' : '다음'}
+        </button>
+        <button type="button" className="gift-skip-btn" disabled={checking} onClick={() => onProceed(null)}>
+          번호 없이 설문 참여하기
         </button>
       </footer>
     </Screen>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { ApiError, type AnswerInput, type CurrentResponse, type DwellMetrics } from '../api/types';
@@ -19,48 +19,49 @@ const ERROR_TEXT: Record<string, string> = {
   INVALID_OPTION: '선택지가 바뀌어 문항을 다시 불러왔어요.',
   RATE_LIMITED: '요청이 너무 빨라요. 잠시 후 다시 시도해 주세요.',
   NETWORK: '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
+  PHONE_ALREADY_USED: '이미 해당 번호로 등록된 설문이 있습니다. 번호 없이 응답만 제출하려면 다시 눌러 주세요.',
+  INVALID_REQUEST: '입력 내용을 확인한 뒤 다시 시도해 주세요.',
 };
 
 const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
 export function SurveyPage() {
   const { code = '' } = useParams();
+  return <SurveySession key={code} code={code} />;
+}
 
-  const [phonePhase, setPhonePhase] = useState<'entry' | 'survey'>('entry');
+function SurveySession({ code }: { code: string }) {
+  // 설문 동의(서버 CONSENT 페이지) 직후에 번호 입력 단계를 한 번 끼워 넣는다
+  const [phoneStep, setPhoneStep] = useState<'pending' | 'entry' | 'done'>('pending');
   const [enteredPhone, setEnteredPhone] = useState<string | null>(null);
 
   const [data, setData] = useState<CurrentResponse | null>(null);
   const [fatal, setFatal] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const startRequest = useRef<Promise<CurrentResponse> | null>(null);
   const clearToast = useCallback(() => setToast(null), []);
 
-  // 진입 게이트 통과 후에만 시작
   useEffect(() => {
-    if (phonePhase !== 'survey') return;
-    api
-      .start(code, enteredPhone)
-      .then((res) => setData(res))
-      .catch((e: unknown) =>
-        setFatal(e instanceof ApiError ? ERROR_TEXT[e.code] ?? e.message : '오류가 발생했습니다.'),
-      );
-  }, [code, enteredPhone, phonePhase]);
+    let active = true;
+    startRequest.current ??= api.start(code);
+    startRequest.current
+      .then((res) => { if (active) setData(res); })
+      .catch((e: unknown) => {
+        if (active) setFatal(e instanceof ApiError ? ERROR_TEXT[e.code] ?? e.message : '오류가 발생했습니다.');
+      });
+    return () => { active = false; };
+  }, [code]);
 
   const page = data?.status === 'IN_PROGRESS' ? data.page : undefined;
   const inProgress = data?.status === 'IN_PROGRESS';
-
-  // COMPLETE 시 gift phone 자동 저장 (실패 무시)
-  useEffect(() => {
-    if (data?.status === 'COMPLETE' && enteredPhone) {
-      api.submitPhone(code, { phone: enteredPhone }).catch(() => undefined);
-    }
-  }, [data?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+  const phoneEntry = inProgress && phoneStep === 'entry';
 
   // 페이지 진입 시각을 서버에 기록 (체류 시간·45초 검증 기준)
   useEffect(() => {
-    if (page) api.enter(code, page.seq).catch(() => undefined);
+    if (page && !phoneEntry) api.enter(code, page.seq).catch(() => undefined);
     window.scrollTo(0, 0);
-  }, [code, page?.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [code, page?.seq, phoneEntry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 뒤로 가기 막기
   useEffect(() => {
@@ -88,10 +89,14 @@ export function SurveyPage() {
   const handleSubmit = async (answers: AnswerInput[], metrics: DwellMetrics) => {
     if (!page || submitting) return;
     setSubmitting(true);
-    const body = { answers, ...metrics };
+    const body = { answers, ...metrics, phone: enteredPhone };
+    const apply = (res: CurrentResponse) => {
+      if (page.pageType === 'CONSENT' && res.status === 'IN_PROGRESS') setPhoneStep('entry');
+      setData(res);
+    };
     try {
       try {
-        setData(await api.submit(code, page.seq, body));
+        apply(await api.submit(code, page.seq, body));
       } catch (e) {
         // enter 기록이 누락됐거나(네트워크), 요청이 몰린 경우는 한 번만 조용히 복구한다
         const c = e instanceof ApiError ? e.code : null;
@@ -102,18 +107,16 @@ export function SurveyPage() {
         } else {
           throw e;
         }
-        setData(await api.submit(code, page.seq, body));
+        apply(await api.submit(code, page.seq, body));
       }
     } catch (e) {
       const codeErr = e instanceof ApiError ? e.code : 'NETWORK';
       setToast(ERROR_TEXT[codeErr] ?? '오류가 발생했습니다.');
-      // 쿠키 만료: 처음부터 다시 식별해서 서버 상태로 복구
       if (codeErr === 'RESPONDENT_NOT_FOUND') {
-        try {
-          setData(await api.start(code, enteredPhone));
-        } catch {
-          /* 토스트로 이미 안내 */
-        }
+        setFatal('참여 시간이 만료되었습니다. 처음부터 다시 참여해 주세요.');
+      }
+      if (codeErr === 'PHONE_ALREADY_USED') {
+        setEnteredPhone(null);
       }
       // 쿼터 마감·페이지 불일치는 서버 상태로 다시 그린다
       if (codeErr === 'QUOTA_FULL' || codeErr === 'INVALID_PAGE' || codeErr === 'INVALID_OPTION') {
@@ -128,26 +131,13 @@ export function SurveyPage() {
     }
   };
 
-  // 진입 게이트 화면 (start 호출 전)
-  if (phonePhase === 'entry') {
-    return (
-      <>
-        <PhoneEntryView
-          surveyCode={code}
-          onProceed={(phone) => {
-            setEnteredPhone(phone);
-            setPhonePhase('survey');
-          }}
-        />
-        <Toast message={toast} onDone={clearToast} />
-      </>
-    );
-  }
-
   if (fatal) {
     return (
       <div className="center-msg">
         <p>{fatal}</p>
+        <button type="button" className="btn-primary" onClick={() => window.location.reload()}>
+          처음부터 다시 시작
+        </button>
       </div>
     );
   }
@@ -156,6 +146,18 @@ export function SurveyPage() {
       <div className="center-msg" aria-busy="true">
         <div className="spinner" />
       </div>
+    );
+  }
+
+  if (phoneEntry) {
+    return (
+      <PhoneEntryView
+        surveyCode={code}
+        onProceed={(phone) => {
+          setEnteredPhone(phone);
+          setPhoneStep('done');
+        }}
+      />
     );
   }
 

@@ -25,15 +25,17 @@ async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown):
     throw new ApiError((json?.code as ApiErrorCode | undefined) ?? 'NETWORK', undefined, json?.detail);
   }
   // JoyCraft API 규약: 성공 응답은 { data: ... } 봉투
-  return json?.data as T;
+  if (!json || !('data' in json) || json.data == null) {
+    throw new ApiError('NETWORK', '서버 응답을 확인하지 못했습니다. 다시 시도해 주세요.');
+  }
+  return json.data;
 }
 
 const realApi: SurveyApi = {
-  start: (code, uid) => request('POST', `/${code}/start`, { uid }),
+  start: (code) => request('POST', `/${code}/start`),
   current: (code) => request('GET', `/${code}/current`),
   enter: (code, seq) => request('POST', `/${code}/pages/${seq}/enter`),
   submit: (code, seq, body) => request('POST', `/${code}/pages/${seq}/submit`, body),
-  submitPhone: (code, body) => request('POST', `/${code}/gift/phone`, body),
   checkPhone: (code, body) => request('POST', `/${code}/gift/phone/check`, body),
 };
 
