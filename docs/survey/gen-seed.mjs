@@ -5,7 +5,7 @@ import { writeFileSync } from 'node:fs';
 
 const SURVEY = { code: 'awe2026', title: '자연 관광지 인식 조사', targetN: 500 };
 const LIKERT_INSTR = '각 문장에 대해 얼마나 동의하는지 1점(전혀 그렇지 않다)부터 7점(매우 그렇다) 중 하나를 골라 주세요.';
-const STIM_INSTR = '아래 홍보물을 천천히 살펴봐 주세요. 이어지는 문항은 이 홍보물을 바탕으로 답하게 됩니다.';
+const STIM_INSTR = '아래 이미지를 천천히 살펴봐 주세요. 이어지는 문항은 이 이미지를 바탕으로 답하게 됩니다.';
 
 const consent = {
   eyebrow: '학술 연구 설문',
