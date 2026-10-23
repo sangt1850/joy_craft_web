@@ -1,11 +1,13 @@
 // 고객 홈 대시보드
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NeoCard from "../../components/ui/NeoCard";
 import NeoButton from "../../components/ui/NeoButton";
 import StatCard from "../../components/ui/StatCard";
 import SiteCard from "../../components/ui/SiteCard";
 import SectionHeader from "../../components/ui/SectionHeader";
+import ThumbViewportToggle from "../../components/ui/ThumbViewportToggle";
+import type { ThumbViewport } from "../../components/ui/ThumbViewportToggle";
 import { useAuthStore } from "../../store/authStore";
 import { useSiteStore } from "../../store/siteStore";
 import { useToastStore } from "../../store/toastStore";
@@ -29,7 +31,12 @@ export default function DashboardPage() {
     loadStats();
   }, [loadSites, loadStats]);
 
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [thumbViewport, setThumbViewport] = useState<ThumbViewport>("mobile");
+
   const handleShare = async (id: string | number) => {
+    if (sharingId) return;
+    setSharingId(String(id));
     try {
       const result = await publishSite(String(id));
       const link = window.location.origin + result.url;
@@ -37,6 +44,8 @@ export default function DashboardPage() {
       addToast("링크가 클립보드에 복사되었습니다!", { variant: "success" });
     } catch {
       addToast("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
+    } finally {
+      setSharingId(null);
     }
   };
 
@@ -67,7 +76,7 @@ export default function DashboardPage() {
           </div>
           <div className="font-body text-[10px] font-semibold uppercase tracking-[.18em] text-muted mb-2.5">Welcome back</div>
           <h1 className="font-headline text-[28px] m-0 mb-3">
-            안녕하세요, {user?.displayName ?? ""}! 👋
+            {user?.displayName ? `안녕하세요, ${user.displayName}!` : "안녕하세요!"} 👋
           </h1>
           <p className="font-body text-[14px] m-0 mb-5 text-muted leading-[1.6]">
             오늘도 특별한 선물을 만들어보세요.
@@ -91,19 +100,22 @@ export default function DashboardPage() {
         titleSize={20}
         className="mb-4"
         action={
-          <button
-            onClick={() => navigate("/sites")}
-            className="font-sub text-[12px] text-muted bg-transparent border-none cursor-pointer hover:text-heading"
-          >
-            전체 보기 →
-          </button>
+          <div className="flex items-center gap-3">
+            <ThumbViewportToggle value={thumbViewport} onChange={setThumbViewport} />
+            <button
+              onClick={() => navigate("/sites")}
+              className="font-sub text-[12px] text-muted bg-transparent border-none cursor-pointer hover:text-heading"
+            >
+              전체 보기 →
+            </button>
+          </div>
         }
       />
 
       {/* 사이트 카드 그리드 */}
       {isLoading ? (
         <div className="text-center py-12 font-body text-[14px] text-muted">
-          불러오는 중...
+          불러오는 중…
         </div>
       ) : error ? (
         <NeoCard pad={32} shadow={0} className="text-center">
@@ -116,9 +128,12 @@ export default function DashboardPage() {
         </NeoCard>
       ) : recentSites.length === 0 ? (
         <NeoCard pad={32} shadow={0} className="text-center">
-          <p className="font-body text-[14px] m-0 text-muted">
+          <p className="font-body text-[14px] m-0 mb-4 text-muted">
             아직 만든 사이트가 없습니다. 첫 사이트를 만들어보세요!
           </p>
+          <NeoButton bg="var(--color-primary)" color="#fff" size="sm" onClick={handleNewSite}>
+            + 새 사이트 만들기
+          </NeoButton>
         </NeoCard>
       ) : (
         <div className="neo-grid-md">
@@ -130,7 +145,8 @@ export default function DashboardPage() {
               pages={s.slideCount}
               status={s.status === "PUBLISHED" ? "공개" : "초안"}
               bg={s.bgColor}
-              thumbHeight={120}
+              enableLiveThumb
+              liveThumbViewport={thumbViewport}
               onEdit={(id) => navigate(`/editor/${id}`)}
               onShare={handleShare}
             />

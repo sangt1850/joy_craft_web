@@ -6,6 +6,9 @@ import NeoButton from "../../components/ui/NeoButton";
 import SiteCard from "../../components/ui/SiteCard";
 import TabBar from "../../components/ui/TabBar";
 import SectionHeader from "../../components/ui/SectionHeader";
+import ConfirmModal from "../../components/ui/ConfirmModal";
+import ThumbViewportToggle from "../../components/ui/ThumbViewportToggle";
+import type { ThumbViewport } from "../../components/ui/ThumbViewportToggle";
 import { useSiteStore } from "../../store/siteStore";
 import { useToastStore } from "../../store/toastStore";
 import { createSite, deleteSite } from "../../api/sites";
@@ -28,6 +31,10 @@ export default function MySitesPage() {
   const error = useSiteStore((s) => s.error);
   const loadSites = useSiteStore((s) => s.loadSites);
   const [filter, setFilter] = useState<FilterTab>("전체");
+  const [thumbViewport, setThumbViewport] = useState<ThumbViewport>("mobile");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [sharingId, setSharingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadSites();
@@ -50,6 +57,8 @@ export default function MySitesPage() {
   };
 
   const handleShare = async (id: string | number) => {
+    if (sharingId) return;
+    setSharingId(String(id));
     try {
       const result = await publishSite(String(id));
       const link = window.location.origin + result.url;
@@ -57,17 +66,23 @@ export default function MySitesPage() {
       addToast("링크가 클립보드에 복사되었습니다!", { variant: "success" });
     } catch {
       addToast("공유 링크를 만들지 못했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
+    } finally {
+      setSharingId(null);
     }
   };
 
-  const handleDelete = async (id: string | number) => {
-    if (!confirm("사이트를 삭제할까요? 되돌릴 수 없습니다.")) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteSite(String(id));
+      await deleteSite(deleteTarget);
       loadSites();
       addToast("사이트가 삭제되었습니다.");
     } catch {
       addToast("삭제에 실패했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -81,12 +96,15 @@ export default function MySitesPage() {
         as="h1"
         className="mb-7"
         action={
-          <NeoButton bg="var(--color-primary)" size="sm" onClick={handleNewSite}>
-            <span className="flex items-center gap-1.5">
-              <PixelIcon name="plus" size={12} fill="#fff" />
-              새 사이트
-            </span>
-          </NeoButton>
+          <div className="flex items-center gap-3">
+            <ThumbViewportToggle value={thumbViewport} onChange={setThumbViewport} />
+            <NeoButton bg="var(--color-primary)" size="sm" onClick={handleNewSite}>
+              <span className="flex items-center gap-1.5">
+                <PixelIcon name="plus" size={12} fill="#fff" />
+                새 사이트
+              </span>
+            </NeoButton>
+          </div>
         }
       />
 
@@ -101,7 +119,7 @@ export default function MySitesPage() {
       {/* 사이트 그리드 */}
       {isLoading ? (
         <div className="text-center py-12 font-body text-[14px] text-muted">
-          불러오는 중...
+          불러오는 중…
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -123,10 +141,10 @@ export default function MySitesPage() {
               status={s.status === "PUBLISHED" ? "공개" : "초안"}
               bg={s.bgColor}
               enableLiveThumb
-              liveThumbViewport="mobile"
+              liveThumbViewport={thumbViewport}
               onEdit={(id) => navigate(`/editor/${id}`)}
               onShare={handleShare}
-              onDelete={handleDelete}
+              onDelete={(id) => setDeleteTarget(String(id))}
             />
           ))}
 
@@ -142,6 +160,17 @@ export default function MySitesPage() {
             <span className="font-sub text-[14px] text-ink">새 사이트 만들기</span>
           </button>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="사이트를 삭제할까요?"
+          description="삭제하면 되돌릴 수 없습니다. 사이트의 모든 페이지가 함께 삭제됩니다."
+          confirmLabel="삭제"
+          confirming={deleting}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => !deleting && setDeleteTarget(null)}
+        />
       )}
     </div>
   );

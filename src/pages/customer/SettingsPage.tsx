@@ -4,11 +4,13 @@ import NeoCard from "../../components/ui/NeoCard";
 import NeoButton from "../../components/ui/NeoButton";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useAuthStore } from "../../store/authStore";
+import { useToastStore } from "../../store/toastStore";
 import { useThemeStore, THEMES } from "../../store/themeStore";
 import type { Theme } from "../../store/themeStore";
 import { fetchMyStats } from "../../api/sites";
 import { updateProfile, withdrawAccount } from "../../api/auth";
 import type { SiteStatsResponse } from "../../types/api";
+import { formatDate } from "../../utils/date";
 
 type SettingsTab = "account" | "saved";
 
@@ -21,20 +23,20 @@ const THEME_SWATCHES: Record<string, { bg: string; ink: string; dots: string[] }
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: "account", label: "계정 설정" },
-  { id: "saved",   label: "담은 컴포넌트" },
+  // { id: "saved", label: "담은 컴포넌트" }, // 기능 준비 후 복원
 ];
 
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, updateUser, logout } = useAuthStore();
+  const addToast = useToastStore((s) => s.addToast);
 
   const { theme, setTheme } = useThemeStore();
 
   const [tab, setTab] = useState<SettingsTab>("account");
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
 
@@ -60,13 +62,12 @@ export default function SettingsPage() {
   async function handleSaveProfile() {
     if (!displayName.trim() || displayName.trim().length < 2) return;
     setSaving(true);
-    setMessage(null);
     try {
       const updated = await updateProfile(displayName.trim());
       updateUser(updated);
-      setMessage("변경되었습니다");
+      addToast("닉네임이 변경되었습니다.", { variant: "success" });
     } catch {
-      setMessage("저장에 실패했습니다");
+      addToast("저장에 실패했습니다. 잠시 후 다시 시도해주세요.", { variant: "error" });
     } finally {
       setSaving(false);
     }
@@ -98,10 +99,8 @@ export default function SettingsPage() {
 
   /* ---------- helpers ---------- */
   const initial = (user?.displayName ?? "?").charAt(0).toUpperCase();
-  const createdDate = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
-    : "";
-  const statVal = (v: number | undefined | null) => (statsLoading ? "\u2014" : (v ?? "\u2014").toString());
+  const createdDate = user?.createdAt ? formatDate(user.createdAt) : "";
+  const statVal = (v: number | undefined | null) => (statsLoading ? null : (v ?? 0).toString());
 
   /* ---------- render ---------- */
   return (
@@ -166,7 +165,9 @@ export default function SettingsPage() {
         ].map((s) => (
           <NeoCard key={s.label} pad={18} shadow={0} border={1}>
             <div className="font-headline m-0" style={{ fontSize: 30 }}>
-              {s.value}
+              {s.value === null
+                ? <span className="inline-block h-8 w-10 animate-pulse rounded bg-subtle" />
+                : s.value}
             </div>
             <div className="font-body text-muted" style={{ fontSize: 11 }}>
               {s.label}
@@ -219,26 +220,18 @@ export default function SettingsPage() {
 
             <div className="mb-3">
               <div className="mb-1.5 flex items-center">
-                <span className="font-sub" style={{ fontSize: 13 }}>닉네임</span>
+                <label htmlFor="settings-displayName" className="font-sub" style={{ fontSize: 13 }}>닉네임</label>
               </div>
               <input
+                id="settings-displayName"
                 className="neo-input w-full"
                 type="text"
                 value={displayName}
-                onChange={(e) => {
-                  setDisplayName(e.target.value);
-                  setMessage(null);
-                }}
+                onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={20}
                 placeholder="닉네임을 입력하세요"
               />
             </div>
-
-            {message && (
-              <p className="font-body m-0 mb-3" style={{ fontSize: 13 }}>
-                {message}
-              </p>
-            )}
 
             <NeoButton
               bg="var(--color-secondary)"
@@ -270,15 +263,13 @@ export default function SettingsPage() {
               >
                 로그아웃
               </NeoButton>
-              <NeoButton
-                bg="var(--color-primary)"
-                color="#fff"
-                size="md"
-                block
+              <button
+                type="button"
                 onClick={() => setShowWithdrawModal(true)}
+                className="mt-2 font-body text-[13px] text-danger hover:underline bg-transparent border-0 cursor-pointer self-center"
               >
                 회원 탈퇴
-              </NeoButton>
+              </button>
             </div>
           </NeoCard>
         </div>
