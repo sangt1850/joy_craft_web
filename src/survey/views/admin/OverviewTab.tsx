@@ -2,47 +2,84 @@ import { useCallback, useEffect, useState } from 'react';
 import type { AdminClient } from '../../api/adminClient';
 import type { AdminStats } from '../../api/adminTypes';
 
-interface StatusInfo {
-  label: string;
-  color: string;
-  desc: string;
-}
-
-const STATUS_INFO: Record<string, StatusInfo> = {
-  COMPLETE: {
-    label: '완료',
-    color: '#15803d',
-    desc: '모든 페이지를 완료한 응답자. 분석 대상.',
-  },
-  IN_PROGRESS: {
-    label: '진행 중',
-    color: '#1f5bd8',
-    desc: '현재 설문에 접속해 응답 중이거나, 중단 후 재개 가능한 상태.',
-  },
-  SCREENOUT: {
-    label: '스크린아웃',
-    color: '#d97706',
-    desc: '스크리닝 조건 불충족(출생연도, 국적 등)으로 조기 종료됨.',
-  },
-  QUOTAFULL: {
-    label: '쿼터 마감',
-    color: '#7c3aed',
-    desc: '배정 그룹 또는 선택지 쿼터가 이미 찼을 때 접속한 응답자.',
-  },
-  ATTENTION_FAIL: {
-    label: '주의 실패',
-    color: '#dc2626',
-    desc: '주의 점검 문항(ATT)에서 지정된 값을 선택하지 않아 불성실 응답으로 분류됨. CSV 내보내기 시 제외 권장.',
-  },
-  ABANDONED: {
-    label: '이탈',
-    color: '#6b7280',
-    desc: '중간에 창을 닫거나 일정 시간 활동이 없어 미완료 처리됨.',
-  },
-};
-
 interface Props {
   client: AdminClient;
+}
+
+interface GroupLimitsEditorProps {
+  quotas: AdminStats['quotas'];
+  targetN: number;
+  disabled: boolean;
+  onSave: (limits: Record<string, number>) => Promise<void>;
+}
+
+/** 그룹 옆에 인원을 직접 입력한다. 합이 목표 인원을 넘거나 이미 찬 인원보다 작으면 저장할 수 없다. */
+function GroupLimitsEditor({ quotas, targetN, disabled, onSave }: GroupLimitsEditorProps) {
+  const [draft, setDraft] = useState<Record<string, string>>(() =>
+    Object.fromEntries(quotas.map((q) => [q.key, String(q.limit)])),
+  );
+
+  const rows = quotas.map((q) => {
+    const raw = draft[q.key] ?? '';
+    const value = raw.trim() === '' ? NaN : Number(raw);
+    const min = Math.max(1, q.completed + q.reserved);
+    let error = '';
+    if (!Number.isInteger(value)) error = '숫자를 입력해 주세요.';
+    else if (value < min) error = `이미 ${min.toLocaleString()}명이 찼으므로 ${min.toLocaleString()}명 이상이어야 합니다.`;
+    return { q, raw, value, error };
+  });
+
+  const total = rows.reduce((sum, r) => sum + (Number.isInteger(r.value) ? r.value : 0), 0);
+  const overTarget = total > targetN;
+  const changed = rows.some((r) => r.value !== r.q.limit);
+  const canSave = changed && !overTarget && rows.every((r) => !r.error) && !disabled;
+
+  return (
+    <form
+      className="group-limits"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!canSave) return;
+        void onSave(Object.fromEntries(rows.map((r) => [r.q.groupCode as string, r.value])));
+      }}
+    >
+      <div className="group-limits__fields">
+      {rows.map(({ q, raw, error }) => (
+        <div key={q.key} className="group-limits__row">
+          <label className="group-limits__label" htmlFor={`group-limit-${q.key}`}>
+            <span className="group-badge">그룹 {q.groupCode}</span>
+          </label>
+          <input
+            id={`group-limit-${q.key}`}
+            className="admin-search group-limits__input"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={raw}
+            disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            onChange={(e) => setDraft((d) => ({ ...d, [q.key]: e.target.value }))}
+          />
+          <span className="group-limits__unit">명</span>
+          {error && (
+            <span className="group-limits__error" role="alert">
+              {error}
+            </span>
+          )}
+        </div>
+      ))}
+      </div>
+      <div className="group-limits__foot">
+        <span className={`group-limits__sum${overTarget ? ' group-limits__sum--over' : ''}`}>
+          합계 {total.toLocaleString()} / 목표 {targetN.toLocaleString()}명
+          {overTarget && ` · ${(total - targetN).toLocaleString()}명 초과`}
+        </span>
+        <button type="submit" className="admin-action-btn admin-action-btn--primary" disabled={!canSave}>
+          저장
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export function OverviewTab({ client }: Props) {
@@ -79,6 +116,7 @@ export function OverviewTab({ client }: Props) {
 
   const handleStatusChange = async (newStatus: string) => {
     const messages: Record<string, string> = {
+      TEST: 'TEST로 전환하면 테스트 모드로 돌아갑니다.\n계속할까요?',
       OPEN: 'OPEN으로 전환하면 응답자가 설문에 접속할 수 있습니다.\n계속할까요?',
       CLOSED: 'CLOSED로 전환하면 새 응답을 받지 않습니다.\n계속할까요?',
     };
@@ -94,10 +132,50 @@ export function OverviewTab({ client }: Props) {
     }
   };
 
+  const handleTargetChange = async () => {
+    if (!stats) return;
+    const input = prompt('목표 인원을 입력하세요.', String(stats.targetN));
+    if (input == null) return;
+    const n = Number(input.trim());
+    if (!Number.isInteger(n) || n < 1 || n > 100000) {
+      alert('1 ~ 100000 사이의 정수를 입력해 주세요.');
+      return;
+    }
+    if (n === stats.targetN) return;
+    const groupTotal = groupQuotas.reduce((sum, q) => sum + q.limit, 0);
+    if (n < groupTotal) {
+      alert(`그룹별 모집 인원의 합(${groupTotal.toLocaleString()}명)보다 작게 정할 수 없습니다.\n먼저 그룹별 모집 인원을 줄여 주세요.`);
+      return;
+    }
+    setStatusChanging(true);
+    try {
+      await client.changeTarget(n);
+      load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '목표 인원 변경 실패');
+    } finally {
+      setStatusChanging(false);
+    }
+  };
+
+  const groupQuotas = stats?.quotas.filter((q) => q.kind === 'GROUP' && q.groupCode) ?? [];
+
+  const handleGroupLimits = async (limits: Record<string, number>) => {
+    setStatusChanging(true);
+    try {
+      await client.changeGroupLimits(limits);
+      load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '모집 인원 변경 실패');
+    } finally {
+      setStatusChanging(false);
+    }
+  };
+
   const handleReset = async () => {
     if (
       !confirm(
-        'TEST 데이터를 초기화합니다.\n모든 응답자·응답·쿼터 카운트가 삭제됩니다.\n설문 문항 정의는 유지됩니다.\n\n계속할까요?',
+        '데이터를 초기화합니다.\n모든 응답자의 응답 · 선물발송 데이터가 삭제됩니다.\n설문 문항 정의는 유지됩니다.\n\n계속할까요?',
       )
     )
       return;
@@ -136,33 +214,38 @@ export function OverviewTab({ client }: Props) {
             {stats.status}
           </span>
           <span className="admin-target">목표 {stats.targetN.toLocaleString()}명</span>
+          <button
+            className="admin-action-btn"
+            onClick={handleTargetChange}
+            disabled={statusChanging}
+          >
+            목표 변경
+          </button>
         </div>
         <div className="admin-actions">
-          {stats.status === 'TEST' && (
-            <>
-              <div className="admin-action-group">
-                <button
-                  className="admin-action-btn admin-action-btn--primary"
-                  onClick={() => handleStatusChange('OPEN')}
-                  disabled={statusChanging}
-                >
-                  OPEN 전환
-                </button>
-                <span className="admin-action-hint">정식 모집 시작. 응답자 접속 허용.</span>
-              </div>
-              <div className="admin-action-group">
-                <button
-                  className="admin-action-btn admin-action-btn--danger"
-                  onClick={handleReset}
-                  disabled={statusChanging}
-                >
-                  데이터 초기화
-                </button>
-                <span className="admin-action-hint">파일럿 응답 전체 삭제. TEST 전용.</span>
-              </div>
-            </>
+          {stats.status !== 'TEST' && (
+            <div className="admin-action-group">
+              <button
+                className="admin-action-btn"
+                onClick={() => handleStatusChange('TEST')}
+                disabled={statusChanging}
+              >
+                TEST 전환
+              </button>
+            </div>
           )}
-          {stats.status === 'OPEN' && (
+          {stats.status !== 'OPEN' && (
+            <div className="admin-action-group">
+              <button
+                className="admin-action-btn admin-action-btn--primary"
+                onClick={() => handleStatusChange('OPEN')}
+                disabled={statusChanging}
+              >
+                OPEN 전환
+              </button>
+            </div>
+          )}
+          {stats.status !== 'CLOSED' && (
             <div className="admin-action-group">
               <button
                 className="admin-action-btn"
@@ -171,7 +254,17 @@ export function OverviewTab({ client }: Props) {
               >
                 CLOSED 전환
               </button>
-              <span className="admin-action-hint">모집 종료. 새 응답 차단.</span>
+            </div>
+          )}
+          {stats.status === 'TEST' && (
+            <div className="admin-action-group">
+              <button
+                className="admin-action-btn admin-action-btn--danger"
+                onClick={handleReset}
+                disabled={statusChanging}
+              >
+                데이터 초기화
+              </button>
             </div>
           )}
           <button
@@ -198,43 +291,33 @@ export function OverviewTab({ client }: Props) {
         </div>
       </div>
 
-      {/* 상태별 카드 */}
-      <div>
-        <div className="admin-card__title" style={{ marginBottom: 12 }}>응답자 상태</div>
-        <div className="stat-grid">
-          {Object.entries(STATUS_INFO).map(([key, info]) => (
-            <div
-              key={key}
-              className="stat-card"
-              style={{ '--status-color': info.color } as React.CSSProperties}
-              data-tooltip={info.desc}
-            >
-              <div className="stat-card__value">
-                {(stats.byStatus[key] ?? 0).toLocaleString()}
-              </div>
-              <div className="stat-card__label">{info.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* 쿼터 현황 */}
       {stats.quotas.length > 0 && (
         <div className="admin-card">
-          <div className="admin-card__title">쿼터 현황</div>
+          <div className="admin-card__title">그룹별 모집 인원</div>
           <p className="admin-card__help">
-            쿼터는 그룹·선택지별로 수집 인원을 제한합니다.
-            완료가 한도에 도달하면 해당 그룹/보기로 더 이상 배정되지 않습니다.
+            응답자는 동의·기본 정보 뒤에 A/B 그룹 중 충원이 적은 쪽으로 무작위 배정됩니다.
+            한도가 차면 그 그룹으로는 더 배정되지 않고, 모든 그룹이 차면 쿼터 마감으로 끝납니다.
           </p>
+          {groupQuotas.length > 0 && (
+            <GroupLimitsEditor
+              quotas={groupQuotas}
+              targetN={stats.targetN}
+              disabled={statusChanging}
+              onSave={handleGroupLimits}
+            />
+          )}
+          <div className="admin-card__subtitle">현황</div>
           <div className="quota-list">
             {stats.quotas.map((q) => {
+              // 서버는 진행 중인 참여자의 자리까지 채운 것으로 세므로 남은 자리에 반영한다
               const filled = q.completed + q.reserved;
               const remaining = Math.max(0, q.limit - filled);
               const pct = q.limit > 0 ? Math.min(100, Math.round((filled / q.limit) * 100)) : 0;
               return (
                 <div key={q.key} className="quota-item">
                   <div className="quota-item__head">
-                    <span className="quota-item__key">{q.key}</span>
+                    <span className="quota-item__key">{q.groupCode ? `그룹 ${q.groupCode}` : q.key}</span>
                     <span className="quota-item__pct">{pct}%</span>
                   </div>
                   <div className="admin-progress-bar">
@@ -248,16 +331,12 @@ export function OverviewTab({ client }: Props) {
                       <span className="quota-stat__label">완료</span>
                       <span className="quota-stat__value">{q.completed.toLocaleString()}</span>
                     </span>
-                    <span className="quota-stat quota-stat--reserved">
-                      <span className="quota-stat__label">예약</span>
-                      <span className="quota-stat__value">{q.reserved.toLocaleString()}</span>
-                    </span>
                     <span className="quota-stat quota-stat--remain">
-                      <span className="quota-stat__label">여유</span>
+                      <span className="quota-stat__label">남은 자리</span>
                       <span className="quota-stat__value">{remaining.toLocaleString()}</span>
                     </span>
                     <span className="quota-stat quota-stat--limit">
-                      <span className="quota-stat__label">한도</span>
+                      <span className="quota-stat__label">모집 인원</span>
                       <span className="quota-stat__value">{q.limit.toLocaleString()}</span>
                     </span>
                   </div>
@@ -273,8 +352,7 @@ export function OverviewTab({ client }: Props) {
         <div className="admin-card">
           <div className="admin-card__title">그룹 배정 현황</div>
           <p className="admin-card__help">
-            그룹은 무작위로 균등 배정됩니다(A/B 각 {stats.targetN / 2}명 목표).
-            스크린아웃·이탈 포함 전체 배정 수입니다.
+            정상 완료한 응답자의 그룹별 인원입니다. 그룹별 목표는 위 모집 인원을 따릅니다.
           </p>
           <div className="group-table">
             {Object.entries(stats.byGroup).map(([group, count]) => (

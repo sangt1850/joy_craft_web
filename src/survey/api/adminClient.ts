@@ -1,4 +1,11 @@
-import type { AdminStats, AnswerDistribution, GiftPhonesResponse, RespondentPage } from './adminTypes';
+import type {
+  AdminStats,
+  AnswerDistribution,
+  GiftPhonesResponse,
+  QuestionEditData,
+  QuestionType,
+  RespondentPage,
+} from './adminTypes';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
@@ -28,12 +35,13 @@ export function createAdminClient(code: string, adminKey: string) {
   const base = `/${code}`;
   return {
     stats: () => req<AdminStats>(`${base}/stats`, adminKey),
-    respondents: (params: { page?: number; size?: number; status?: string; group?: string }) => {
+    respondents: (params: { page?: number; size?: number; status?: string; group?: string; attentionFailed?: boolean }) => {
       const q = new URLSearchParams();
       if (params.page != null) q.set('page', String(params.page));
       if (params.size != null) q.set('size', String(params.size));
       if (params.status) q.set('status', params.status);
       if (params.group) q.set('group', params.group);
+      if (params.attentionFailed != null) q.set('attentionFailed', String(params.attentionFailed));
       const qs = q.toString();
       return req<RespondentPage>(`${base}/respondents${qs ? `?${qs}` : ''}`, adminKey);
     },
@@ -43,6 +51,40 @@ export function createAdminClient(code: string, adminKey: string) {
       req<{ status: string }>(`${base}/status`, adminKey, {
         method: 'POST',
         body: JSON.stringify({ status }),
+      }),
+    changeTarget: (targetN: number) =>
+      req<{ targetN: number }>(`${base}/target`, adminKey, {
+        method: 'POST',
+        body: JSON.stringify({ targetN }),
+      }),
+    changeGroupLimits: (limits: Record<string, number>) =>
+      req<{ limits: Record<string, number> }>(`${base}/quotas/groups`, adminKey, {
+        method: 'POST',
+        body: JSON.stringify({ limits }),
+      }),
+    questions: () => req<QuestionEditData>(`${base}/questions`, adminKey),
+    updateQuestion: (
+      questionId: number,
+      patch: { text?: string; qtype?: QuestionType; required?: boolean },
+    ) =>
+      req<QuestionEditData>(`${base}/questions/${questionId}`, adminKey, {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      }),
+    updatePage: (pageKey: string, page: { title: string; instruction: string }) =>
+      req<QuestionEditData>(`${base}/pages/${encodeURIComponent(pageKey)}`, adminKey, {
+        method: 'PUT',
+        body: JSON.stringify(page),
+      }),
+    moveQuestion: (questionId: number, direction: 'UP' | 'DOWN') =>
+      req<QuestionEditData>(`${base}/questions/${questionId}/move`, adminKey, {
+        method: 'POST',
+        body: JSON.stringify({ direction }),
+      }),
+    replaceOptions: (questionId: number, options: Array<{ id: number | null; label: string }>) =>
+      req<QuestionEditData>(`${base}/questions/${questionId}/options`, adminKey, {
+        method: 'PUT',
+        body: JSON.stringify({ options }),
       }),
     reset: () =>
       req<{ deletedRespondents: number }>(`${base}/reset`, adminKey, { method: 'POST' }),

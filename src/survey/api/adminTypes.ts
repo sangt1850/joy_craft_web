@@ -4,7 +4,14 @@ export interface AdminStats {
   targetN: number;
   byStatus: Record<string, number>;
   byGroup: Record<string, number>;
-  quotas: Array<{ key: string; limit: number; completed: number; reserved: number }>;
+  quotas: Array<{
+    key: string;
+    kind: 'GROUP' | 'OPTION';
+    groupCode: string | null;
+    limit: number;
+    completed: number;
+    reserved: number;
+  }>;
 }
 
 export interface RespondentItem {
@@ -72,4 +79,43 @@ export interface GiftPhonesResponse {
   total: number;
   sentCount: number;
   unsentCount: number;
+}
+
+export type QuestionType = 'LIKERT7' | 'SINGLE' | 'SELECT';
+
+export interface EditableOption {
+  id: number;
+  seq: number;
+  value: number;
+  label: string;
+  terminates: boolean;
+  hasQuota: boolean;
+  visible: boolean;
+  answerCount: number;
+}
+
+export interface EditableQuestion {
+  id: number;
+  seq: number;
+  qNo: string;
+  code: string;
+  text: string;
+  qtype: QuestionType;
+  required: boolean;
+  attentionValue: number | null;
+  answerCount: number;
+  options: EditableOption[];
+}
+
+export interface EditablePage {
+  pageKey: string;
+  seq: number;
+  title: string | null;
+  instruction: string | null;
+  questions: EditableQuestion[];
+}
+
+export interface QuestionEditData {
+  status: 'TEST' | 'OPEN' | 'CLOSED';
+  pages: EditablePage[];
 }

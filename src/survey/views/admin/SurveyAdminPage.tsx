@@ -4,14 +4,16 @@ import { createAdminClient, type AdminClient } from '../../api/adminClient';
 import { AnswersTab } from './AnswersTab';
 import { GiftTab } from './GiftTab';
 import { OverviewTab } from './OverviewTab';
+import { QuestionsTab } from './QuestionsTab';
 import { RespondentsTab } from './RespondentsTab';
 
-type Tab = 'overview' | 'respondents' | 'answers' | 'gifts';
+type Tab = 'overview' | 'respondents' | 'answers' | 'questions' | 'gifts';
 
 const TABS: [Tab, string][] = [
   ['overview', '개요'],
   ['respondents', '응답자'],
   ['answers', '문항 분포'],
+  ['questions', '문항 관리'],
   ['gifts', '선물 발송'],
 ];
 
@@ -120,6 +122,7 @@ export function SurveyAdminPage() {
         {tab === 'overview' && <OverviewTab client={client} />}
         {tab === 'respondents' && <RespondentsTab client={client} />}
         {tab === 'answers' && <AnswersTab client={client} />}
+        {tab === 'questions' && <QuestionsTab client={client} />}
         {tab === 'gifts' && <GiftTab client={client} />}
       </div>
     </div>

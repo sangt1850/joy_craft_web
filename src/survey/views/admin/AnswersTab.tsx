@@ -6,20 +6,146 @@ interface Props {
   client: AdminClient;
 }
 
-function QuestionCard({ q }: { q: QuestionDist }) {
-  const maxCount = Math.max(...q.options.map((o) => o.count), 1);
-  const hasGroups = q.options.some((o) => o.countA > 0 || o.countB > 0);
+const LIKERT_LABELS = [
+  '전혀 그렇지 않다',
+  '그렇지 않다',
+  '다소 그렇지 않다',
+  '보통이다',
+  '다소 그렇다',
+  '그렇다',
+  '매우 그렇다',
+];
+
+const YEAR_LABEL = /^(\d{4})년$/;
+
+function optionYear(label: string): number | null {
+  const m = YEAR_LABEL.exec(label.trim());
+  return m ? Number(m[1]) : null;
+}
+
+function YearRangeFilter({
+  years,
+  from,
+  to,
+  onChange,
+}: {
+  years: number[];
+  from: number;
+  to: number;
+  onChange: (from: number, to: number) => void;
+}) {
+  const min = years[0];
+  const max = years[years.length - 1];
+  return (
+    <div className="dist-year-filter">
+      <select
+        className="admin-select"
+        aria-label="시작 연도"
+        value={from}
+        onChange={(e) => {
+          const f = Number(e.target.value);
+          onChange(f, Math.max(f, to));
+        }}
+      >
+        {years.map((y) => (
+          <option key={y} value={y}>{y}년</option>
+        ))}
+      </select>
+      <span>~</span>
+      <select
+        className="admin-select"
+        aria-label="종료 연도"
+        value={to}
+        onChange={(e) => {
+          const t = Number(e.target.value);
+          onChange(Math.min(from, t), t);
+        }}
+      >
+        {years.map((y) => (
+          <option key={y} value={y}>{y}년</option>
+        ))}
+      </select>
+      <button
+        type="button"
+        className="admin-page-btn"
+        onClick={() => onChange(min, max)}
+        disabled={from === min && to === max}
+      >
+        전체
+      </button>
+    </div>
+  );
+}
+
+type GroupView = 'ALL' | 'A' | 'B';
+
+function QuestionCard({ q, group }: { q: QuestionDist; group: GroupView }) {
+  // 출생 연도 문항(보기 라벨이 "YYYY년")이면 우측 상단에 연도 범위 필터를 제공한다
+  const years = q.options
+    .map((o) => optionYear(o.label))
+    .filter((y): y is number => y != null)
+    .sort((a, b) => a - b);
+  const isYearQuestion = years.length > 0 && years.length === q.options.length;
+  const [range, setRange] = useState<[number, number] | null>(null);
+  const from = range?.[0] ?? years[0];
+  const to = range?.[1] ?? years[years.length - 1];
+
+  const isLikert = q.qtype === 'LIKERT7';
+  // 리커트는 응답이 없는 점수도 1~7을 모두 표시한다
+  const options = isLikert
+    ? Array.from({ length: 7 }, (_, i) => {
+        const value = i + 1;
+        return (
+          q.options.find((o) => o.value === value) ?? {
+            value,
+            label: String(value),
+            count: 0,
+            countA: 0,
+            countB: 0,
+          }
+        );
+      })
+    : isYearQuestion
+      ? q.options.filter((o) => {
+          const y = optionYear(o.label)!;
+          return y >= from && y <= to;
+        })
+      : q.options;
+  // 그룹 보기에서는 해당 그룹의 응답 수만 사용한다
+  const countOf = (o: { count: number; countA: number; countB: number }) =>
+    group === 'A' ? o.countA : group === 'B' ? o.countB : o.count;
+  const optionSum = options.reduce((sum, o) => sum + countOf(o), 0);
+  const totalAnswers =
+    group !== 'ALL' || isYearQuestion ? optionSum : q.totalAnswers || optionSum;
+
+  const maxCount = Math.max(...options.map(countOf), 1);
+  const hasGroups = group === 'ALL' && options.some((o) => o.countA > 0 || o.countB > 0);
+  const groupMean = group === 'A' ? q.meanA : group === 'B' ? q.meanB : q.mean;
 
   return (
     <div className="dist-card">
       <div className="dist-card__header">
-        <span className="dist-card__qno">{q.qNo}</span>
-        <span className="dist-card__code">{q.code}</span>
-        <span className="dist-card__type">{q.qtype}</span>
+        <p className="dist-card__text">
+          <span className="dist-card__qno">{q.qNo}.</span> {q.text}
+        </p>
+        {isYearQuestion && (
+          <YearRangeFilter
+            years={years}
+            from={from}
+            to={to}
+            onChange={(f, t) => setRange([f, t])}
+          />
+        )}
       </div>
-      <p className="dist-card__text">{q.text}</p>
 
-      {q.qtype === 'LIKERT7' && q.mean != null ? (
+      {q.qtype === 'LIKERT7' && group !== 'ALL' && groupMean != null ? (
+        <div className="dist-means">
+          <span>
+            {group} 평균 <strong>{groupMean.toFixed(2)}</strong>
+          </span>
+        </div>
+      ) : null}
+      {q.qtype === 'LIKERT7' && group === 'ALL' && q.mean != null ? (
         <div className="dist-means">
           <span>
             전체 <strong>{q.mean.toFixed(2)}</strong>
@@ -34,35 +160,31 @@ function QuestionCard({ q }: { q: QuestionDist }) {
               B <strong>{q.meanB.toFixed(2)}</strong>
             </span>
           )}
-          <span className="dist-n">N={q.totalAnswers.toLocaleString()}</span>
         </div>
-      ) : (
-        <div className="dist-n-header">N={q.totalAnswers.toLocaleString()}</div>
-      )}
+      ) : null}
 
       <div className="dist-bars">
-        {q.options.map((opt) => {
-          const pct = q.totalAnswers > 0 ? (opt.count / q.totalAnswers) * 100 : 0;
-          const barWidth = maxCount > 0 ? (opt.count / maxCount) * 100 : 0;
+        {options.map((opt) => {
+          const count = countOf(opt);
+          const pct = totalAnswers > 0 ? (count / totalAnswers) * 100 : 0;
+          const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0;
           return (
             <div key={opt.value} className="dist-row">
               <div className="dist-row__label">
-                {q.qtype === 'LIKERT7' ? String(opt.value) : opt.label}
+                {isLikert ? LIKERT_LABELS[opt.value - 1] : opt.label}
               </div>
               <div className="dist-row__bar-track">
                 <div
                   className="dist-row__bar"
                   style={{ width: `${barWidth}%` }}
-                  aria-valuenow={opt.count}
+                  aria-valuenow={count}
                   aria-valuemax={maxCount}
                   role="meter"
                 />
               </div>
               <div className="dist-row__count">
-                {opt.count.toLocaleString()}
-                {q.totalAnswers > 0 && (
-                  <span className="dist-row__pct"> ({pct.toFixed(1)}%)</span>
-                )}
+                {count.toLocaleString()}명
+                <span className="dist-row__pct"> ({pct.toFixed(1)}%)</span>
                 {hasGroups && (
                   <span className="dist-row__groups">
                     {' '}
@@ -74,13 +196,6 @@ function QuestionCard({ q }: { q: QuestionDist }) {
           );
         })}
       </div>
-
-      {q.qtype === 'LIKERT7' && (
-        <div className="likert-legend">
-          <span>1 = 전혀 그렇지 않다</span>
-          <span>7 = 매우 그렇다</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -89,16 +204,15 @@ export function AnswersTab({ client }: Props) {
   const [data, setData] = useState<AnswerDistribution | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [excludeAttFail, setExcludeAttFail] = useState(true);
-  const [pageFilter, setPageFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [group, setGroup] = useState<GroupView>('ALL');
 
   const load = useCallback(
-    (exclude: boolean) => {
+    () => {
       setLoading(true);
       setError('');
       client
-        .answers(exclude)
+        .answers(false)
         .then(setData)
         .catch((e: unknown) => setError(e instanceof Error ? e.message : '불러오기 실패'))
         .finally(() => setLoading(false));
@@ -107,18 +221,15 @@ export function AnswersTab({ client }: Props) {
   );
 
   useEffect(() => {
-    load(excludeAttFail);
-  }, [load, excludeAttFail]);
+    load();
+  }, [load]);
 
   const questions = data?.questions ?? [];
-  const pageKeys = [...new Set(questions.map((q) => q.pageKey))];
 
   const filtered = questions.filter((q) => {
-    if (pageFilter && q.pageKey !== pageFilter) return false;
     if (
       search &&
       !q.text.includes(search) &&
-      !q.code.toLowerCase().includes(search.toLowerCase()) &&
       !q.qNo.toLowerCase().includes(search.toLowerCase())
     )
       return false;
@@ -128,39 +239,26 @@ export function AnswersTab({ client }: Props) {
   return (
     <div className="admin-section">
       <div className="admin-filters">
-        <label className="admin-toggle">
-          <input
-            type="checkbox"
-            checked={excludeAttFail}
-            onChange={(e) => setExcludeAttFail(e.target.checked)}
-          />
-          <span>주의 실패 제외</span>
-        </label>
-        <select
-          className="admin-select"
-          value={pageFilter}
-          onChange={(e) => setPageFilter(e.target.value)}
-          aria-label="페이지 필터"
-        >
-          <option value="">전체 페이지</option>
-          {pageKeys.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
         <input
           className="admin-search"
           type="search"
-          placeholder="문항 코드·텍스트 검색"
+          placeholder="문항 번호·텍스트 검색"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select
+          className="admin-select"
+          aria-label="그룹 보기"
+          value={group}
+          onChange={(e) => setGroup(e.target.value as GroupView)}
+        >
+          <option value="ALL">전체</option>
+          <option value="A">A그룹</option>
+          <option value="B">B그룹</option>
+        </select>
         {data && (
           <span className="admin-total-count" title="완료(COMPLETE) 응답자만 집계합니다.">
-            {excludeAttFail
-              ? `주의 제외 ${data.totalValid.toLocaleString()}명 / 완료 전체 ${data.totalAll.toLocaleString()}명`
-              : `완료 전체 ${data.totalAll.toLocaleString()}명`}
+            완료 {data.totalAll.toLocaleString()}명
           </span>
         )}
       </div>
@@ -170,7 +268,7 @@ export function AnswersTab({ client }: Props) {
       ) : error ? (
         <div className="admin-error">
           <p>{error}</p>
-          <button className="admin-retry-btn" onClick={() => load(excludeAttFail)}>
+          <button className="admin-retry-btn" onClick={load}>
             다시 시도
           </button>
         </div>
@@ -179,7 +277,7 @@ export function AnswersTab({ client }: Props) {
           {filtered.length === 0 ? (
             <div className="admin-empty">표시할 문항이 없습니다.</div>
           ) : (
-            filtered.map((q) => <QuestionCard key={q.questionId} q={q} />)
+            filtered.map((q) => <QuestionCard key={q.questionId} q={q} group={group} />)
           )}
         </div>
       )}
