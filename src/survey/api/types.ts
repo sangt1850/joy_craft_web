@@ -113,9 +113,22 @@ export class ApiError extends Error {
   }
 }
 
+export interface PhoneSubmitRequest {
+  /** 숫자만, 예: "01012345678" */
+  phone: string;
+}
+
+export type PhoneCheckStatus = 'NEW' | 'COMPLETE' | 'NOT_ELIGIBLE' | 'IN_PROGRESS';
+
+export interface PhoneCheckResponse {
+  checkStatus: PhoneCheckStatus;
+}
+
 export interface SurveyApi {
   start(code: string, uid: string | null): Promise<CurrentResponse>;
   current(code: string): Promise<CurrentResponse>;
   enter(code: string, seq: number): Promise<EnterResponse>;
   submit(code: string, seq: number, body: SubmitRequest): Promise<CurrentResponse>;
+  submitPhone(code: string, body: PhoneSubmitRequest): Promise<void>;
+  checkPhone(code: string, body: PhoneSubmitRequest): Promise<PhoneCheckResponse>;
 }

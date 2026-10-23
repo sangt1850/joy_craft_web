@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { ApiError, type AnswerInput, type CurrentResponse, type DwellMetrics } from '../api/types';
 import { Toast } from '../components/Toast';
 import { ConsentView } from './ConsentView';
 import { EndView } from './EndView';
+import { PhoneEntryView } from './PhoneEntryView';
 import { QuestionsView } from './QuestionsView';
 import { StimulusView } from './StimulusView';
 
@@ -24,8 +25,9 @@ const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
 export function SurveyPage() {
   const { code = '' } = useParams();
-  const [params] = useSearchParams();
-  const uid = params.get('uid');
+
+  const [phonePhase, setPhonePhase] = useState<'entry' | 'survey'>('entry');
+  const [enteredPhone, setEnteredPhone] = useState<string | null>(null);
 
   const [data, setData] = useState<CurrentResponse | null>(null);
   const [fatal, setFatal] = useState<string | null>(null);
@@ -33,24 +35,26 @@ export function SurveyPage() {
   const [toast, setToast] = useState<string | null>(null);
   const clearToast = useCallback(() => setToast(null), []);
 
-  // 시작 또는 이어하기
+  // 진입 게이트 통과 후에만 시작
   useEffect(() => {
+    if (phonePhase !== 'survey') return;
     api
-      .start(code, uid)
-      .then((res) => {
-        // 링크를 공유해도 패널 uid가 새지 않도록 주소창에서 지운다 (서버는 쿠키로 식별)
-        if (uid && !import.meta.env.VITE_USE_MOCK) {
-          const url = new URL(location.href);
-          url.searchParams.delete('uid');
-          history.replaceState(null, '', url);
-        }
-        setData(res);
-      })
-      .catch((e: unknown) => setFatal(e instanceof ApiError ? ERROR_TEXT[e.code] ?? e.message : '오류가 발생했습니다.'));
-  }, [code, uid]);
+      .start(code, enteredPhone)
+      .then((res) => setData(res))
+      .catch((e: unknown) =>
+        setFatal(e instanceof ApiError ? ERROR_TEXT[e.code] ?? e.message : '오류가 발생했습니다.'),
+      );
+  }, [code, enteredPhone, phonePhase]);
 
   const page = data?.status === 'IN_PROGRESS' ? data.page : undefined;
   const inProgress = data?.status === 'IN_PROGRESS';
+
+  // COMPLETE 시 gift phone 자동 저장 (실패 무시)
+  useEffect(() => {
+    if (data?.status === 'COMPLETE' && enteredPhone) {
+      api.submitPhone(code, { phone: enteredPhone }).catch(() => undefined);
+    }
+  }, [data?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 페이지 진입 시각을 서버에 기록 (체류 시간·45초 검증 기준)
   useEffect(() => {
@@ -106,7 +110,7 @@ export function SurveyPage() {
       // 쿠키 만료: 처음부터 다시 식별해서 서버 상태로 복구
       if (codeErr === 'RESPONDENT_NOT_FOUND') {
         try {
-          setData(await api.start(code, uid));
+          setData(await api.start(code, enteredPhone));
         } catch {
           /* 토스트로 이미 안내 */
         }
@@ -123,6 +127,22 @@ export function SurveyPage() {
       setSubmitting(false);
     }
   };
+
+  // 진입 게이트 화면 (start 호출 전)
+  if (phonePhase === 'entry') {
+    return (
+      <>
+        <PhoneEntryView
+          surveyCode={code}
+          onProceed={(phone) => {
+            setEnteredPhone(phone);
+            setPhonePhase('survey');
+          }}
+        />
+        <Toast message={toast} onDone={clearToast} />
+      </>
+    );
+  }
 
   if (fatal) {
     return (
@@ -147,7 +167,13 @@ export function SurveyPage() {
     // key=seq: 페이지가 바뀌면 응답·타이머 상태를 새로 시작
     if (page.pageType === 'CONSENT') view = <ConsentView key={page.seq} {...props} />;
     else if (page.pageType === 'STIMULUS') view = <StimulusView key={page.seq} {...props} />;
-    else view = <QuestionsView key={`${page.seq}-${JSON.stringify(page.questions.map((q) => q.options.map((o) => o.available)))}`} {...props} />;
+    else
+      view = (
+        <QuestionsView
+          key={`${page.seq}-${JSON.stringify(page.questions.map((q) => q.options.map((o) => o.available)))}`}
+          {...props}
+        />
+      );
   }
 
   return (

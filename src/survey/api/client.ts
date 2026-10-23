@@ -33,6 +33,8 @@ const realApi: SurveyApi = {
   current: (code) => request('GET', `/${code}/current`),
   enter: (code, seq) => request('POST', `/${code}/pages/${seq}/enter`),
   submit: (code, seq, body) => request('POST', `/${code}/pages/${seq}/submit`, body),
+  submitPhone: (code, body) => request('POST', `/${code}/gift/phone`, body),
+  checkPhone: (code, body) => request('POST', `/${code}/gift/phone/check`, body),
 };
 
 export const api: SurveyApi = import.meta.env.VITE_USE_MOCK === 'true' ? mockApi : realApi;

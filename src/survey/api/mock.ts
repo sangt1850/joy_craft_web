@@ -5,6 +5,7 @@ import {
   type CurrentResponse,
   type OptionDto,
   type PageDto,
+  type PhoneCheckStatus,
   type QuestionDto,
   type RespondentStatus,
   type SurveyApi,
@@ -174,6 +175,7 @@ interface MockState {
   status: RespondentStatus;
   enteredAt: Record<number, number>;
   attentionFailed: boolean;
+  phone: string | null;
 }
 const KEY = 'survey-mock-state';
 const load = (): MockState | null => {
@@ -191,7 +193,7 @@ const save = (s: MockState) => {
     /* 무시 */
   }
 };
-let state: MockState = load() ?? { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false };
+let state: MockState = load() ?? { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
 
 const delay = <T,>(v: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(v), ms));
 const currentResponse = (): CurrentResponse =>
@@ -200,10 +202,21 @@ const currentResponse = (): CurrentResponse =>
     : { status: state.status };
 
 export const mockApi: SurveyApi = {
+  async checkPhone(_code, body) {
+    // ?phone_check=IN_PROGRESS 등으로 시나리오 강제 가능
+    const scenario = new URLSearchParams(location.search).get('phone_check');
+    const checkStatus = (scenario as PhoneCheckStatus | null) ?? 'NEW';
+    // NEW 시나리오면 phone 기록
+    if (checkStatus === 'NEW' || checkStatus === 'IN_PROGRESS') {
+      state.phone = body.phone;
+      save(state);
+    }
+    return delay({ checkStatus }, 300);
+  },
   async start() {
     // ?reset 으로 접속하면 처음부터
     if (new URLSearchParams(location.search).has('reset')) {
-      state = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false };
+      state = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
       save(state);
     }
     return delay(currentResponse());
@@ -216,6 +229,10 @@ export const mockApi: SurveyApi = {
     save(state);
     const now = new Date().toISOString();
     return delay({ enteredAt: new Date(state.enteredAt[seq]).toISOString(), serverNow: now }, 50);
+  },
+  async submitPhone() {
+    // 목 환경에서는 400ms 지연 후 성공 반환
+    return delay(undefined as unknown as void, 400);
   },
   async submit(_code, seq, body) {
     await delay(null, 300);
