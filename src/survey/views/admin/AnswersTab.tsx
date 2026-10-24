@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AdminClient } from '../../api/adminClient';
 import type { AnswerDistribution, QuestionDist } from '../../api/adminTypes';
+import { GroupCompareDistribution, toCompareProps } from './GroupCompareDistribution';
 
 interface Props {
   client: AdminClient;
@@ -78,8 +79,9 @@ function YearRangeFilter({
 }
 
 type GroupView = 'ALL' | 'A' | 'B';
+type ViewMode = 'MERGED' | 'SPLIT';
 
-function QuestionCard({ q, group }: { q: QuestionDist; group: GroupView }) {
+function QuestionCard({ q, group, mode }: { q: QuestionDist; group: GroupView; mode: ViewMode }) {
   // 출생 연도 문항(보기 라벨이 "YYYY년")이면 우측 상단에 연도 범위 필터를 제공한다
   const years = q.options
     .map((o) => optionYear(o.label))
@@ -138,6 +140,12 @@ function QuestionCard({ q, group }: { q: QuestionDist; group: GroupView }) {
         )}
       </div>
 
+      {mode === 'SPLIT' ? (
+        <GroupCompareDistribution
+          {...toCompareProps(q, options, (o) => (isLikert ? LIKERT_LABELS[o.value - 1] : o.label))}
+        />
+      ) : (
+        <>
       {q.qtype === 'LIKERT7' && group !== 'ALL' && groupMean != null ? (
         <div className="dist-means">
           <span>
@@ -196,6 +204,8 @@ function QuestionCard({ q, group }: { q: QuestionDist; group: GroupView }) {
           );
         })}
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -206,6 +216,7 @@ export function AnswersTab({ client }: Props) {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [group, setGroup] = useState<GroupView>('ALL');
+  const [mode, setMode] = useState<ViewMode>('MERGED');
 
   const load = useCallback(
     () => {
@@ -248,7 +259,17 @@ export function AnswersTab({ client }: Props) {
         />
         <select
           className="admin-select"
+          aria-label="보기 방식"
+          value={mode}
+          onChange={(e) => setMode(e.target.value as ViewMode)}
+        >
+          <option value="MERGED">합쳐보기</option>
+          <option value="SPLIT">나눠보기 (A/B 비교)</option>
+        </select>
+        <select
+          className="admin-select"
           aria-label="그룹 보기"
+          disabled={mode === 'SPLIT'}
           value={group}
           onChange={(e) => setGroup(e.target.value as GroupView)}
         >
@@ -277,7 +298,7 @@ export function AnswersTab({ client }: Props) {
           {filtered.length === 0 ? (
             <div className="admin-empty">표시할 문항이 없습니다.</div>
           ) : (
-            filtered.map((q) => <QuestionCard key={q.questionId} q={q} group={group} />)
+            filtered.map((q) => <QuestionCard key={q.questionId} q={q} group={group} mode={mode} />)
           )}
         </div>
       )}
