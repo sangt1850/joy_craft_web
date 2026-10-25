@@ -107,11 +107,16 @@ export interface EditableQuestion {
   options: EditableOption[];
 }
 
+export type EditablePageType = 'CONSENT' | 'QUESTIONS' | 'STIMULUS';
+
 export interface EditablePage {
   pageKey: string;
   seq: number;
+  pageType: EditablePageType;
   title: string | null;
   instruction: string | null;
+  /** 자극물 페이지에서만 의미가 있는 최소 체류 시간(초) */
+  minSeconds: number;
   questions: EditableQuestion[];
 }
 

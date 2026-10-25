@@ -117,7 +117,7 @@ export function OverviewTab({ client }: Props) {
   const handleStatusChange = async (newStatus: string) => {
     const messages: Record<string, string> = {
       TEST: 'TEST로 전환하면 테스트 모드로 돌아갑니다.\n계속할까요?',
-      OPEN: 'OPEN으로 전환하면 응답자가 설문에 접속할 수 있습니다.\n계속할까요?',
+      OPEN: 'OPEN으로 전환하면 응답자가 설문에 접속할 수 있습니다.\nOPEN 이후에는 문항을 고치면 안 됩니다. 응답 중인 사람에게 바로 반영되어 제출 오류가 나거나 통계가 틀어질 수 있어요.\n문항 문구·보기를 모두 확인하셨나요? 계속할까요?',
       CLOSED: 'CLOSED로 전환하면 새 응답을 받지 않습니다.\n계속할까요?',
     };
     if (!confirm(messages[newStatus] ?? `상태를 "${newStatus}"로 변경할까요?`)) return;

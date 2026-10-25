@@ -372,17 +372,28 @@ interface PageHeaderProps {
   onData: (data: QuestionEditData) => void;
 }
 
-/** 문항들을 감싸는 박스의 제목과 위쪽 안내 문구 */
+const PAGE_TYPE_LABEL: Record<EditablePage['pageType'], string> = {
+  CONSENT: '동의',
+  QUESTIONS: '문항',
+  STIMULUS: '자극물',
+};
+
+/** 페이지 박스의 제목과 위쪽 안내 문구. 자극물 페이지는 최소 체류 시간도 함께 고친다 */
 function PageHeader({ page, client, onData }: PageHeaderProps) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(page.title ?? '');
   const [instruction, setInstruction] = useState(page.instruction ?? '');
+  const [minSeconds, setMinSeconds] = useState(String(page.minSeconds));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const isStimulus = page.pageType === 'STIMULUS';
+  const seconds = Number(minSeconds);
+  const secondsValid = !isStimulus || (minSeconds.trim() !== '' && Number.isInteger(seconds) && seconds >= 0 && seconds <= 600);
 
   const open = () => {
     setTitle(page.title ?? '');
     setInstruction(page.instruction ?? '');
+    setMinSeconds(String(page.minSeconds));
     setError('');
     setEditing(true);
   };
@@ -391,7 +402,13 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
     setBusy(true);
     setError('');
     try {
-      onData(await client.updatePage(page.pageKey, { title, instruction }));
+      onData(
+        await client.updatePage(page.pageKey, {
+          title,
+          instruction,
+          ...(isStimulus ? { minSeconds: seconds } : {}),
+        }),
+      );
       setEditing(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장하지 못했습니다.');
@@ -406,9 +423,13 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
         <div className="qedit-page__main">
           <div className="admin-card__title">
             {page.title ?? page.pageKey}
-            <span className="qedit-meta"> {page.pageKey}</span>
+            <span className="qedit-meta">
+              {' '}
+              {PAGE_TYPE_LABEL[page.pageType]} · {page.pageKey}
+            </span>
           </div>
           {page.instruction && <p className="qedit-page__instruction">{page.instruction}</p>}
+          {isStimulus && <p className="qedit-meta">최소 체류 시간 {page.minSeconds}초</p>}
         </div>
         <button type="button" className="admin-action-btn" onClick={open}>
           제목·안내 수정
@@ -439,6 +460,21 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
           onChange={(e) => setInstruction(e.target.value)}
         />
       </label>
+      {isStimulus && (
+        <label className="qedit-field">
+          <span className="qedit-field__label">최소 체류 시간 (초, 0~600 · 이 시간이 지나야 다음으로 넘어갈 수 있음)</span>
+          <input
+            className="admin-search"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={600}
+            value={minSeconds}
+            disabled={busy}
+            onChange={(e) => setMinSeconds(e.target.value)}
+          />
+        </label>
+      )}
       {error && (
         <p className="qedit-error" role="alert">
           {error}
@@ -451,7 +487,7 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
         <button
           type="button"
           className="admin-action-btn admin-action-btn--primary"
-          disabled={busy || !title.trim()}
+          disabled={busy || !title.trim() || !secondsValid}
           onClick={save}
         >
           {busy ? '저장 중…' : '저장'}
@@ -511,18 +547,20 @@ export function QuestionsTab({ client }: Props) {
       {data.pages.map((page) => (
         <div key={page.pageKey} className="admin-card">
           <PageHeader page={page} client={client} onData={setData} />
-          <div className="qedit-list">
-            {page.questions.map((q, i) => (
-              <QuestionCard
-                key={q.id}
-                q={q}
-                isFirst={i === 0}
-                isLast={i === page.questions.length - 1}
-                client={client}
-                onData={setData}
-              />
-            ))}
-          </div>
+          {page.questions.length > 0 && (
+            <div className="qedit-list">
+              {page.questions.map((q, i) => (
+                <QuestionCard
+                  key={q.id}
+                  q={q}
+                  isFirst={i === 0}
+                  isLast={i === page.questions.length - 1}
+                  client={client}
+                  onData={setData}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>

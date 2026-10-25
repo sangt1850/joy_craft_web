@@ -71,7 +71,10 @@ export function createAdminClient(code: string, adminKey: string) {
         method: 'PATCH',
         body: JSON.stringify(patch),
       }),
-    updatePage: (pageKey: string, page: { title: string; instruction: string }) =>
+    updatePage: (
+      pageKey: string,
+      page: { title: string; instruction: string; minSeconds?: number },
+    ) =>
       req<QuestionEditData>(`${base}/pages/${encodeURIComponent(pageKey)}`, adminKey, {
         method: 'PUT',
         body: JSON.stringify(page),
