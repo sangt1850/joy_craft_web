@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { RichText } from '../../components/RichText';
+import { RichTextField } from './RichTextField';
 import type { AdminClient } from '../../api/adminClient';
 import type {
   EditableOption,
@@ -422,13 +424,17 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
       <div className="qedit-page">
         <div className="qedit-page__main">
           <div className="admin-card__title">
-            {page.title ?? page.pageKey}
+            {page.title ? <RichText text={page.title} /> : page.pageKey}
             <span className="qedit-meta">
               {' '}
               {PAGE_TYPE_LABEL[page.pageType]} · {page.pageKey}
             </span>
           </div>
-          {page.instruction && <p className="qedit-page__instruction">{page.instruction}</p>}
+          {page.instruction && (
+            <p className="qedit-page__instruction">
+              <RichText text={page.instruction} />
+            </p>
+          )}
           {isStimulus && <p className="qedit-meta">최소 체류 시간 {page.minSeconds}초</p>}
         </div>
         <button type="button" className="admin-action-btn" onClick={open}>
@@ -440,26 +446,20 @@ function PageHeader({ page, client, onData }: PageHeaderProps) {
 
   return (
     <div className="qedit-page qedit-page--editing">
-      <label className="qedit-field">
-        <span className="qedit-field__label">제목 (응답자 화면 위쪽에 표시)</span>
-        <input
-          className="admin-search"
-          value={title}
-          maxLength={200}
-          disabled={busy}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </label>
-      <label className="qedit-field">
-        <span className="qedit-field__label">안내 문구 (비우면 표시하지 않음)</span>
-        <textarea
-          className="admin-search qedit-textarea"
-          rows={2}
-          value={instruction}
-          disabled={busy}
-          onChange={(e) => setInstruction(e.target.value)}
-        />
-      </label>
+      <RichTextField
+        label="제목 (응답자 화면 위쪽에 표시)"
+        value={title}
+        maxLength={200}
+        disabled={busy}
+        onChange={setTitle}
+      />
+      <RichTextField
+        label="안내 문구 (비우면 표시하지 않음)"
+        value={instruction}
+        multiline
+        disabled={busy}
+        onChange={setInstruction}
+      />
       {isStimulus && (
         <label className="qedit-field">
           <span className="qedit-field__label">최소 체류 시간 (초, 0~600 · 이 시간이 지나야 다음으로 넘어갈 수 있음)</span>

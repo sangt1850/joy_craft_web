@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Body, BottomBar, ProgressHeader, Screen } from '../components/Layout';
+import { RichText } from '../components/RichText';
 import { useDwellTracker } from '../hooks/useDwellTracker';
 import type { ViewProps } from './types';
 
@@ -44,7 +45,7 @@ export function StimulusView({ page, submitting, onSubmit }: ViewProps) {
     <Screen>
       <ProgressHeader title={page.title} index={page.progressIndex} total={page.totalPages} />
       <Body>
-        {page.instruction && <div className="notice notice--info">{page.instruction}</div>}
+        {page.instruction && <div className="notice notice--info"><RichText text={page.instruction} /></div>}
         <article className="card card--flush stimulus">
           {/* 제목·본문이 모두 비어 있는 텍스트 블록(아직 채우지 않은 자극물 문구)은 빈 칸으로 보이지 않게 건너뛴다 */}
           {page.stimulus.filter((b) => b.kind === 'IMAGE' || b.content || b.caption).map((b) =>

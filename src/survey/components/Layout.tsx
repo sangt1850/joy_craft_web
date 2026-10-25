@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react';
+import { RichText } from './RichText';
 
 export function ProgressHeader({ title, index, total }: { title: string; index: number; total: number }) {
   const pct = Math.min(100, Math.round((index / total) * 100));
   return (
     <header className="progress-header">
       <div className="progress-header__row">
-        <span className="progress-header__title">{title}</span>
+        <span className="progress-header__title">
+          <RichText text={title} />
+        </span>
         <span className="progress-header__count">
           {index} / {total}
         </span>

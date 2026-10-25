@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Body, BottomBar, Card, ProgressHeader, Screen } from '../components/Layout';
 import { Likert7, QuotaNotice, SelectChoice, SingleChoice } from '../components/Choices';
+import { RichText } from '../components/RichText';
 import { useDwellTracker } from '../hooks/useDwellTracker';
 import type { QuestionDto } from '../api/types';
 import type { ViewProps } from './types';
@@ -44,7 +45,11 @@ export function QuestionsView({ page, submitting, onSubmit }: ViewProps) {
     <Screen>
       <ProgressHeader title={page.title} index={page.progressIndex} total={page.totalPages} />
       <Body>
-        {page.instruction && <p className="instruction">{page.instruction}</p>}
+        {page.instruction && (
+          <p className="instruction">
+            <RichText text={page.instruction} />
+          </p>
+        )}
         {page.questions.map((q, i) => {
           const err = showErrors && q.required && !answers[q.id];
           const Input = q.qtype === 'LIKERT7' ? Likert7 : q.qtype === 'SELECT' ? SelectChoice : SingleChoice;
