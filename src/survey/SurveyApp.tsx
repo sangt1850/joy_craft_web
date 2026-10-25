@@ -18,7 +18,7 @@ function NotFound() {
 /** 설문 모드(VITE_APP_MODE=survey)의 루트. 기존 JoyCraft 화면은 여기서 전혀 로드되지 않는다 */
 export default function SurveyApp() {
   useEffect(() => {
-    document.title = '설문 조사';
+    document.title = 'SNS 여행 게시물과 자연 관광지 인식에 관한 설문조사';
   }, []);
 
   return (

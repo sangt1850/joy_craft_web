@@ -33,7 +33,7 @@ export function SurveyAdminPage() {
   useEffect(() => {
     document.title = `관리자 — ${code}`;
     return () => {
-      document.title = '설문 조사';
+      document.title = 'SNS 여행 게시물과 자연 관광지 인식에 관한 설문조사';
     };
   }, [code]);
 
