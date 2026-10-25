@@ -81,7 +81,8 @@ async function participant(name, run, options = {}) {
   try {
     await client.send('Page.enable');
     await client.send('Page.navigate', { url: `${origin}/s/demo${options.completed ? '?phone_check=COMPLETE' : ''}` });
-    await until('!!document.querySelector(".gift-skip-btn")');
+    // 앱은 로드 즉시 start를 호출하므로 동의 화면이 뜬 뒤에 가로채고, 현재 상태는 current로 채운다
+    await until('!!document.querySelector(".consent-check input")');
     await evaluate(`(async () => {
       const { api } = await import('/src/survey/api/client.ts');
       const { ApiError } = await import('/src/survey/api/types.ts');
@@ -89,6 +90,8 @@ async function participant(name, run, options = {}) {
       const config = ${JSON.stringify(options)};
       window.scenario = { current: null, starts: 0, requests: [], responses: [], errors: [], injected: false };
       window.scenario.config = config;
+      window.scenario.starts = 1;
+      window.scenario.current = await original.current('demo');
       api.start = async (...args) => {
         window.scenario.starts++;
         return window.scenario.current = await original.start(...args);
@@ -118,7 +121,14 @@ async function participant(name, run, options = {}) {
       };
     })()`);
     const click = selector => evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
+    // 동의 → 번호 입력(선택) 순서로 진행해 첫 문항 페이지(또는 번호 차단 화면)까지 간다
     const begin = async phone => {
+      const submitted = await evaluate('window.scenario.responses.length');
+      await click('.consent-check input');
+      await until('document.querySelector(".btn-primary").getAttribute("aria-disabled") !== "true" && !document.querySelector(".btn-primary").disabled');
+      await click('.btn-primary');
+      await until(`window.scenario.responses.length > ${submitted}`);
+      await until('!!document.querySelector(".gift-skip-btn")');
       if (phone) {
         await click('input[type=checkbox]');
         await until('!!document.querySelector("input[type=tel]")');
@@ -130,7 +140,7 @@ async function participant(name, run, options = {}) {
       } else {
         await click('.gift-skip-btn');
       }
-      if (!options.completed) await until('window.scenario.current?.status === "IN_PROGRESS" && !!document.querySelector(".consent-check input")');
+      await until(options.completed ? '!!document.querySelector(".end__body")' : '!!document.querySelector(".question")');
     };
     const step = async overrides => {
       const before = await evaluate('({ seq: window.scenario.current.page.seq, responses: window.scenario.responses.length, errors: window.scenario.errors.length })');
@@ -205,7 +215,9 @@ try {
       assert.equal((await session.finish()).status, 'COMPLETE');
       const requests = await session.evaluate('window.scenario.requests');
       assert.equal(requests.length, 6);
-      assert.ok(requests.every(request => request.phone === phone));
+      // 동의 제출 시점에는 아직 번호가 없고, 번호 입력 이후의 제출에만 번호가 실린다
+      assert.equal(requests[0].phone, null);
+      assert.ok(requests.slice(1).every(request => request.phone === phone));
       assert.equal(await session.evaluate('window.scenario.starts'), 1);
       await session.until('!!document.querySelector(".end__title")');
     });
@@ -225,7 +237,6 @@ try {
   await participant('E long idle + expired participant', async session => {
     await session.begin('01000000005');
     await session.step();
-    await session.step();
     await session.until('!!document.querySelector(".center-msg .btn-primary")');
     assert.match(await session.evaluate('document.body.innerText'), /참여 시간이 만료/);
     assert.equal(await session.evaluate('window.scenario.responses.includes("COMPLETE")'), false);
@@ -234,8 +245,8 @@ try {
     await session.begin('01000000006');
     await session.step();
     await session.client.send('Page.reload');
-    await session.until('!!document.querySelector(".gift-skip-btn")');
-    assert.equal(await session.evaluate('document.querySelector("input[type=checkbox]").checked'), false);
+    await session.until('!!document.querySelector(".consent-check input")');
+    assert.equal(await session.evaluate('document.querySelector(".consent-check input").checked'), false);
     assert.equal(await session.evaluate('!!document.querySelector("input[type=tel]")'), false);
   });
   for (const [name, options] of [
@@ -261,7 +272,8 @@ try {
   await participant('L completed phone blocked at entry', async session => {
     await session.begin('01000000001');
     await session.until('!!document.querySelector(".end__body")');
-    assert.equal(await session.evaluate('window.scenario.starts'), 0);
+    // 동의까지만 제출하고 번호 확인에서 막히므로 이후 문항 제출은 없다
+    assert.equal(await session.evaluate('window.scenario.requests.length'), 1);
   }, { completed: true });
   await participant('M group quota filled', async session => {
     await session.begin(null);
@@ -269,14 +281,12 @@ try {
   }, { groupFull: true });
   await participant('N missing answers stay on current page', async session => {
     await session.begin(null);
-    await session.step();
     await session.click('.btn-primary');
     await session.until('!!document.querySelector(".field-error")');
     assert.equal(await session.evaluate('window.scenario.requests.length'), 1);
   });
   await participant('O birth year options are 1900 through 2026', async session => {
     await session.begin(null);
-    await session.step();
     const years = await session.evaluate('window.scenario.current.page.questions.find(question => question.code === "Q1").options.map(option => option.value)');
     assert.deepEqual(years, Array.from({ length: 127 }, (_, index) => 2026 - index));
     assert.equal(await session.evaluate('document.querySelector("select").options.length'), 128);
