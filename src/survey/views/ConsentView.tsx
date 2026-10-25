@@ -3,6 +3,9 @@ import { Body, BottomBar, Card, Screen } from '../components/Layout';
 import { useDwellTracker } from '../hooks/useDwellTracker';
 import type { ViewProps } from './types';
 
+// 서버 문구에 리터럴 "\n"이나 <br>이 들어와도 줄바꿈으로 보이게 한다.
+const nl = (t?: string) => t?.replace(/\\n|<br\s*\/?>/gi, '\n');
+
 export function ConsentView({ page, submitting, onSubmit }: ViewProps) {
   const [agreed, setAgreed] = useState(false);
   const [shake, setShake] = useState(false);
@@ -14,9 +17,9 @@ export function ConsentView({ page, submitting, onSubmit }: ViewProps) {
       <div className="accent-strip" />
       <Body>
         <Card className="card--hero">
-          <div className="eyebrow">{c?.eyebrow}</div>
-          <h1 className="hero-title">{c?.headline}</h1>
-          <p className="muted">{c?.summary}</p>
+          <div className="eyebrow consent-text">{nl(c?.eyebrow)}</div>
+          <h1 className="hero-title consent-text">{nl(c?.headline)}</h1>
+          <p className="muted consent-text">{nl(c?.summary)}</p>
           <div className="chips">
             {c?.chips.map((chip) => (
               <span key={chip} className="chip">
@@ -32,7 +35,7 @@ export function ConsentView({ page, submitting, onSubmit }: ViewProps) {
             {c?.sections.map((s) => (
               <div key={s.heading}>
                 <dt>{s.heading}</dt>
-                <dd>{s.body}</dd>
+                <dd className="consent-text">{nl(s.body)}</dd>
               </div>
             ))}
           </dl>
@@ -40,7 +43,7 @@ export function ConsentView({ page, submitting, onSubmit }: ViewProps) {
 
         <label className={`card consent-check ${shake ? 'is-error' : ''}`}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-          <span>{c?.agreeLabel}</span>
+          <span className="consent-text">{nl(c?.agreeLabel)}</span>
         </label>
       </Body>
       <BottomBar

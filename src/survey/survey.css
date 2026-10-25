@@ -84,6 +84,7 @@ h1, h2, p, dl, dd { margin: 0; }
 .card--flush { padding: 0; overflow: hidden; gap: 0; }
 .card-title { font-size: 16px; font-weight: 700; }
 
+.consent-text { white-space: pre-line; overflow-wrap: anywhere; }
 .eyebrow { font-size: 12px; font-weight: 500; color: var(--accent); }
 .hero-title { font-size: 22px; line-height: 1.4; font-weight: 700; }
 .muted { font-size: 14px; line-height: 1.6; color: var(--text-2); }
