@@ -1,11 +1,13 @@
 import type {
   AdminStats,
   AnswerDistribution,
+  GiftConfigData,
   GiftPhonesResponse,
   QuestionEditData,
   QuestionType,
   RespondentPage,
 } from './adminTypes';
+import type { GiftContent } from './types';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
@@ -97,6 +99,12 @@ export function createAdminClient(code: string, adminKey: string) {
       const qs = q.toString();
       return req<GiftPhonesResponse>(`${base}/gifts${qs ? `?${qs}` : ''}`, adminKey);
     },
+    giftConfig: () => req<GiftConfigData>(`${base}/gift-config`, adminKey),
+    saveGiftConfig: (enabled: boolean, content: GiftContent) =>
+      req<GiftConfigData>(`${base}/gift-config`, adminKey, {
+        method: 'PUT',
+        body: JSON.stringify({ enabled, content }),
+      }),
     markGiftSent: (giftId: number, sent: boolean) =>
       req<{ id: number; sent: boolean }>(`${base}/gifts/${giftId}/sent`, adminKey, {
         method: 'POST',

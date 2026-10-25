@@ -61,10 +61,26 @@ export interface PageDto {
   };
 }
 
+/** 기프트콘 이벤트 화면 문구. 비어 있는 값은 서버가 기본 문구로 채워 내려준다 */
+export interface GiftContent {
+  icon: string;
+  eyebrow: string;
+  headline: string;
+  description: string;
+  purpose: string; // 개인정보 수집·이용 목적
+  endNotice: string; // 종료 화면의 발송 안내 문장
+}
+
+export interface GiftConfig {
+  enabled: boolean; // false면 번호 입력 단계 없이 바로 설문 진행
+  content: GiftContent;
+}
+
 export interface CurrentResponse {
   status: RespondentStatus;
   page?: PageDto; // IN_PROGRESS일 때만
   redirectUrl?: string; // 패널 리다이렉트
+  gift?: GiftConfig;
 }
 
 export interface EnterResponse {

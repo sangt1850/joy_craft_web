@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AdminClient } from '../../api/adminClient';
 import type { GiftPhoneItem, GiftPhonesResponse } from '../../api/adminTypes';
+import { GiftConfigPanel } from './GiftConfigPanel';
 
 const STATUS_LABELS: Record<string, string> = {
   COMPLETE: '완료',
@@ -89,6 +90,8 @@ export function GiftTab({ client }: Props) {
 
   return (
     <div className="admin-section">
+      <GiftConfigPanel client={client} />
+
       {/* 요약 카드 */}
       {data && (
         <div className="gift-summary">

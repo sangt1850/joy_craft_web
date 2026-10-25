@@ -91,7 +91,8 @@ function SurveySession({ code }: { code: string }) {
     setSubmitting(true);
     const body = { answers, ...metrics, phone: enteredPhone };
     const apply = (res: CurrentResponse) => {
-      if (page.pageType === 'CONSENT' && res.status === 'IN_PROGRESS') setPhoneStep('entry');
+      // 이벤트가 꺼져 있으면 번호 입력 단계 없이 바로 다음 페이지로 간다
+      if (page.pageType === 'CONSENT' && res.status === 'IN_PROGRESS' && res.gift?.enabled) setPhoneStep('entry');
       setData(res);
     };
     try {
@@ -149,10 +150,11 @@ function SurveySession({ code }: { code: string }) {
     );
   }
 
-  if (phoneEntry) {
+  if (phoneEntry && data.gift) {
     return (
       <PhoneEntryView
         surveyCode={code}
+        content={data.gift.content}
         onProceed={(phone) => {
           setEnteredPhone(phone);
           setPhoneStep('done');
@@ -163,7 +165,7 @@ function SurveySession({ code }: { code: string }) {
 
   let view;
   if (data.status !== 'IN_PROGRESS') {
-    view = <EndView status={data.status} redirectUrl={data.redirectUrl} />;
+    view = <EndView status={data.status} redirectUrl={data.redirectUrl} gift={data.gift} />;
   } else if (page) {
     const props = { page, submitting, onSubmit: handleSubmit };
     // key=seq: 페이지가 바뀌면 응답·타이머 상태를 새로 시작

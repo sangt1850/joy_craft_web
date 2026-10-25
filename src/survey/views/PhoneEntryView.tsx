@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Body, Card, Screen } from '../components/Layout';
 import { api } from '../api/client';
-import type { PhoneCheckStatus } from '../api/types';
+import type { GiftContent, PhoneCheckStatus } from '../api/types';
 
 function formatPhone(value: string): string {
   const d = value.replace(/\D/g, '').slice(0, 11);
@@ -16,12 +16,13 @@ function isValidPhone(digits: string): boolean {
 
 interface PhoneEntryViewProps {
   surveyCode: string;
+  content: GiftContent;
   onProceed: (phone: string | null) => void;
 }
 
 type Phase = 'input' | 'checking' | 'blocked';
 
-export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
+export function PhoneEntryView({ surveyCode, content, onProceed }: PhoneEntryViewProps) {
   const [phase, setPhase] = useState<Phase>('input');
   const [agreed, setAgreed] = useState(false);
   const [phone, setPhone] = useState('');
@@ -92,13 +93,10 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
       <div className="accent-strip" />
       <Body>
         <Card className="card--hero">
-          <div className="gift-icon" aria-hidden="true">☕</div>
-          <div className="eyebrow">이벤트 안내</div>
-          <h1 className="hero-title">커피 기프트콘 증정</h1>
-          <p className="muted">
-            설문에 참여해 주시면 커피 기프트콘을 보내드려요.
-            번호 입력은 선택이며, 번호 없이도 설문에 참여할 수 있어요.
-          </p>
+          <div className="gift-icon" aria-hidden="true">{content.icon}</div>
+          <div className="eyebrow">{content.eyebrow}</div>
+          <h1 className="hero-title">{content.headline}</h1>
+          <p className="muted">{content.description}</p>
         </Card>
 
         <Card>
@@ -110,7 +108,7 @@ export function PhoneEntryView({ surveyCode, onProceed }: PhoneEntryViewProps) {
             </div>
             <div>
               <dt>수집·이용 목적</dt>
-              <dd>경품(커피 기프트콘) 발송에만 사용</dd>
+              <dd>{content.purpose}</dd>
             </div>
             <div>
               <dt>저장 시점</dt>

@@ -3,6 +3,7 @@
 import {
   ApiError,
   type CurrentResponse,
+  type GiftConfig,
   type OptionDto,
   type PageDto,
   type PhoneCheckStatus,
@@ -179,10 +180,24 @@ interface MockState {
 let state: MockState = { seq: 1, status: 'IN_PROGRESS', enteredAt: {}, attentionFailed: false, phone: null };
 
 const delay = <T,>(v: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(v), ms));
+// 서버 기본 문구와 같은 값. ?gift=off 로 이벤트 꺼진 흐름을 확인할 수 있다
+const mockGift = (): GiftConfig => ({
+  enabled: new URLSearchParams(location.search).get('gift') !== 'off',
+  content: {
+    icon: '☕',
+    eyebrow: '이벤트 안내',
+    headline: '커피 기프트콘 증정',
+    description:
+      '설문에 참여해 주시면 커피 기프트콘을 보내드려요. 번호 입력은 선택이며, 번호 없이도 설문에 참여할 수 있어요.',
+    purpose: '경품(커피 기프트콘) 발송에만 사용',
+    endNotice: '커피 쿠폰은 1주일 이내로 발송됩니다.',
+  },
+});
+
 const currentResponse = (): CurrentResponse =>
   state.status === 'IN_PROGRESS'
-    ? { status: state.status, page: PAGES.find((p) => p.seq === state.seq) }
-    : { status: state.status };
+    ? { status: state.status, page: PAGES.find((p) => p.seq === state.seq), gift: mockGift() }
+    : { status: state.status, gift: mockGift() };
 
 export const mockApi: SurveyApi = {
   async checkPhone() {

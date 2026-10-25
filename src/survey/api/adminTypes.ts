@@ -1,3 +1,5 @@
+import type { GiftContent } from './types';
+
 export interface AdminStats {
   code: string;
   status: 'TEST' | 'OPEN' | 'CLOSED';
@@ -79,6 +81,12 @@ export interface GiftPhonesResponse {
   total: number;
   sentCount: number;
   unsentCount: number;
+}
+
+export interface GiftConfigData {
+  enabled: boolean;
+  content: GiftContent;
+  defaults: GiftContent;
 }
 
 export type QuestionType = 'LIKERT7' | 'SINGLE' | 'SELECT';
