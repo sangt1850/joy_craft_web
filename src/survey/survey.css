@@ -467,6 +467,42 @@ h1, h2, p, dl, dd { margin: 0; }
   background: var(--bg); border-radius: var(--radius-sm);
 }
 
+/* 엑셀 내보내기 — 열 구성 (드래그 앤 드롭) */
+.export-builder { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.export-pane {
+  display: flex; flex-direction: column; gap: 8px; min-height: 200px; min-width: 0;
+  padding: 12px; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.export-pane--selected { background: var(--accent-weak); border-color: var(--accent); }
+.export-pane__title { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.export-pane__empty { padding: 24px 0; text-align: center; font-size: 13px; color: var(--text-3); }
+.export-chip {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  padding: 8px 12px; text-align: left;
+  border: 1px solid var(--line-strong); border-radius: 6px;
+  background: var(--surface); color: var(--text); cursor: grab;
+}
+.export-chip:hover { border-color: var(--text-3); }
+button.export-chip { flex-direction: column; align-items: flex-start; gap: 2px; font: inherit; }
+.export-chip--selected { cursor: grab; }
+.export-chip--dragging { opacity: 0.4; }
+.export-chip--over { box-shadow: 0 -3px 0 var(--accent); }
+.export-chip__no {
+  flex: none; width: 22px; height: 22px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.export-chip__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.export-chip__label { font-size: 13px; font-weight: 600; }
+.export-chip__hint { font-size: 11px; color: var(--text-3); }
+.export-chip__remove {
+  flex: none; width: 28px; height: 28px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-3); font-size: 18px; line-height: 1; cursor: pointer;
+}
+.export-chip__remove:hover { background: var(--line); color: var(--text); }
+@media (max-width: 720px) { .export-builder { grid-template-columns: 1fr; } }
+
 /* 진행률 바 */
 .admin-progress-bar {
   height: 8px; background: var(--line); border-radius: 4px; overflow: hidden;

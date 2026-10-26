@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { createAdminClient, type AdminClient } from '../../api/adminClient';
 import { AnswersTab } from './AnswersTab';
+import { ExportTab } from './ExportTab';
 import { GiftTab } from './GiftTab';
 import { OverviewTab } from './OverviewTab';
 import { QuestionsTab } from './QuestionsTab';
 import { RespondentsTab } from './RespondentsTab';
 
-type Tab = 'overview' | 'respondents' | 'answers' | 'questions' | 'gifts';
+type Tab = 'overview' | 'respondents' | 'answers' | 'questions' | 'gifts' | 'export';
 
 const TABS: [Tab, string][] = [
   ['overview', '개요'],
@@ -15,6 +16,7 @@ const TABS: [Tab, string][] = [
   ['answers', '문항 분포'],
   ['questions', '문항 관리'],
   ['gifts', '선물 발송'],
+  ['export', '엑셀 내보내기'],
 ];
 
 const STORAGE_KEY = 'survey-admin-key';
@@ -124,6 +126,7 @@ export function SurveyAdminPage() {
         {tab === 'answers' && <AnswersTab client={client} />}
         {tab === 'questions' && <QuestionsTab client={client} />}
         {tab === 'gifts' && <GiftTab client={client} />}
+        {tab === 'export' && <ExportTab client={client} />}
       </div>
     </div>
   );

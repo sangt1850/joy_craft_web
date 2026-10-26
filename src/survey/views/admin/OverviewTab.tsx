@@ -86,7 +86,6 @@ export function OverviewTab({ client }: Props) {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [csvLoading, setCsvLoading] = useState(false);
   const [statusChanging, setStatusChanging] = useState(false);
 
   const load = useCallback(() => {
@@ -102,17 +101,6 @@ export function OverviewTab({ client }: Props) {
   useEffect(() => {
     load();
   }, [load]);
-
-  const handleCsvDownload = async () => {
-    setCsvLoading(true);
-    try {
-      await client.downloadCsv();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'CSV 내보내기 실패');
-    } finally {
-      setCsvLoading(false);
-    }
-  };
 
   const handleStatusChange = async (newStatus: string) => {
     const messages: Record<string, string> = {
@@ -267,13 +255,6 @@ export function OverviewTab({ client }: Props) {
               </button>
             </div>
           )}
-          <button
-            className="admin-action-btn admin-action-btn--csv"
-            onClick={handleCsvDownload}
-            disabled={csvLoading}
-          >
-            {csvLoading ? '내보내는 중…' : '↓ CSV 내보내기'}
-          </button>
         </div>
       </div>
 

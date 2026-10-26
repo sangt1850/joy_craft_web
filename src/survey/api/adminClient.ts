@@ -110,19 +110,19 @@ export function createAdminClient(code: string, adminKey: string) {
         method: 'POST',
         body: JSON.stringify({ sent }),
       }),
-    downloadCsv: async (filterStatus?: string) => {
-      const q = new URLSearchParams();
-      if (filterStatus) q.set('status', filterStatus);
+    /** 선택한 열을 순서대로 담은 서식 있는 엑셀(.xlsx)을 받는다 */
+    downloadXlsx: async (columns: string[]) => {
+      const q = new URLSearchParams({ format: 'xlsx', columns: columns.join(',') });
       const qs = q.toString();
       const res = await fetch(`${BASE}/survey/admin${base}/export.csv${qs ? `?${qs}` : ''}`, {
         headers: { 'X-Admin-Key': adminKey },
       });
-      if (!res.ok) throw new Error(`CSV 내보내기 실패 (${res.status})`);
+      if (!res.ok) throw new Error(`엑셀 내보내기 실패 (${res.status})`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${code}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `${code}_${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
