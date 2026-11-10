@@ -14,13 +14,9 @@ const STATUS_LABELS: Record<string, string> = {
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return '-';
-  const d = new Date(iso);
-  return d.toLocaleString('ko-KR', {
-    year: '2-digit',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(iso).toLocaleString('ko-KR', {
+    year: '2-digit', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
   });
 }
 
@@ -36,13 +32,13 @@ export function GiftTab({ client }: Props) {
   const [error, setError] = useState('');
   const [sentFilter, setSentFilter] = useState<SentFilter>('all');
   const [toggling, setToggling] = useState<Set<number>>(new Set());
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(
     (filter: SentFilter) => {
       setLoading(true);
       setError('');
-      const sentParam =
-        filter === 'sent' ? true : filter === 'unsent' ? false : undefined;
+      const sentParam = filter === 'sent' ? true : filter === 'unsent' ? false : undefined;
       client
         .gifts({ sent: sentParam })
         .then(setData)
@@ -52,39 +48,39 @@ export function GiftTab({ client }: Props) {
     [client],
   );
 
-  useEffect(() => {
-    load(sentFilter);
-  }, [load, sentFilter]);
+  useEffect(() => { load(sentFilter); }, [load, sentFilter]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { unsentIds } = await client.downloadGiftXlsx();
+      await client.createGiftExportLog(unsentIds);
+      load(sentFilter);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '엑셀 내보내기 실패');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleToggleSent = async (item: GiftPhoneItem) => {
     const newSent = item.sentAt == null;
     setToggling((prev) => new Set(prev).add(item.id));
     try {
       await client.markGiftSent(item.id, newSent);
-      // optimistic update
+      const updatedAt = newSent ? new Date().toISOString() : null;
       setData((prev) => {
         if (!prev) return prev;
         const updatedItems = prev.items.map((it) =>
-          it.id === item.id
-            ? { ...it, sentAt: newSent ? new Date().toISOString() : null }
-            : it,
+          it.id === item.id ? { ...it, sentAt: updatedAt } : it,
         );
         const sentCount = updatedItems.filter((it) => it.sentAt != null).length;
-        return {
-          ...prev,
-          items: updatedItems,
-          sentCount,
-          unsentCount: updatedItems.length - sentCount,
-        };
+        return { ...prev, items: updatedItems, sentCount, unsentCount: updatedItems.length - sentCount };
       });
     } catch (e) {
       alert(e instanceof Error ? e.message : '업데이트 실패');
     } finally {
-      setToggling((prev) => {
-        const next = new Set(prev);
-        next.delete(item.id);
-        return next;
-      });
+      setToggling((prev) => { const n = new Set(prev); n.delete(item.id); return n; });
     }
   };
 
@@ -110,7 +106,7 @@ export function GiftTab({ client }: Props) {
         </div>
       )}
 
-      {/* 필터 */}
+      {/* 필터 + 내보내기 */}
       <div className="admin-filters">
         {(['all', 'unsent', 'sent'] as const).map((f) => (
           <button
@@ -122,28 +118,30 @@ export function GiftTab({ client }: Props) {
           </button>
         ))}
         {data && (
-          <span className="admin-total-count">
-            {data.items.length.toLocaleString()}건
-          </span>
+          <span className="admin-total-count">{data.items.length.toLocaleString()}건</span>
         )}
+        <button
+          className="admin-action-btn admin-action-btn--primary"
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          {exporting ? '내보내는 중…' : '↓ 미발송 엑셀 내보내기'}
+        </button>
       </div>
 
+      {/* 전체 참여자 테이블 */}
       {loading ? (
         <div className="admin-loading">불러오는 중…</div>
       ) : error ? (
         <div className="admin-error">
           <p>{error}</p>
-          <button className="admin-retry-btn" onClick={() => load(sentFilter)}>
-            다시 시도
-          </button>
+          <button className="admin-retry-btn" onClick={() => load(sentFilter)}>다시 시도</button>
         </div>
       ) : !data || data.items.length === 0 ? (
         <div className="admin-empty">
-          {sentFilter === 'unsent'
-            ? '미발송 항목이 없습니다.'
-            : sentFilter === 'sent'
-              ? '발송 완료 항목이 없습니다.'
-              : '이벤트 참여자가 없습니다.'}
+          {sentFilter === 'unsent' ? '미발송 항목이 없습니다.'
+            : sentFilter === 'sent' ? '발송 완료 항목이 없습니다.'
+            : '이벤트 참여자가 없습니다.'}
         </div>
       ) : (
         <div className="admin-table-wrap">
@@ -176,11 +174,7 @@ export function GiftTab({ client }: Props) {
                     </span>
                   </td>
                   <td>{item.groupCode ?? '-'}</td>
-                  <td
-                    className={
-                      item.attentionFailed ? 'admin-table__att-fail' : 'admin-table__att-ok'
-                    }
-                  >
+                  <td className={item.attentionFailed ? 'admin-table__att-fail' : 'admin-table__att-ok'}>
                     {item.attentionFailed ? '✗ 실패' : '✓ 통과'}
                   </td>
                   <td className="admin-table__time">{formatDateTime(item.submittedAt)}</td>
@@ -196,11 +190,7 @@ export function GiftTab({ client }: Props) {
                           : '클릭하면 발송 완료로 표시합니다.'
                       }
                     >
-                      {toggling.has(item.id)
-                        ? '처리 중…'
-                        : item.sentAt != null
-                          ? '✓ 발송 완료'
-                          : '미발송'}
+                      {toggling.has(item.id) ? '처리 중…' : item.sentAt != null ? '✓ 발송 완료' : '미발송'}
                     </button>
                   </td>
                 </tr>
@@ -209,6 +199,7 @@ export function GiftTab({ client }: Props) {
           </table>
         </div>
       )}
+
     </div>
   );
 }

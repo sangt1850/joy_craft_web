@@ -83,6 +83,14 @@ export interface GiftPhonesResponse {
   unsentCount: number;
 }
 
+export interface GiftExportLogItem {
+  id: number;
+  exportedAt: string;
+  totalCount: number;
+  giftIds: number[];
+  markedSentAt: string | null;
+}
+
 export interface GiftConfigData {
   enabled: boolean;
   content: GiftContent;

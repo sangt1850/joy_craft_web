@@ -36,6 +36,12 @@ export function StimulusView({ page, submitting, onSubmit }: ViewProps) {
   const ready = useImagesReady(imageUrls);
   const { activeMs, snapshot } = useDwellTracker(ready);
 
+  useEffect(() => {
+    if (!ready) return;
+    const group = page.pageKey.includes('_a') ? 'A' : page.pageKey.includes('_b') ? 'B' : page.pageKey;
+    console.log(`[stimulus] group=${group} pageKey=${page.pageKey}`, imageUrls);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const totalMs = page.minSeconds * 1000;
   const remaining = Math.max(0, Math.ceil((totalMs - activeMs) / 1000));
   const done = ready && activeMs >= totalMs;
