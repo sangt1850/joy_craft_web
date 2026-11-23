@@ -24,6 +24,7 @@ const SiteEditorPage = lazy(() => import("./pages/editor/SiteEditorPage"));
 const MasterDashboardPage = lazy(() => import("./pages/master/MasterDashboardPage"));
 
 const TemplateEditPage = lazy(() => import("./pages/creator/TemplateEditPage"));
+const FireworksPage = lazy(() => import("./pages/public/FireworksPage"));
 const NotFoundPage = lazy(() => import("./pages/public/NotFoundPage"));
 
 /** 청크를 받아오는 동안 잠깐 보이는 화면 */
@@ -66,6 +67,7 @@ export default function App() {
           {/* 공개 페이지 */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/play/:slug" element={<PlayerPage />} />
+          <Route path="/fireworks" element={<FireworksPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
 
           {/* 에디터 (레이아웃 없음 — 풀스크린, 인증 필요) */}
