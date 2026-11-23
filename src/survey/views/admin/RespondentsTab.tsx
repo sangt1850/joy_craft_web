@@ -3,7 +3,7 @@ import type { AdminClient } from '../../api/adminClient';
 import type { RespondentPage } from '../../api/adminTypes';
 
 const PAGE_SIZE = 50;
-const COLUMN_COUNT = 7;
+const COLUMN_COUNT = 8;
 
 function formatDuration(ms: number | null): string {
   if (ms == null || ms < 0) return '-';
@@ -129,6 +129,7 @@ export function RespondentsTab({ client }: Props) {
                   이벤트 ⓘ
                 </span>
               </th>
+              <th>User-Agent</th>
               <th>시작</th>
               <th>완료</th>
               <th>소요시간</th>
@@ -180,6 +181,9 @@ export function RespondentsTab({ client }: Props) {
                     title={item.giftPhone ? `전화번호: ${item.giftPhone}` : '미참여'}
                   >
                     {item.giftPhone ? '✓ 참여' : '-'}
+                  </td>
+                  <td className="respondent-ua" title={item.userAgent ?? undefined}>
+                    {item.userAgent || '-'}
                   </td>
                   <td className="admin-table__time">{formatDateTime(item.startedAt)}</td>
                   <td className="admin-table__time">{formatDateTime(item.finishedAt)}</td>

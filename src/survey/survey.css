@@ -1032,6 +1032,16 @@ button.export-chip { flex-direction: column; align-items: flex-start; gap: 2px; 
 .respondent-gift--yes { color: #15803d; font-weight: 600; }
 .respondent-gift--no  { color: var(--text-3); }
 
+/* 응답자 탭 — User-Agent 컬럼 */
+.respondent-ua {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
 /* tooltip-style th */
 .th-with-tip {
   cursor: help;

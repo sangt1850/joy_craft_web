@@ -27,6 +27,8 @@ export interface RespondentItem {
   finishedAt: string | null;
   totalMs: number | null;
   giftPhone: string | null;
+  /** 응답 시작 시점의 User-Agent (IP/panelUid 미저장 시 식별 보조용) */
+  userAgent?: string | null;
 }
 
 export interface RespondentPage {
