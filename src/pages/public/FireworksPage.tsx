@@ -154,7 +154,7 @@ function createPixelFireworks(canvas, opts) {
     g.fillText(MESSAGE, x0, 35);
     const hx = x0 + tw + gap; // 하트 시작 x
     if (HEART) {
-      const cx = hx + hs / 2, top = 35 - hs / 2 + 3;
+      const cx = hx + hs / 2, top = 35 - hs / 2 + 3 - 10; // 하트를 글자보다 10px 위로
       g.beginPath();
       g.moveTo(cx, top + hs * 0.3);
       g.bezierCurveTo(cx, top, cx - hs / 2, top, cx - hs / 2, top + hs * 0.3);
@@ -290,17 +290,16 @@ function createPixelFireworks(canvas, opts) {
     const rdt = dt / SPEED; // 실제 시간 기준 프레임
     phaseT += rdt / 60;
     if (phase === 'normal') {
-      dark = Math.max(0, dark - rdt / 60);
+      dark = Math.max(0, dark - rdt / 120);
       finaleTimer -= rdt; // 피날레 간격은 실제 시간 기준 유지
       if (finaleTimer <= 0) { finale(); finaleTimer = finaleEvery; }
       if (phaseT >= MESSAGE_AT) {
         phase = 'dark'; phaseT = 0;
-        queue.length = 0; rockets.length = 0;
-        for (const p of parts) p.life = Math.min(p.life, 15);
+        queue.length = 0; // 남은 불꽃은 자연스럽게 사그라들도록 그대로 둔다
       }
     } else if (phase === 'dark') {
-      dark = Math.min(1, dark + rdt / 30);
-      if (phaseT >= 1) {
+      dark = Math.min(1, dark + rdt / 120); // 약 2초에 걸쳐 서서히 어두워짐
+      if (phaseT >= 2) {
         phase = 'msg'; phaseT = 0;
         const pts = messagePoints(), N = 12;
         const minX = Math.min(...pts.map((q) => q.x)), maxX = Math.max(...pts.map((q) => q.x)) + 1;
@@ -358,6 +357,7 @@ function createPixelFireworks(canvas, opts) {
 
   // ---------- 렌더 ----------
   function render() {
+    const dk = dark * dark * (3 - 2 * dark); // 부드러운 ease 곡선
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     ctx.drawImage(skyC, 0, 0);
     if (flash.v > 0) {
@@ -372,7 +372,7 @@ function createPixelFireworks(canvas, opts) {
       }
     }
     ctx.globalAlpha = 1;
-    if (dark > 0) { ctx.globalAlpha = dark * 0.5; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, WATER); ctx.globalAlpha = 1; }
+    if (dark > 0) { ctx.globalAlpha = dk * 0.5; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, WATER); ctx.globalAlpha = 1; }
 
     // 불꽃 레이어 (잔상)
     fx.globalCompositeOperation = 'destination-out';
@@ -395,12 +395,12 @@ function createPixelFireworks(canvas, opts) {
     }
     for (const r of rockets) px(fx, Math.round(r.x), Math.round(r.y), '#fff8e0');
 
-    ctx.globalAlpha = 1 - dark; ctx.drawImage(cityC, 0, 0);
+    ctx.globalAlpha = 1 - dk; ctx.drawImage(cityC, 0, 0);
     for (const tw of twinkles) {
       const on = tw.blink ? Math.floor(t / 40) % 2 === 0 : tw.on;
       px(ctx, tw.x, tw.y, on ? tw.col : '#05060d');
     }
-    ctx.globalAlpha = dark; ctx.drawImage(cityDarkC, 0, 0); ctx.globalAlpha = 1;
+    ctx.globalAlpha = dk; ctx.drawImage(cityDarkC, 0, 0); ctx.globalAlpha = 1;
 
     // 불꽃은 건너편 스카이라인 앞에 그림
     ctx.globalCompositeOperation = 'lighter';
@@ -424,7 +424,7 @@ function createPixelFireworks(canvas, opts) {
     ctx.globalCompositeOperation = 'lighter';
     ctx.drawImage(fxC, 0, WATER, W, H - WATER, 0, WATER, W, H - WATER);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 1 - dark; ctx.drawImage(nearC, 0, 0);
+    ctx.globalAlpha = 1 - dk; ctx.drawImage(nearC, 0, 0);
     for (const c of cars) {
       const x = Math.round(c.x), y = bridgeY(x) + c.lane;
       if (c.lane) { px(ctx, x, y, '#ff3a3a'); px(ctx, x + 1, y, '#8a1a1a'); }   // 후미등
@@ -433,7 +433,7 @@ function createPixelFireworks(canvas, opts) {
     const on = Math.floor(t / 45) % 2 === 0;
     px(ctx, 20, 49, on ? '#ff2a2a' : '#3a0808');
     px(ctx, 52, 49, on ? '#ff2a2a' : '#3a0808');
-    ctx.globalAlpha = dark; ctx.drawImage(nearDarkC, 0, 0); ctx.globalAlpha = 1;
+    ctx.globalAlpha = dk; ctx.drawImage(nearDarkC, 0, 0); ctx.globalAlpha = 1;
   }
 
   // ---------- 루프 / 입력 ----------
@@ -447,8 +447,9 @@ function createPixelFireworks(canvas, opts) {
 
   const onDown = (e) => {
     const rc = canvas.getBoundingClientRect();
-    // object-fit: cover 로 잘린 영역을 감안해 좌표 변환
-    const sc = Math.max(rc.width / W, rc.height / H);
+    // object-fit(cover/contain) 에 따른 표시 영역을 감안해 좌표 변환
+    const contain = getComputedStyle(canvas).objectFit === "contain";
+    const sc = (contain ? Math.min : Math.max)(rc.width / W, rc.height / H);
     const x = (e.clientX - rc.left - (rc.width - W * sc) / 2) / sc;
     const y = (e.clientY - rc.top - (rc.height - H * sc) / 2) / sc;
     launch(x, y < WATER - 20 ? y : undefined);
@@ -473,7 +474,7 @@ function PixelFireworks({ finaleSeconds = 5, speed = 0.75, message = '사랑해'
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated', display: 'block', background: '#000', cursor: 'crosshair' }}
+      style={{ width: '100%', height: '100%', objectFit: window.innerWidth < window.innerHeight ? 'contain' : 'cover', imageRendering: 'pixelated', display: 'block', background: '#000', cursor: 'crosshair' }}
     />
   );
 }
