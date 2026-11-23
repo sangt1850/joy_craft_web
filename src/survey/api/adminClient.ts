@@ -127,12 +127,17 @@ export function createAdminClient(code: string, adminKey: string) {
      * - 1행: 유의사항, 2행: 휴대폰번호|이름 헤더, 3행~: 데이터 (이름칸도 번호로 채움)
      * @returns 내보낸 미발송 GiftPhoneItem.id 목록
      */
-    downloadGiftXlsx: async (): Promise<{ unsentIds: number[] }> => {
+    downloadGiftXlsx: async (
+      attention: 'all' | 'pass' | 'fail' = 'all',
+    ): Promise<{ unsentIds: number[] }> => {
       const data = await req<GiftPhonesResponse>(`${base}/gifts`, adminKey);
       const { utils, writeFile } = await import('xlsx');
 
       const unsent: GiftPhoneItem[] = data.items
         .filter((it) => it.sentAt == null)
+        .filter((it) =>
+          attention === 'all' ? true : attention === 'fail' ? it.attentionFailed : !it.attentionFailed,
+        )
         .sort((a, b) => (a.finishedAt ?? '').localeCompare(b.finishedAt ?? ''));
 
       if (unsent.length === 0) {

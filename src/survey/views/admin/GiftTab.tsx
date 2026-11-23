@@ -25,6 +25,7 @@ interface Props {
 }
 
 type SentFilter = 'all' | 'sent' | 'unsent';
+type AttentionFilter = 'all' | 'pass' | 'fail';
 
 export function GiftTab({ client }: Props) {
   const [data, setData] = useState<GiftPhonesResponse | null>(null);
@@ -33,6 +34,7 @@ export function GiftTab({ client }: Props) {
   const [sentFilter, setSentFilter] = useState<SentFilter>('all');
   const [toggling, setToggling] = useState<Set<number>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const [exportAttention, setExportAttention] = useState<AttentionFilter>('all');
 
   const load = useCallback(
     (filter: SentFilter) => {
@@ -53,7 +55,7 @@ export function GiftTab({ client }: Props) {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const { unsentIds } = await client.downloadGiftXlsx();
+      const { unsentIds } = await client.downloadGiftXlsx(exportAttention);
       await client.createGiftExportLog(unsentIds);
       load(sentFilter);
     } catch (e) {
@@ -120,6 +122,16 @@ export function GiftTab({ client }: Props) {
         {data && (
           <span className="admin-total-count">{data.items.length.toLocaleString()}건</span>
         )}
+        <select
+          aria-label="내보내기 주의 통과 여부"
+          value={exportAttention}
+          onChange={(e) => setExportAttention(e.target.value as AttentionFilter)}
+          disabled={exporting}
+        >
+          <option value="all">전체</option>
+          <option value="pass">통과</option>
+          <option value="fail">미통과</option>
+        </select>
         <button
           className="admin-action-btn admin-action-btn--primary"
           onClick={handleExport}
